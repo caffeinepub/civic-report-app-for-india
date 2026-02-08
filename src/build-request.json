@@ -1,0 +1,73 @@
+{
+  "kind": "build_request",
+  "title": "Fix missing homepage text update by updating all remaining occurrences (including HTML metadata)",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "text": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so that the application consistently shows the intended updated wording where applicable.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "I still can't see updated text Dispite of check on 10 devices, please fix this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A codebase-wide check confirms there are no remaining user-facing strings containing \"Get Leader-Giotag\" (including in HTML metadata, React components, and translation strings).",
+        "Where the app previously displayed the old phrase, it now displays the updated wording as specified in REQ-3/REQ-4 (or a deliberate, explicitly preserved alternative if it is not the same UI element)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the homepage section headline in frontend/src/components/RecentReports.tsx to display exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (and ensure no other code path can override it on the homepage).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "I still can't see updated text Dispite of check on 10 devices, please fix this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the route \"/\" (home page), the visible H2 headline above the recent reports section matches exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
+        "There is no alternate rendering (e.g., conditional language mode, duplicated component, or fallback UI) that shows a different headline on the homepage."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the document title and social/share metadata in frontend/index.html to remove the old wording and use the updated wording consistently (update <title>, og:title, and twitter:title).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "I still can't see updated text Dispite of check on 10 devices, please fix this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/index.html <title> no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
+        "frontend/index.html meta property=\"og:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
+        "frontend/index.html meta name=\"twitter:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit any files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Keep backend unchanged (single-actor Motoko architecture; no schema/state migration needed for this request).",
+    "Use English for any user-facing text changed/added by this request."
+  ],
+  "nonGoals": [
+    "Adding new features unrelated to the missing text update.",
+    "Changing layout/styling beyond what is necessary to ensure the correct text is displayed.",
+    "Implementing external caching/CDN invalidation tooling."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

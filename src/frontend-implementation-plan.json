@@ -1,0 +1,68 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Remove remaining outdated homepage headline wording and update HTML metadata",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Remove any remaining user-facing occurrences of the old homepage phrase (including metadata, components, and translations) so the updated wording is shown consistently.",
+      "acceptanceCriteria": [
+        "A codebase-wide check confirms there are no remaining user-facing strings containing \"Get Leader-Giotag\" (including in HTML metadata, React components, and translation strings).",
+        "Where the app previously displayed the old phrase, it now displays the updated wording as specified in REQ-3/REQ-4 (or a deliberate, explicitly preserved alternative if it is not the same UI element)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/contexts/LanguageContext.tsx",
+          "operation": "modify",
+          "description": "Audit and update any translation strings that still include \"Get Leader-Giotag\" (or close/outdated variants of the homepage headline) so that no language mode can surface the old phrase; keep all updated user-facing text in English as required."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Ensure no remaining user-facing metadata strings contain \"Get Leader-Giotag\" by aligning document/share titles with the updated wording (also satisfies REQ-4)."
+        },
+        {
+          "path": "frontend/src/components/RecentReports.tsx",
+          "operation": "modify",
+          "description": "Confirm the homepage recent-reports H2 headline is the single source of truth and cannot be overridden by translation/conditional rendering; remove any unused translation hook usage to prevent alternate code paths (also satisfies REQ-3)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Set the RecentReports homepage section headline to the exact required updated text and prevent any alternate rendering from showing a different headline.",
+      "acceptanceCriteria": [
+        "On the route \"/\" (home page), the visible H2 headline above the recent reports section matches exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
+        "There is no alternate rendering (e.g., conditional language mode, duplicated component, or fallback UI) that shows a different headline on the homepage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/RecentReports.tsx",
+          "operation": "modify",
+          "description": "Hardcode the H2 headline string exactly as specified and ensure there is no translation-driven, conditional, or duplicate headline rendering on the homepage; remove unused imports/state related to language that could introduce alternate text paths."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Verify the home route (\"/\") renders exactly one RecentReports instance and that no alternate route/component composition can render an older headline variant; keep changes minimal and behavior-preserving."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update frontend/index.html document title and social/share titles to remove the old wording and use the updated wording consistently.",
+      "acceptanceCriteria": [
+        "frontend/index.html <title> no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
+        "frontend/index.html meta property=\"og:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
+        "frontend/index.html meta name=\"twitter:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Replace \"Get Leader-Giotag\" in <title>, og:title, and twitter:title with the updated wording aligned to the homepage headline messaging (use English), keeping all other SEO tags unchanged unless necessary for consistency."
+        }
+      ]
+    }
+  ]
+}

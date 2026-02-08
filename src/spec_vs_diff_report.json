@@ -1,0 +1,26 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-08T11:09:17.433Z",
+  "summary": "REQ-3 and REQ-4 appear implemented: RecentReports.tsx H2 matches the exact required headline, and frontend/index.html title/og:title/twitter:title use the updated wording. REQ-2 (codebase-wide removal of all remaining user-facing occurrences of \"Get Leader-Giotag\" and other outdated variants) is not demonstrably satisfied from the provided diff summary, since only a few files are shown and no evidence of a comprehensive sweep is included.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so the app consistently shows the intended updated wording (including HTML metadata, React components, and translation strings).",
+      "reason": "The diff shows updates to RecentReports.tsx and the HTML metadata in frontend/index.html, but does not provide evidence that all remaining occurrences across the rest of the codebase (e.g., other React components, translation/i18n strings, or other metadata) were searched and updated. A codebase-wide confirmation cannot be inferred from the limited file changes shown.",
+      "evidence": [
+        "frontend/src/components/RecentReports.tsx",
+        "frontend/index.html",
+        "frontend-file-summaries.txt (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.64,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/index.html",
+    "frontend/src/components/RecentReports.tsx",
+    "project_state.json"
+  ]
+}

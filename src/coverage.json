@@ -1,0 +1,64 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-08T11:09:17.436Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-2",
+        "summary": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so that the application consistently shows the intended updated wording where applicable.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/contexts/LanguageContext.tsx",
+          "frontend/index.html",
+          "frontend/src/components/RecentReports.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/index.html",
+          "frontend/src/components/RecentReports.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the homepage section headline in frontend/src/components/RecentReports.tsx to display exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (and ensure no other code path can override it on the homepage).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/RecentReports.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/RecentReports.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Update the document title and social/share metadata in frontend/index.html to remove the old wording and use the updated wording consistently (update <title>, og:title, and twitter:title).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/index.html"
+        ],
+        "matchedFiles": [
+          "frontend/index.html"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/index.html",
+    "frontend/src/components/RecentReports.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

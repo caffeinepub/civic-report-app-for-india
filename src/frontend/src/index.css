@@ -1,0 +1,2999 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-500 to-green-600 text-white py-3 px-6 rounded-lg font-medium hover:from-orange-600 hover:to-green-700 transition-all text-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors text-lg;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+  
+  .indian-border {
+    @apply border-4 border-orange-400 bg-gradient-to-br from-orange-50 to-green-50;
+    box-shadow: 
+      inset 0 0 0 2px #ffffff,
+      inset 0 0 0 6px #138808,
+      0 4px 12px rgba(255, 153, 51, 0.2);
+  }
+  
+  .indian-accent {
+    @apply text-orange-600 border-orange-300 bg-orange-50;
+  }
+  
+  .certificate-frame {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Mode Indicator Liquid Glass Effect Styles - Updated for smaller, more elegant appearance */
+  .mode-indicator-glass {
+    @apply flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-semibold whitespace-nowrap;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background: rgba(255, 255, 255, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      0 2px 12px rgba(0, 0, 0, 0.08),
+      inset 0 1px 2px rgba(255, 255, 255, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mode-indicator-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .mode-indicator-glass:hover::before {
+    left: 100%;
+  }
+
+  .mode-indicator-glass:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.12),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+
+  /* Admin Mode - Red Glass with enhanced transparency */
+  .mode-indicator-admin {
+    background: rgba(254, 226, 226, 0.35);
+    color: #7f1d1d;
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .mode-indicator-admin:hover {
+    background: rgba(254, 226, 226, 0.45);
+    box-shadow: 
+      0 4px 16px rgba(239, 68, 68, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(239, 68, 68, 0.2);
+  }
+
+  /* Volunteer Mode - Blue Glass with enhanced transparency */
+  .mode-indicator-volunteer {
+    background: rgba(219, 234, 254, 0.35);
+    color: #1e3a8a;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .mode-indicator-volunteer:hover {
+    background: rgba(219, 234, 254, 0.45);
+    box-shadow: 
+      0 4px 16px rgba(59, 130, 246, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+
+  /* NGO/NPO Mode - Green Glass with enhanced transparency */
+  .mode-indicator-ngo {
+    background: rgba(220, 252, 231, 0.35);
+    color: #064e3b;
+    border-color: rgba(34, 197, 94, 0.25);
+  }
+
+  .mode-indicator-ngo:hover {
+    background: rgba(220, 252, 231, 0.45);
+    box-shadow: 
+      0 4px 16px rgba(34, 197, 94, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(34, 197, 94, 0.2);
+  }
+
+  /* Citizen Mode - Gray Glass with enhanced transparency */
+  .mode-indicator-citizen {
+    background: rgba(243, 244, 246, 0.35);
+    color: #1f2937;
+    border-color: rgba(156, 163, 175, 0.25);
+  }
+
+  .mode-indicator-citizen:hover {
+    background: rgba(243, 244, 246, 0.45);
+    box-shadow: 
+      0 4px 16px rgba(156, 163, 175, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(156, 163, 175, 0.2);
+  }
+
+  /* Report Card Action Buttons - Perfectly Aligned Layout */
+  .report-card-action-buttons-grid {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+
+  .report-card-action-button {
+    @apply bg-blue-600 text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-1.5 shadow-sm;
+    min-height: 42px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* Enhanced Map Styles with Optimizations and Fixed Z-Index */
+  .map-container {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    z-index: 1; /* Ensure map stays below overlays */
+  }
+
+  .custom-marker-icon {
+    background: transparent !important;
+    border: none !important;
+    z-index: 100; /* Markers should be above map but below overlays */
+  }
+
+  .custom-cluster-icon {
+    background: transparent !important;
+    border: none !important;
+    z-index: 100; /* Clusters should be above map but below overlays */
+  }
+
+  .cluster-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .cluster-small {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    font-size: 14px;
+  }
+
+  .cluster-medium {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    font-size: 16px;
+  }
+
+  .cluster-large {
+    background: linear-gradient(135deg, #7c2d12, #92400e);
+    font-size: 18px;
+  }
+
+  /* Enhanced Leaflet overrides for better photo thumbnail styling and performance */
+  .leaflet-container {
+    font-family: 'Inter', system-ui, sans-serif;
+    z-index: 1; /* Keep map container at base level */
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 500; /* Popups should be above markers but below modal overlays */
+  }
+
+  .leaflet-popup-tip {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    z-index: 200; /* Controls should be above markers */
+  }
+
+  .leaflet-control-zoom a {
+    border-radius: 0.375rem !important;
+    border: none !important;
+    background: white !important;
+    color: #374151 !important;
+    font-weight: bold !important;
+    box-shadow: none !important;
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+  }
+
+  .leaflet-control-zoom a:first-child {
+    border-top-left-radius: 0.375rem !important;
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  .leaflet-control-zoom a:last-child {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-left-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+  }
+
+  /* Enhanced marker hover effects for photo thumbnails with optimized performance */
+  .custom-marker-icon .marker-photo-thumbnail {
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    overflow: hidden;
+    will-change: transform; /* Optimize for animations */
+  }
+
+  .custom-marker-icon:hover .marker-photo-thumbnail {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+
+  /* Improved marker loading states with better performance */
+  .marker-loading {
+    background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+    background-size: 400% 400%;
+    animation: marker-loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes marker-loading {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Optimized popup styles for better mobile experience */
+  .custom-popup .leaflet-popup-content-wrapper {
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+  }
+
+  .custom-popup .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+  }
+
+  .custom-popup .leaflet-popup-tip {
+    background: white;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Mobile slide-up animation for info card */
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* Location Modal Styles */
+  .location-modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4;
+    z-index: 1000; /* High z-index for modal */
+  }
+
+  .location-modal-content {
+    @apply bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col;
+    animation: modal-fade-in 0.3s ease-out;
+  }
+
+  .location-modal-header {
+    @apply flex items-center justify-between p-4 sm:p-6 border-b border-gray-200;
+  }
+
+  .location-modal-instructions {
+    @apply px-4 sm:px-6 py-3 bg-blue-50 border-b border-blue-200;
+  }
+
+  .location-modal-map {
+    @apply relative flex-1 p-4 sm:p-6;
+    min-height: 300px;
+  }
+
+  .location-modal-actions {
+    @apply flex items-center justify-end space-x-3 p-4 sm:p-6 border-t border-gray-200 bg-gray-50;
+  }
+
+  .location-modal-button-primary {
+    @apply bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2;
+  }
+
+  .location-modal-button-secondary {
+    @apply bg-gray-300 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-400 transition-colors font-medium;
+  }
+
+  /* Custom location marker styles */
+  .custom-location-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .current-location-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* Modal Animation */
+  @keyframes modal-fade-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Current Location Section - Clean, Organized, Mobile-Friendly Design */
+  .current-location-section {
+    @apply bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-5 space-y-4;
+  }
+
+  .current-location-header {
+    @apply flex items-center space-x-2 mb-3;
+  }
+
+  .current-location-title {
+    @apply text-lg font-semibold text-gray-900 flex items-center space-x-2;
+  }
+
+  /* Compact Action Buttons - Redesigned to be smaller and less prominent */
+  .current-location-actions-compact {
+    @apply flex flex-row gap-2 mb-4;
+  }
+
+  .location-action-button-compact {
+    @apply flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md font-medium text-xs transition-all duration-200 shadow-sm border min-h-[36px] flex-1;
+  }
+
+  .location-action-button-compact-primary {
+    @apply bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:border-blue-600 hover:shadow-md;
+  }
+
+  .location-action-button-compact-secondary {
+    @apply bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200 hover:border-gray-300 hover:shadow-md;
+  }
+
+  .location-action-button-compact:disabled {
+    @apply opacity-50 cursor-not-allowed hover:shadow-sm;
+  }
+
+  /* Legacy styles for backward compatibility */
+  .current-location-actions {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4;
+  }
+
+  .location-action-button {
+    @apply flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 shadow-sm border min-h-[44px] flex-1;
+  }
+
+  .location-action-button-primary {
+    @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700 hover:shadow-md;
+  }
+
+  .location-action-button-secondary {
+    @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md;
+  }
+
+  .location-action-button:disabled {
+    @apply opacity-50 cursor-not-allowed hover:shadow-sm;
+  }
+
+  .current-location-status {
+    @apply space-y-3 mb-4;
+  }
+
+  .location-status-item {
+    @apply flex items-center space-x-3 p-3 rounded-lg border;
+  }
+
+  .location-status-loading {
+    @apply bg-blue-50 border-blue-200 text-blue-700;
+  }
+
+  .location-status-error {
+    @apply bg-red-50 border-red-200 text-red-700;
+  }
+
+  .location-status-success {
+    @apply bg-green-50 border-green-200 text-green-700;
+  }
+
+  .location-coordinates {
+    @apply flex flex-col space-y-1;
+  }
+
+  .coordinates-label {
+    @apply text-sm font-medium;
+  }
+
+  .coordinates-value {
+    @apply text-xs font-mono bg-white px-2 py-1 rounded border;
+  }
+
+  .current-location-address {
+    @apply space-y-2;
+  }
+
+  .address-label {
+    @apply text-sm font-medium text-gray-700 flex items-center space-x-1;
+  }
+
+  .address-content {
+    @apply relative;
+  }
+
+  .address-display {
+    @apply flex items-start space-x-2 p-3 bg-white border border-gray-200 rounded-lg;
+  }
+
+  .address-text {
+    @apply flex-1 text-sm text-gray-800 leading-relaxed;
+  }
+
+  .address-edit-button {
+    @apply p-1 text-gray-500 hover:text-blue-600 transition-colors rounded hover:bg-blue-50 flex-shrink-0;
+  }
+
+  .address-edit-input {
+    @apply w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white;
+  }
+
+  /* Map View Mobile-Friendly UI Styles */
+  .map-view-header {
+    @apply mb-6;
+  }
+
+  .map-view-header-content {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+  }
+
+  .map-view-title-section {
+    @apply text-center sm:text-left;
+  }
+
+  .map-view-title {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2;
+  }
+
+  .map-view-subtitle {
+    @apply text-base sm:text-lg lg:text-xl text-gray-600;
+  }
+
+  .map-view-nav-buttons {
+    @apply flex flex-col sm:flex-row gap-2 sm:gap-3;
+  }
+
+  .map-view-nav-button {
+    @apply inline-flex items-center justify-center space-x-2 py-2.5 px-4 sm:py-2 sm:px-4 rounded-lg transition-colors font-medium text-sm sm:text-base min-h-[44px] sm:min-h-[40px];
+  }
+
+  .map-view-nav-button-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .map-view-nav-button-secondary {
+    @apply bg-gray-500 text-white hover:bg-gray-600;
+  }
+
+  /* Map Info Header - Mobile-Optimized */
+  .map-info-header {
+    @apply p-3 sm:p-4 border-b border-gray-200 bg-white;
+  }
+
+  .map-info-content {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4;
+  }
+
+  .map-info-text {
+    @apply flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2;
+  }
+
+  .map-info-title {
+    @apply text-base sm:text-lg font-semibold text-gray-900;
+  }
+
+  .map-info-count {
+    @apply text-sm sm:text-base text-gray-600 font-medium;
+  }
+
+  .map-info-indicators {
+    @apply flex items-center gap-3 sm:gap-4 justify-center sm:justify-end;
+  }
+
+  .map-status-indicator {
+    @apply flex items-center space-x-1.5 sm:space-x-2;
+  }
+
+  .map-status-dot {
+    @apply w-3 h-3 sm:w-4 sm:h-4 rounded-full;
+  }
+
+  .map-status-dot-open {
+    @apply bg-blue-500;
+  }
+
+  .map-status-dot-resolved {
+    @apply bg-green-500;
+  }
+
+  .map-status-text {
+    @apply text-xs sm:text-sm font-medium text-gray-700;
+  }
+
+  /* Full-Screen Toggle Button */
+  .map-fullscreen-toggle {
+    @apply p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300 bg-white shadow-sm;
+  }
+
+  /* Support Card Styles */
+  .support-card {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-200 p-8 max-w-md w-full text-center;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+    transition: all 0.3s ease;
+  }
+
+  .support-card:hover {
+    @apply shadow-xl;
+    transform: translateY(-2px);
+  }
+
+  .support-card-header {
+    @apply mb-6;
+  }
+
+  .coffee-icon-animated {
+    @apply text-4xl mb-4 inline-block;
+    animation: shuttle 2s ease-in-out infinite;
+  }
+
+  .support-card-title {
+    @apply text-2xl font-bold text-gray-900 mb-0;
+  }
+
+  .support-card-content {
+    @apply space-y-6;
+  }
+
+  .support-card-message {
+    @apply text-gray-600 leading-relaxed text-base;
+  }
+
+  .support-card-button {
+    @apply inline-flex items-center space-x-3 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl;
+    transform: translateY(0);
+  }
+
+  .support-card-button:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Coffee Icon Animation */
+  @keyframes shuttle {
+    0%, 100% {
+      transform: translateX(0) rotate(0deg);
+    }
+    25% {
+      transform: translateX(8px) rotate(5deg);
+    }
+    50% {
+      transform: translateX(0) rotate(0deg);
+    }
+    75% {
+      transform: translateX(-8px) rotate(-5deg);
+    }
+  }
+
+  /* Language Dropdown Styles - Compact Version */
+  .language-dropdown-compact {
+    @apply relative inline-block;
+  }
+
+  .language-dropdown-trigger-compact {
+    @apply flex items-center space-x-1 px-2 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-xs font-medium text-gray-700;
+    min-width: 100px;
+  }
+
+  .language-dropdown-text-compact {
+    @apply flex-1 text-left truncate;
+  }
+
+  .language-dropdown-icon-compact {
+    @apply h-3 w-3 text-gray-500 transition-transform duration-200;
+  }
+
+  .language-dropdown-icon-open {
+    @apply transform rotate-180;
+  }
+
+  .language-dropdown-menu-compact {
+    @apply absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50;
+    animation: dropdown-fade-in 0.15s ease-out;
+  }
+
+  .language-dropdown-content {
+    @apply py-1 max-h-64 overflow-y-auto;
+  }
+
+  .language-dropdown-item-compact {
+    @apply w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-150 text-xs;
+  }
+
+  .language-dropdown-item-selected {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  .language-dropdown-item-text-compact {
+    @apply flex-1 font-medium;
+  }
+
+  .language-dropdown-check-compact {
+    @apply h-3 w-3 text-blue-600 ml-1;
+  }
+
+  /* Menu Dropdown Styles */
+  .menu-dropdown {
+    @apply relative inline-block;
+  }
+
+  .menu-dropdown-trigger {
+    @apply flex items-center space-x-1 px-2 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-xs font-medium text-gray-700;
+    min-width: 80px;
+  }
+
+  .menu-dropdown-text {
+    @apply flex-1 text-left;
+  }
+
+  .menu-dropdown-icon {
+    @apply h-3 w-3 text-gray-500 transition-transform duration-200;
+  }
+
+  .menu-dropdown-icon-open {
+    @apply transform rotate-180;
+  }
+
+  .menu-dropdown-menu {
+    @apply absolute right-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto;
+    animation: dropdown-fade-in 0.15s ease-out;
+  }
+
+  .menu-dropdown-content {
+    @apply py-2;
+  }
+
+  .menu-section {
+    @apply border-b border-gray-100 last:border-b-0;
+  }
+
+  .menu-section-header {
+    @apply w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-150 text-sm font-medium text-gray-700;
+  }
+
+  .menu-section-header-active {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  .menu-section-content {
+    @apply px-4 pb-4 bg-gray-50 border-t border-gray-100;
+    animation: section-expand 0.2s ease-out;
+  }
+
+  /* Roadmap Feature Card Styles - Light Color Themes */
+  .roadmap-feature-card {
+    @apply bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden;
+    transform: translateY(0);
+  }
+
+  .roadmap-feature-card:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Implemented Features - Light Green Theme */
+  .roadmap-card-implemented {
+    @apply border-green-200 bg-gradient-to-br from-green-50 to-emerald-50;
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.06);
+  }
+
+  .roadmap-card-implemented:hover {
+    @apply border-green-300;
+    box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.2), 0 4px 6px -2px rgba(34, 197, 94, 0.1);
+  }
+
+  .roadmap-card-implemented .progress-bar {
+    background: linear-gradient(90deg, #10b981, #059669);
+  }
+
+  /* Under Consideration - Light Blue Theme */
+  .roadmap-card-under-consideration {
+    @apply border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+  }
+
+  .roadmap-card-under-consideration:hover {
+    @apply border-blue-300;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+  }
+
+  .roadmap-card-under-consideration .progress-bar {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+  }
+
+  /* Upcoming/Planned Features - Light Orange Theme */
+  .roadmap-card-upcoming {
+    @apply border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50;
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.1), 0 2px 4px -1px rgba(249, 115, 22, 0.06);
+  }
+
+  .roadmap-card-upcoming:hover {
+    @apply border-orange-300;
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2), 0 4px 6px -2px rgba(249, 115, 22, 0.1);
+  }
+
+  .roadmap-card-upcoming .progress-bar {
+    background: linear-gradient(90deg, #f97316, #ea580c);
+  }
+
+  /* Card Dragging State */
+  .roadmap-card-dragging {
+    @apply opacity-70 rotate-2 scale-105 shadow-2xl;
+    transform: rotate(2deg) scale(1.05) translateY(-8px);
+    z-index: 1000;
+  }
+
+  /* Color Theme Transition Animation */
+  .roadmap-feature-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Drop Zone Styles */
+  .roadmap-drop-zone {
+    @apply min-h-[200px] rounded-lg border-2 border-dashed transition-all duration-300;
+  }
+
+  .roadmap-drop-zone-default {
+    @apply border-gray-200 bg-gray-50;
+  }
+
+  .roadmap-drop-zone-active {
+    @apply border-solid shadow-lg;
+  }
+
+  .roadmap-drop-zone-implemented {
+    @apply border-green-300 bg-green-100;
+    box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.2);
+  }
+
+  .roadmap-drop-zone-under-consideration {
+    @apply border-blue-300 bg-blue-100;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+  }
+
+  .roadmap-drop-zone-upcoming {
+    @apply border-orange-300 bg-orange-100;
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2);
+  }
+
+  /* Progress Bar Enhancements */
+  .roadmap-feature-card .progress-bar {
+    @apply h-2 rounded-full overflow-hidden;
+    background: #e5e7eb;
+  }
+
+  /* Badge Styling for Roadmap Cards */
+  .roadmap-feature-card .badge {
+    @apply text-xs font-medium px-2 py-1 rounded-full border;
+  }
+
+  .roadmap-card-implemented .badge {
+    @apply bg-green-100 text-green-700 border-green-200;
+  }
+
+  .roadmap-card-under-consideration .badge {
+    @apply bg-blue-100 text-blue-700 border-blue-200;
+  }
+
+  .roadmap-card-upcoming .badge {
+    @apply bg-orange-100 text-orange-700 border-orange-200;
+  }
+
+  /* Roadmap Styles */
+  .feature-card {
+    @apply bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .feature-card.dragging {
+    @apply opacity-50 rotate-2 scale-105 shadow-xl;
+    transform: rotate(2deg) scale(1.05);
+  }
+
+  .roadmap-section {
+    @apply space-y-4;
+  }
+
+  .roadmap-section-header {
+    @apply rounded-lg p-4 sm:p-6 border;
+  }
+
+  .roadmap-section-implemented {
+    @apply bg-green-50 border-green-200;
+  }
+
+  .roadmap-section-under-consideration {
+    @apply bg-blue-50 border-blue-200;
+  }
+
+  .roadmap-section-upcoming {
+    @apply bg-orange-50 border-orange-200;
+  }
+
+  .roadmap-empty-section {
+    @apply text-center py-8;
+  }
+
+  .roadmap-progress-bar {
+    @apply w-full h-2 bg-gray-200 rounded-lg overflow-hidden;
+  }
+
+  .roadmap-progress-fill {
+    @apply h-full transition-all duration-300 ease-out;
+  }
+
+  .roadmap-progress-0 {
+    @apply bg-red-500;
+    width: 0%;
+  }
+
+  .roadmap-progress-25 {
+    @apply bg-orange-500;
+    width: 25%;
+  }
+
+  .roadmap-progress-50 {
+    @apply bg-yellow-500;
+    width: 50%;
+  }
+
+  .roadmap-progress-75 {
+    @apply bg-blue-500;
+    width: 75%;
+  }
+
+  .roadmap-progress-100 {
+    @apply bg-green-500;
+    width: 100%;
+  }
+
+  .roadmap-icon-grid {
+    @apply grid grid-cols-8 sm:grid-cols-10 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2;
+  }
+
+  .roadmap-icon-button {
+    @apply p-2 rounded text-2xl hover:bg-gray-100 transition-colors;
+  }
+
+  .roadmap-icon-button-selected {
+    @apply bg-blue-100 ring-2 ring-blue-500;
+  }
+
+  .roadmap-form-container {
+    @apply p-4 bg-white border border-gray-200 rounded-lg m-4;
+  }
+
+  .roadmap-form-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .roadmap-form-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .roadmap-form-close {
+    @apply h-8 w-8 p-0;
+  }
+
+  .roadmap-form-fields {
+    @apply space-y-4;
+  }
+
+  .roadmap-form-actions {
+    @apply flex space-x-3;
+  }
+
+  .roadmap-statistics {
+    @apply grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8;
+  }
+
+  .roadmap-stat-card {
+    @apply p-3 sm:p-4;
+  }
+
+  .roadmap-stat-content {
+    @apply flex items-center space-x-2 sm:space-x-3;
+  }
+
+  .roadmap-stat-icon {
+    @apply h-5 w-5 sm:h-6 sm:w-6 shrink-0;
+  }
+
+  .roadmap-stat-data {
+    @apply min-w-0 flex-1;
+  }
+
+  .roadmap-stat-label {
+    @apply text-xs sm:text-sm font-medium text-gray-500 truncate;
+  }
+
+  .roadmap-stat-value {
+    @apply text-lg sm:text-xl font-bold text-gray-900;
+  }
+
+  .roadmap-admin-notice {
+    @apply bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6;
+  }
+
+  .roadmap-admin-notice-content {
+    @apply flex items-start space-x-3;
+  }
+
+  .roadmap-admin-notice-icon {
+    @apply h-5 w-5 text-blue-600 mt-0.5 shrink-0;
+  }
+
+  .roadmap-admin-notice-text {
+    @apply text-sm text-blue-800;
+  }
+
+  .roadmap-admin-notice-title {
+    @apply font-medium mb-1;
+  }
+
+  .roadmap-search-filters {
+    @apply bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8;
+  }
+
+  .roadmap-search-header {
+    @apply flex items-center space-x-2 mb-4;
+  }
+
+  .roadmap-search-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .roadmap-search-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+  }
+
+  .roadmap-search-input-container {
+    @apply md:col-span-2;
+  }
+
+  .roadmap-filter-buttons {
+    @apply flex items-center space-x-2;
+  }
+
+  .roadmap-active-filters {
+    @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+
+  .roadmap-filter-label {
+    @apply text-xs sm:text-sm text-gray-600;
+  }
+
+  .roadmap-filter-badge {
+    @apply text-xs;
+  }
+
+  .roadmap-clear-filters {
+    @apply text-xs text-red-600 hover:text-red-700 font-medium;
+  }
+
+  .roadmap-drag-instructions {
+    @apply bg-gray-50 border border-gray-200 rounded-lg p-4 mt-8;
+  }
+
+  .roadmap-drag-instructions-content {
+    @apply flex items-start space-x-3;
+  }
+
+  .roadmap-drag-instructions-icon {
+    @apply h-5 w-5 text-gray-600 mt-0.5 shrink-0;
+  }
+
+  .roadmap-drag-instructions-text {
+    @apply text-sm text-gray-700;
+  }
+
+  .roadmap-drag-instructions-title {
+    @apply font-medium mb-1;
+  }
+
+  /* Enhanced Volunteer Privacy Toggle Switch Styles */
+  .volunteer-privacy-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 60px;
+    height: 32px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    outline: none;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .volunteer-privacy-toggle:focus-visible {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .volunteer-privacy-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .volunteer-privacy-toggle:hover[data-state="unchecked"] {
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  }
+
+  .volunteer-privacy-toggle:hover[data-state="checked"] {
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  }
+
+  .volunteer-privacy-toggle:active {
+    transform: scale(0.98);
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] span {
+    background: #ffffff;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] span {
+    background: #ffffff;
+    transform: translateX(30px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .volunteer-privacy-toggle span {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .volunteer-privacy-toggle:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .volunteer-privacy-toggle:disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Dropdown Animation */
+  @keyframes dropdown-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes section-expand {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+    }
+  }
+
+  /* Legacy Language Dropdown Styles - kept for backward compatibility */
+  .language-dropdown {
+    @apply relative inline-block;
+  }
+
+  .language-dropdown-trigger {
+    @apply flex items-center space-x-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm font-medium text-gray-700;
+    min-width: 140px;
+  }
+
+  .language-dropdown-text {
+    @apply flex-1 text-left truncate;
+  }
+
+  .language-dropdown-icon {
+    @apply h-4 w-4 text-gray-500 transition-transform duration-200;
+  }
+
+  .language-dropdown-menu {
+    @apply absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50;
+    animation: dropdown-fade-in 0.15s ease-out;
+  }
+
+  .language-dropdown-item {
+    @apply w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-150 text-sm;
+  }
+
+  .language-dropdown-item-text {
+    @apply flex-1 font-medium;
+  }
+
+  .language-dropdown-check {
+    @apply h-4 w-4 text-blue-600 ml-2;
+  }
+
+  /* Leader Preview Styles */
+  .leader-card {
+    @apply bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow;
+  }
+
+  .leader-header {
+    @apply flex items-center space-x-2 mb-3;
+  }
+
+  .leader-photo-container {
+    @apply relative mb-3 flex justify-center; /* Center-aligned container for both placeholder and uploaded photos */
+  }
+
+  .leader-photo {
+    @apply w-16 h-16 object-cover rounded-lg border-2 border-gray-200; /* Removed mx-auto since parent is now flex justify-center */
+  }
+
+  .leader-photo-placeholder {
+    @apply w-16 h-16 bg-gray-200 rounded-lg border-2 border-gray-300 flex flex-col items-center justify-center; /* Removed mx-auto since parent is now flex justify-center */
+  }
+
+  /* Enhanced CM Photo Placeholder with Integrated Upload Button - Center-Aligned */
+  .cm-photo-placeholder-integrated-upload {
+    @apply w-16 h-16 relative rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200 focus:ring-opacity-50; /* Removed mx-auto since parent container is now center-aligned */
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+    border: 2px dashed #22c55e;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  }
+
+  .cm-photo-placeholder-integrated-upload:hover {
+    border-color: #16a34a;
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 50%, #86efac 100%);
+  }
+
+  .cm-photo-placeholder-integrated-upload:active {
+    transform: scale(0.98);
+  }
+
+  .cm-placeholder-background {
+    @apply w-full h-full relative flex items-center justify-center;
+  }
+
+  .cm-placeholder-content {
+    @apply flex flex-col items-center justify-center text-center z-10 relative;
+  }
+
+  .cm-upload-pulse-ring {
+    @apply absolute inset-0 rounded-lg;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.1;
+    }
+  }
+
+  .custom-photo-badge {
+    @apply absolute -bottom-1 -left-1 bg-green-500 text-white px-1 py-0.5 rounded-full text-xs;
+  }
+
+  .leader-name-section {
+    @apply mb-3;
+  }
+
+  .name-edit-container {
+    @apply w-full;
+  }
+
+  .name-edit-input {
+    @apply w-full px-2 py-1 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-medium text-gray-900 text-sm;
+  }
+
+  .name-display-container {
+    @apply flex items-center justify-center space-x-1;
+  }
+
+  .leader-name {
+    @apply text-sm font-semibold text-gray-900 text-center;
+  }
+
+  .name-edit-button {
+    @apply p-0.5 text-gray-500 hover:text-blue-600 transition-colors;
+  }
+
+  .leader-actions {
+    @apply space-y-1;
+  }
+
+  .remove-photo-button {
+    @apply w-full text-xs text-red-600 hover:text-red-700 font-medium py-1;
+  }
+
+  .photo-upload-buttons {
+    @apply grid grid-cols-1 gap-1;
+  }
+
+  .upload-button {
+    @apply flex flex-col items-center justify-center p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 text-xs font-medium;
+  }
+
+  .upload-button.camera {
+    @apply hover:border-blue-400 hover:bg-blue-50 text-blue-600;
+  }
+
+  .upload-button.gallery {
+    @apply hover:border-green-400 hover:bg-green-50 text-green-600;
+  }
+
+  .upload-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .upload-button span {
+    @apply mt-0.5;
+  }
+
+  /* Disclaimer Styles */
+  .disclaimer-container {
+    @apply mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4;
+  }
+
+  .disclaimer-content {
+    @apply flex items-start space-x-3;
+  }
+
+  .disclaimer-icon {
+    @apply h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0;
+  }
+
+  .disclaimer-text {
+    @apply text-sm text-yellow-800 leading-relaxed;
+  }
+
+  /* Form Disclaimer Styles */
+  .form-disclaimer {
+    @apply mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4;
+  }
+
+  .form-disclaimer-content {
+    @apply flex items-start space-x-3;
+  }
+
+  .form-disclaimer-icon {
+    @apply h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0;
+  }
+
+  .form-disclaimer-text {
+    @apply text-xs text-yellow-800 leading-relaxed;
+  }
+
+  /* Mobile App-like Form Styles */
+  .mobile-form-container {
+    @apply bg-white rounded-2xl shadow-lg mx-auto max-w-2xl overflow-hidden;
+  }
+
+  .form-header {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 text-center;
+  }
+
+  .form-title {
+    @apply text-2xl md:text-3xl font-bold mb-2 leading-tight;
+  }
+
+  .form-subtitle {
+    @apply text-blue-100 text-base md:text-lg;
+  }
+
+  .mobile-form {
+    @apply p-6 space-y-8;
+  }
+
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .section-header {
+    @apply mb-4;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold text-gray-900 mb-1;
+  }
+
+  .section-description {
+    @apply text-base text-gray-600;
+  }
+
+  /* Category Selection Grid */
+  .category-grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3;
+  }
+
+  .category-card {
+    @apply p-4 rounded-xl border-2 transition-all duration-200 text-center min-h-[110px] flex flex-col items-center justify-center;
+  }
+
+  .category-default {
+    @apply border-gray-200 bg-white hover:border-gray-300 hover:shadow-md;
+  }
+
+  .category-selected {
+    @apply border-blue-500 bg-blue-50 shadow-md;
+  }
+
+  .category-emoji {
+    @apply text-3xl mb-2;
+  }
+
+  .category-label {
+    @apply font-medium text-base text-gray-700;
+  }
+
+  .category-description {
+    @apply text-base text-gray-600 bg-gray-50 p-3 rounded-lg mt-3;
+  }
+
+  /* Custom Issue Input */
+  .custom-issue-input {
+    @apply mt-4 space-y-2;
+  }
+
+  /* Input Styles */
+  .input-group {
+    @apply space-y-2;
+  }
+
+  .input-label {
+    @apply block text-base font-medium text-gray-700 flex items-center;
+  }
+
+  .text-input {
+    @apply w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg;
+  }
+
+  .textarea-input {
+    @apply w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all text-lg;
+  }
+
+  .character-count {
+    @apply text-sm text-gray-500 text-right;
+  }
+
+  /* Issue Photo Upload Styles - horizontal layout with smaller, more compact buttons */
+  .issue-photo-preview {
+    @apply flex items-center space-x-4;
+  }
+
+  .remove-issue-photo-btn {
+    @apply text-base text-red-600 hover:text-red-700 font-medium;
+  }
+
+  .issue-upload-options-horizontal {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  .issue-upload-option-horizontal {
+    @apply flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 min-h-[80px];
+  }
+
+  /* Legacy vertical styles - kept for backward compatibility */
+  .issue-upload-options {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .issue-upload-option {
+    @apply flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200;
+  }
+
+  /* Legacy photo upload styles - kept for backward compatibility */
+  .photo-preview {
+    @apply space-y-4;
+  }
+
+  .preview-image-full {
+    @apply w-full h-64 object-cover rounded-xl border-2 border-gray-200;
+  }
+
+  .remove-photo-btn {
+    @apply text-base text-red-600 hover:text-red-700 font-medium;
+  }
+
+  .upload-options {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  .upload-option {
+    @apply flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200;
+  }
+
+  .camera-option:hover {
+    @apply border-blue-400 bg-blue-50;
+  }
+
+  .gallery-option:hover {
+    @apply border-green-400 bg-green-50;
+  }
+
+  .option-title {
+    @apply text-lg font-semibold text-gray-700 mb-1;
+  }
+
+  .option-subtitle {
+    @apply text-base text-gray-500;
+  }
+
+  /* MLA/MP Photo Styles - horizontal layout with smaller, more compact buttons */
+  .mla-photo-preview {
+    @apply flex items-center space-x-4;
+  }
+
+  .remove-mla-photo-btn {
+    @apply text-base text-red-600 hover:text-red-700 font-medium;
+  }
+
+  .mla-upload-options-horizontal {
+    @apply grid grid-cols-1 gap-2;
+  }
+
+  .mla-upload-option-horizontal {
+    @apply flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all duration-200 min-h-[80px];
+  }
+
+  /* Legacy vertical styles - kept for backward compatibility */
+  .mla-upload-options {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .mla-upload-option {
+    @apply flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200;
+  }
+
+  .mla-info-note {
+    @apply mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg;
+  }
+
+  /* Location Status */
+  .location-status {
+    @apply bg-gray-50 p-4 rounded-xl border border-gray-200;
+  }
+
+  .location-header {
+    @apply flex items-center space-x-2 mb-2;
+  }
+
+  .location-title {
+    @apply font-medium text-gray-700 text-lg;
+  }
+
+  .location-text {
+    @apply text-base;
+  }
+
+  .location-text.loading {
+    @apply text-gray-600;
+  }
+
+  .location-text.error {
+    @apply text-red-600;
+  }
+
+  .location-text.success {
+    @apply text-green-600;
+  }
+
+  /* Submit Button */
+  .submit-button {
+    @apply w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-5 px-6 rounded-xl font-semibold text-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2 shadow-lg;
+  }
+
+  /* Success Screen Styles */
+  .success-header {
+    @apply text-center p-8 bg-gradient-to-r from-green-500 to-blue-500 text-white;
+  }
+
+  .success-icon {
+    @apply mb-4;
+  }
+
+  .success-title {
+    @apply text-3xl font-bold mb-3;
+  }
+
+  .success-description {
+    @apply text-green-100 mb-4 text-lg;
+  }
+
+  .report-id {
+    @apply text-base text-green-100;
+  }
+
+  .report-preview {
+    @apply p-6 bg-gray-50 border-b border-gray-200;
+  }
+
+  .preview-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+
+  .preview-image {
+    @apply space-y-2;
+  }
+
+  .preview-details {
+    @apply space-y-3;
+  }
+
+  .issue-badge {
+    @apply mb-3;
+  }
+
+  .issue-tag {
+    @apply px-4 py-2 rounded-full text-base font-medium;
+  }
+
+  .issue-orange {
+    @apply bg-orange-100 text-orange-700;
+  }
+
+  .issue-green {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .issue-yellow {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+  .issue-blue {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .issue-red {
+    @apply bg-red-100 text-red-700;
+  }
+
+  .issue-purple {
+    @apply bg-purple-100 text-purple-700;
+  }
+
+  .issue-gray {
+    @apply bg-gray-100 text-gray-700;
+  }
+
+  .detail-item {
+    @apply flex items-center space-x-2 text-base text-gray-600;
+  }
+
+  .certificate-actions {
+    @apply p-6 space-y-4;
+  }
+
+  .action-buttons {
+    @apply flex space-x-2;
+  }
+
+  .new-report-btn {
+    @apply w-full bg-gray-500 text-white py-4 px-6 rounded-xl font-medium hover:bg-gray-600 transition-colors text-lg;
+  }
+
+  /* Fixed Header Styles - Updated to remove orange border */
+  .fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .header-content {
+    @apply container mx-auto px-4 py-3;
+  }
+
+  .header-logo {
+    @apply flex items-center justify-center w-12 h-12;
+  }
+
+  .header-title {
+    @apply text-xl font-bold text-gray-900;
+  }
+
+  .header-subtitle {
+    @apply text-xs text-gray-600;
+  }
+
+  /* Main content padding to account for fixed header */
+  .main-content {
+    @apply pt-20;
+  }
+
+  /* Modal Styles with Proper Z-Index */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4;
+    z-index: 1000; /* High z-index for modal overlays */
+  }
+
+  .modal-content {
+    @apply relative max-w-4xl max-h-full;
+  }
+
+  .modal-close-button {
+    @apply absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors;
+  }
+
+  .modal-image {
+    @apply max-w-full max-h-full object-contain rounded-lg;
+  }
+
+  .modal-caption {
+    @apply absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 rounded-b-lg;
+  }
+
+  .modal-caption-title {
+    @apply text-center font-medium;
+  }
+
+  .modal-caption-subtitle {
+    @apply text-center text-sm opacity-90;
+  }
+
+  /* Resolution Photo Thumbnail Styles */
+  .resolution-photo-thumbnail {
+    @apply w-20 h-20 object-cover rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-400 transition-colors;
+  }
+
+  .resolution-photo-caption {
+    @apply text-xs text-green-600 mt-1;
+  }
+}
+
+/* Custom scrollbar with Indian theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-orange-50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-orange-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-orange-400;
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Indian flag inspired gradient animation */
+@keyframes indian-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.indian-gradient-animation {
+  background: linear-gradient(-45deg, #FF9933, #FFFFFF, #138808, #000080);
+  background-size: 400% 400%;
+  animation: indian-gradient 8s ease infinite;
+}
+
+/* Certificate specific styles - updated for clean, minimalist design */
+.certificate-text {
+  font-family: 'Arial', sans-serif;
+  color: #1f2937;
+}
+
+.certificate-header {
+  color: #1f2937;
+  font-weight: bold;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .indian-border {
+    @apply border-2;
+    box-shadow: 
+      inset 0 0 0 1px #ffffff,
+      inset 0 0 0 3px #138808,
+      0 2px 8px rgba(255, 153, 51, 0.2);
+  }
+
+  .mobile-form-container {
+    @apply mx-4 rounded-xl;
+  }
+
+  .category-grid {
+    @apply grid-cols-2 gap-2;
+  }
+
+  .category-card {
+    @apply p-3 min-h-[90px];
+  }
+
+  .category-emoji {
+    @apply text-2xl mb-1;
+  }
+
+  .category-label {
+    @apply text-sm;
+  }
+
+  .upload-options {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .upload-option {
+    @apply p-6;
+  }
+
+  .text-input, .textarea-input {
+    @apply text-lg;
+  }
+
+  .submit-button {
+    @apply py-4 text-lg;
+  }
+
+  .preview-grid {
+    @apply grid-cols-1 gap-4;
+  }
+
+  .header-title {
+    @apply text-lg;
+  }
+
+  .header-subtitle {
+    @apply text-xs;
+  }
+
+  .header-logo {
+    @apply w-10 h-10;
+  }
+
+  .form-title {
+    @apply text-xl leading-tight;
+  }
+
+  .form-subtitle {
+    @apply text-sm;
+  }
+
+  .section-title {
+    @apply text-lg;
+  }
+
+  .section-description {
+    @apply text-sm;
+  }
+
+  .success-title {
+    @apply text-2xl;
+  }
+
+  .success-description {
+    @apply text-base;
+  }
+
+  .issue-upload-options-horizontal {
+    @apply grid-cols-1 gap-2;
+  }
+
+  .issue-upload-option-horizontal {
+    @apply p-2 min-h-[70px];
+  }
+
+  /* Legacy vertical styles - kept for backward compatibility */
+  .issue-upload-options {
+    @apply grid-cols-1 gap-2;
+  }
+
+  .issue-upload-option {
+    @apply p-3;
+  }
+
+  .mla-upload-options-horizontal {
+    @apply grid-cols-1 gap-2;
+  }
+
+  .mla-upload-option-horizontal {
+    @apply p-2 min-h-[70px];
+  }
+
+  .mla-upload-options {
+    @apply grid-cols-1 gap-2;
+  }
+
+  .mla-upload-option {
+    @apply p-3;
+  }
+
+  .disclaimer-container {
+    @apply mx-4 mb-4;
+  }
+
+  .disclaimer-text {
+    @apply text-xs;
+  }
+
+  .disclaimer-icon {
+    @apply h-4 w-4;
+  }
+
+  .form-disclaimer-text {
+    @apply text-xs;
+  }
+
+  .form-disclaimer-icon {
+    @apply h-3 w-3;
+  }
+
+  /* Compact Language Dropdown Mobile Styles */
+  .language-dropdown-trigger-compact {
+    @apply px-1.5 py-1 text-xs;
+    min-width: 80px;
+  }
+
+  .language-dropdown-menu-compact {
+    @apply w-32;
+  }
+
+  .language-dropdown-item-compact {
+    @apply px-2 py-1.5 text-xs;
+  }
+
+  /* Menu Dropdown Mobile Styles - Updated for icon-only display */
+  .menu-dropdown-trigger {
+    @apply px-1.5 py-1 text-xs;
+    min-width: 40px; /* Reduced width for icon-only display */
+  }
+
+  .menu-dropdown-menu {
+    @apply w-72 max-h-80;
+  }
+
+  .menu-section-header {
+    @apply px-3 py-2 text-xs;
+  }
+
+  .menu-section-content {
+    @apply px-3 pb-3;
+  }
+
+  /* Compact Current Location Section Mobile Styles */
+  .current-location-section {
+    @apply p-3;
+  }
+
+  .current-location-actions-compact {
+    @apply flex-row gap-2;
+  }
+
+  .location-action-button-compact {
+    @apply py-2 text-xs min-h-[36px];
+  }
+
+  /* Legacy styles for backward compatibility */
+  .current-location-actions {
+    @apply flex-col gap-2;
+  }
+
+  .location-action-button {
+    @apply py-3 text-sm min-h-[44px];
+  }
+
+  .location-status-item {
+    @apply p-2;
+  }
+
+  .coordinates-label {
+    @apply text-xs;
+  }
+
+  .coordinates-value {
+    @apply text-xs;
+  }
+
+  .address-display {
+    @apply p-2;
+  }
+
+  .address-text {
+    @apply text-xs;
+  }
+
+  .address-edit-input {
+    @apply p-2 text-sm;
+  }
+
+  /* Leader Preview Mobile Styles */
+  .leader-card {
+    @apply p-3;
+  }
+
+  .leader-photo {
+    @apply w-14 h-14;
+  }
+
+  .leader-photo-placeholder {
+    @apply w-14 h-14;
+  }
+
+  /* Enhanced CM Photo Placeholder Mobile Styles - Center-Aligned */
+  .cm-photo-placeholder-integrated-upload {
+    @apply w-14 h-14;
+  }
+
+  .leader-name {
+    @apply text-xs;
+  }
+
+  .photo-upload-buttons {
+    @apply grid-cols-1 gap-1;
+  }
+
+  .upload-button {
+    @apply p-1.5 text-xs;
+  }
+
+  /* Modal Mobile Styles */
+  .modal-overlay {
+    @apply p-2;
+  }
+
+  .modal-close-button {
+    @apply -top-8 right-2;
+  }
+
+  .modal-caption {
+    @apply p-2;
+  }
+
+  .modal-caption-title {
+    @apply text-sm;
+  }
+
+  .modal-caption-subtitle {
+    @apply text-xs;
+  }
+
+  /* Location Modal Mobile Styles */
+  .location-modal-overlay {
+    @apply p-2;
+  }
+
+  .location-modal-content {
+    @apply max-w-full max-h-[95vh];
+  }
+
+  .location-modal-header {
+    @apply p-4;
+  }
+
+  .location-modal-instructions {
+    @apply px-4 py-3;
+  }
+
+  .location-modal-map {
+    @apply p-4;
+    min-height: 250px;
+  }
+
+  .location-modal-actions {
+    @apply p-4 flex-col space-y-2 space-x-0;
+  }
+
+  .location-modal-button-primary,
+  .location-modal-button-secondary {
+    @apply w-full py-3;
+  }
+
+  /* Resolution Photo Mobile Styles */
+  .resolution-photo-thumbnail {
+    @apply w-16 h-16;
+  }
+
+  /* Support Card Mobile Styles */
+  .support-card {
+    @apply p-6 max-w-sm;
+  }
+
+  .coffee-icon-animated {
+    @apply text-3xl mb-3;
+  }
+
+  .support-card-title {
+    @apply text-xl;
+  }
+
+  .support-card-message {
+    @apply text-sm;
+  }
+
+  .support-card-button {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Enhanced Map Mobile Styles with optimizations */
+  .map-container {
+    height: 400px !important;
+  }
+
+  .cluster-marker {
+    width: 35px;
+    height: 35px;
+  }
+
+  .cluster-small {
+    font-size: 12px;
+  }
+
+  .cluster-medium {
+    font-size: 14px;
+  }
+
+  .cluster-large {
+    font-size: 16px;
+  }
+
+  /* Mobile-optimized photo thumbnail markers with better performance */
+  .custom-marker-icon .marker-photo-thumbnail {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .custom-marker-icon:hover .marker-photo-thumbnail {
+    transform: scale(1.05); /* Reduced scale for mobile */
+  }
+
+  /* Map View Mobile Styles */
+  .map-view-title {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  .map-view-subtitle {
+    @apply text-sm sm:text-base;
+  }
+
+  .map-view-nav-button {
+    @apply text-sm min-h-[44px];
+  }
+
+  .map-info-header {
+    @apply p-3;
+  }
+
+  .map-info-title {
+    @apply text-sm;
+  }
+
+  .map-info-count {
+    @apply text-xs;
+  }
+
+  .map-status-text {
+    @apply text-xs;
+  }
+
+  .map-status-dot {
+    @apply w-3 h-3;
+  }
+
+  .map-fullscreen-toggle {
+    @apply p-1.5;
+  }
+
+  /* Report Card Action Buttons Mobile Styles */
+  .report-card-action-button {
+    @apply text-xs;
+    min-height: 40px;
+  }
+
+  /* Roadmap Mobile Styles */
+  .roadmap-features-grid {
+    @apply grid-cols-1 gap-3 p-3;
+  }
+
+  .roadmap-section-header {
+    @apply p-3;
+  }
+
+  .roadmap-statistics {
+    @apply grid-cols-2 gap-2;
+  }
+
+  .roadmap-stat-card {
+    @apply p-2;
+  }
+
+  .roadmap-stat-content {
+    @apply space-x-2;
+  }
+
+  .roadmap-stat-icon {
+    @apply h-4 w-4;
+  }
+
+  .roadmap-stat-label {
+    @apply text-xs;
+  }
+
+  .roadmap-stat-value {
+    @apply text-base;
+  }
+
+  .roadmap-search-filters {
+    @apply p-3;
+  }
+
+  .roadmap-search-grid {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .roadmap-icon-grid {
+    @apply grid-cols-6 gap-1 p-1;
+  }
+
+  .roadmap-icon-button {
+    @apply p-1 text-lg;
+  }
+
+  .roadmap-form-container {
+    @apply m-2 p-3;
+  }
+
+  .roadmap-admin-notice {
+    @apply p-3;
+  }
+
+  .roadmap-drag-instructions {
+    @apply p-3;
+  }
+
+  /* Roadmap Feature Card Mobile Styles */
+  .roadmap-feature-card {
+    @apply shadow-md;
+  }
+
+  .roadmap-feature-card:hover {
+    transform: translateY(-2px); /* Reduced hover effect on mobile */
+  }
+
+  /* Enhanced Volunteer Privacy Toggle Mobile Styles */
+  .volunteer-privacy-toggle {
+    width: 56px;
+    height: 28px;
+  }
+
+  .volunteer-privacy-toggle span {
+    width: 20px;
+    height: 20px;
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] span {
+    transform: translateX(2px);
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] span {
+    transform: translateX(28px);
+  }
+
+  /* Mode Indicator Glass Mobile Styles */
+  .mode-indicator-glass {
+    @apply text-[7px] px-1.5 py-0.5;
+  }
+
+  .mode-indicator-glass svg {
+    @apply w-1.5 h-1.5;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .category-card {
+    @apply min-h-[100px];
+  }
+  
+  .upload-option {
+    @apply p-8;
+  }
+  
+  .text-input, .textarea-input {
+    @apply text-lg;
+  }
+  
+  .submit-button {
+    @apply py-5;
+  }
+
+  .issue-upload-option-horizontal {
+    @apply p-4 min-h-[90px];
+  }
+
+  .mla-upload-option-horizontal {
+    @apply p-4 min-h-[90px];
+  }
+
+  /* Legacy touch-friendly styles */
+  .issue-upload-option {
+    @apply p-5;
+  }
+
+  .mla-upload-option {
+    @apply p-5;
+  }
+
+  /* Compact Language dropdown touch improvements */
+  .language-dropdown-trigger-compact {
+    @apply py-2;
+  }
+
+  .language-dropdown-item-compact {
+    @apply py-3;
+  }
+
+  /* Menu dropdown touch improvements */
+  .menu-dropdown-trigger {
+    @apply py-2;
+  }
+
+  .menu-section-header {
+    @apply py-3;
+  }
+
+  /* Compact Current Location Section Touch Improvements */
+  .current-location-actions-compact {
+    @apply flex-row gap-3;
+  }
+
+  .location-action-button-compact {
+    @apply py-3 text-sm min-h-[44px];
+  }
+
+  /* Legacy touch improvements */
+  .current-location-actions {
+    @apply flex-col gap-3;
+  }
+
+  .location-action-button {
+    @apply py-4 text-base min-h-[48px];
+  }
+
+  .location-status-item {
+    @apply p-3;
+  }
+
+  .coordinates-label {
+    @apply text-sm;
+  }
+
+  .coordinates-value {
+    @apply text-sm;
+  }
+
+  .address-display {
+    @apply p-3;
+  }
+
+  .address-text {
+    @apply text-sm;
+  }
+
+  .address-edit-input {
+    @apply p-3 text-base;
+  }
+
+  /* Leader preview touch improvements */
+  .upload-button {
+    @apply p-3;
+  }
+
+  .name-edit-input {
+    @apply py-2;
+  }
+
+  /* Enhanced CM Photo Placeholder Touch Improvements - Center-Aligned */
+  .cm-photo-placeholder-integrated-upload {
+    @apply w-16 h-16;
+  }
+
+  /* Modal touch improvements */
+  .resolution-photo-thumbnail {
+    @apply w-24 h-24;
+  }
+
+  /* Location Modal Touch Improvements */
+  .location-modal-content {
+    @apply max-h-[95vh];
+  }
+
+  .location-modal-map {
+    min-height: 280px;
+  }
+
+  .location-modal-button-primary,
+  .location-modal-button-secondary {
+    @apply py-4 text-base;
+  }
+
+  /* Support Card touch improvements */
+  .support-card-button {
+    @apply py-4;
+  }
+
+  /* Enhanced Map touch improvements with better performance */
+  .map-container {
+    height: 450px !important;
+  }
+
+  /* Touch-optimized photo thumbnail markers with performance optimizations */
+  .custom-marker-icon .marker-photo-thumbnail {
+    width: 55px !important;
+    height: 55px !important;
+  }
+
+  /* Map View Touch Improvements */
+  .map-view-nav-button {
+    @apply min-h-[48px];
+  }
+
+  .map-fullscreen-toggle {
+    @apply p-2;
+  }
+
+  /* Report Card Action Buttons Touch Improvements */
+  .report-card-action-button {
+    @apply py-3;
+    min-height: 44px;
+  }
+
+  /* Roadmap Touch Improvements */
+  .roadmap-features-grid {
+    @apply grid-cols-1 gap-4 p-4;
+  }
+
+  .roadmap-feature-card {
+    @apply cursor-default; /* Remove cursor-pointer on touch devices */
+  }
+
+  .roadmap-icon-grid {
+    @apply grid-cols-8 gap-2 p-2;
+  }
+
+  .roadmap-icon-button {
+    @apply p-2 text-xl;
+  }
+
+  .roadmap-form-container {
+    @apply m-3 p-4;
+  }
+
+  .roadmap-search-filters {
+    @apply p-4;
+  }
+
+  .roadmap-search-grid {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .roadmap-statistics {
+    @apply grid-cols-2 gap-3;
+  }
+
+  .roadmap-stat-card {
+    @apply p-3;
+  }
+
+  .roadmap-admin-notice {
+    @apply p-3;
+  }
+
+  .roadmap-drag-instructions {
+    @apply p-3;
+  }
+
+  /* Roadmap Feature Card Touch Improvements */
+  .roadmap-feature-card:hover {
+    transform: translateY(-2px); /* Reduced hover effect on mobile */
+  }
+
+  /* Enhanced Volunteer Privacy Toggle Touch Improvements */
+  .volunteer-privacy-toggle {
+    width: 60px;
+    height: 32px;
+  }
+
+  .volunteer-privacy-toggle span {
+    width: 24px;
+    height: 24px;
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] span {
+    transform: translateX(2px);
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] span {
+    transform: translateX(30px);
+  }
+
+  .volunteer-privacy-toggle:hover {
+    transform: scale(1.02); /* Reduced scale for touch devices */
+  }
+
+  /* Mode Indicator Glass Touch Improvements */
+  .mode-indicator-glass:hover {
+    transform: translateY(-1px) scale(1.02);
+  }
+}
+
+/* Print styles for certificates */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .certificate-frame {
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Decorative elements for Indian theme */
+.lotus-pattern::before {
+  content: '🪷';
+  opacity: 0.1;
+  position: absolute;
+  font-size: 2rem;
+  pointer-events: none;
+}
+
+.om-symbol::before {
+  content: 'ॐ';
+  opacity: 0.05;
+  position: absolute;
+  font-size: 3rem;
+  pointer-events: none;
+  color: #FF9933;
+}
+
+/* Enhanced button styles with Indian theme */
+.btn-indian-primary {
+  @apply bg-gradient-to-r from-orange-500 via-white to-green-600 text-gray-800 py-4 px-8 rounded-lg font-bold border-2 border-orange-400 hover:shadow-lg transition-all duration-300 text-lg;
+  box-shadow: 0 4px 12px rgba(255, 153, 51, 0.3);
+}
+
+.btn-indian-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 153, 51, 0.4);
+}
+
+/* Status badges with Indian colors */
+.status-submitted {
+  @apply bg-blue-100 text-blue-800 border border-blue-200;
+}
+
+.status-verified {
+  @apply bg-green-100 text-green-800 border border-green-200;
+}
+
+.status-pending {
+  @apply bg-orange-100 text-orange-800 border border-orange-200;
+}
+
+/* Card hover effects */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Indian themed form elements */
+.form-input-indian {
+  @apply border-2 border-orange-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-lg px-4 py-3 transition-all text-lg;
+}
+
+.form-input-indian:focus {
+  box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.1);
+}
+
+/* Clean, minimalist certificate styles */
+.certificate-clean {
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.certificate-content {
+  font-family: 'Arial', sans-serif;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+.certificate-title {
+  color: #1f2937;
+  font-weight: bold;
+  font-size: 2.75rem;
+}
+
+.certificate-subtitle {
+  color: #4b5563;
+  font-size: 1.75rem;
+}
+
+.certificate-section-title {
+  color: #1f2937;
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.certificate-text-content {
+  color: #374151;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.certificate-footer {
+  color: #4b5563;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Government seal styles */
+.government-seal {
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* QR code container */
+.qr-container {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+}
+
+/* Photo container styles for certificate */
+.certificate-photo {
+  border: 2px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.certificate-photo img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive certificate layout */
+@media (max-width: 768px) {
+  .certificate-title {
+    font-size: 2.25rem;
+  }
+  
+  .certificate-subtitle {
+    font-size: 1.5rem;
+  }
+  
+  .certificate-section-title {
+    font-size: 1.25rem;
+  }
+  
+  .certificate-text-content {
+    font-size: 1rem;
+  }
+}
+
+/* Roadmap specific animations and styles */
+@keyframes feature-card-hover {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes drag-preview {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(2deg) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.feature-card-dragging {
+  animation: drag-preview 0.3s ease-in-out;
+}
+
+/* Progress bar animations */
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.progress-animated {
+  animation: progress-fill 1s ease-out;
+}
+
+/* Roadmap section transitions */
+@keyframes section-highlight {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.section-drop-highlight {
+  animation: section-highlight 0.5s ease-in-out;
+}
+
+/* Feature card status indicators */
+.feature-status-indicator {
+  @apply absolute top-2 right-2 w-3 h-3 rounded-full;
+}
+
+.feature-status-implemented {
+  @apply bg-green-500;
+}
+
+.feature-status-in-progress {
+  @apply bg-yellow-500;
+}
+
+.feature-status-planned {
+  @apply bg-blue-500;
+}
+
+/* Drag and drop visual feedback */
+.drag-ghost {
+  @apply opacity-50 transform rotate-2 scale-105;
+  filter: blur(1px);
+}
+
+.drop-zone-active {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+}
+
+/* Icon selection grid enhancements */
+.icon-selection-container {
+  @apply relative;
+}
+
+.icon-selection-grid {
+  @apply grid grid-cols-8 sm:grid-cols-10 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2;
+}
+
+.icon-option {
+  @apply p-2 rounded text-2xl hover:bg-gray-100 transition-colors cursor-pointer;
+}
+
+.icon-option-selected {
+  @apply bg-blue-100 ring-2 ring-blue-500;
+}
+
+.icon-option:hover {
+  transform: scale(1.1);
+}
+
+/* Search and filter enhancements */
+.search-highlight {
+  @apply bg-yellow-200;
+}
+
+.filter-active {
+  @apply ring-2 ring-blue-500;
+}
+
+/* Loading states for roadmap */
+.roadmap-loading {
+  @apply animate-pulse;
+}
+
+.roadmap-skeleton {
+  @apply bg-gray-200 rounded;
+}
+
+/* Admin controls styling */
+.admin-controls {
+  @apply opacity-0 group-hover:opacity-100 transition-opacity duration-200;
+}
+
+.admin-button {
+  @apply p-1 rounded hover:bg-gray-100 transition-colors;
+}
+
+.admin-button-edit {
+  @apply hover:bg-blue-100 text-blue-600;
+}
+
+.admin-button-delete {
+  @apply hover:bg-red-100 text-red-600;
+}
+
+/* Feature card enhancements */
+.feature-card-content {
+  @apply space-y-3;
+}
+
+.feature-card-header {
+  @apply flex items-start justify-between;
+}
+
+.feature-card-icon {
+  @apply text-3xl;
+}
+
+.feature-card-title {
+  @apply text-lg font-semibold text-gray-900 leading-tight;
+}
+
+.feature-card-meta {
+  @apply flex items-center space-x-2 mt-1;
+}
+
+.feature-card-badge {
+  @apply text-xs border-current;
+}
+
+.feature-card-description {
+  @apply text-sm text-gray-600 leading-relaxed;
+}
+
+.feature-card-progress {
+  @apply space-y-2;
+}
+
+.feature-card-progress-header {
+  @apply flex items-center justify-between text-sm;
+}
+
+.feature-card-progress-label {
+  @apply font-medium text-gray-700;
+}
+
+.feature-card-progress-value {
+  @apply font-semibold text-gray-900;
+}
+
+.feature-card-progress-bar {
+  @apply h-2;
+}
+
+.feature-card-progress-footer {
+  @apply flex items-center justify-between text-xs text-gray-500;
+}
+
+.feature-card-progress-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+/* Responsive roadmap layout */
+@media (min-width: 768px) {
+  .roadmap-features-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .roadmap-features-grid {
+    @apply grid-cols-3;
+  }
+}
+
+/* Accessibility improvements */
+.focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .roadmap-feature-card {
+    @apply border-2 border-gray-800;
+  }
+  
+  .roadmap-drop-zone {
+    @apply border-4;
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] {
+    background: #dc2626;
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] {
+    background: #059669;
+  }
+
+  .mode-indicator-glass {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .roadmap-feature-card,
+  .roadmap-drop-zone,
+  .admin-controls,
+  .coffee-icon-animated,
+  .volunteer-privacy-toggle,
+  .mode-indicator-glass {
+    animation: none;
+    transition: none;
+  }
+  
+  .roadmap-feature-card:hover,
+  .volunteer-privacy-toggle:hover,
+  .mode-indicator-glass:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  .roadmap-feature-card {
+    @apply bg-gray-800 border-gray-700 text-white;
+  }
+  
+  .roadmap-section-header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .volunteer-privacy-toggle[data-state="unchecked"] {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+  }
+
+  .volunteer-privacy-toggle[data-state="checked"] {
+    background: linear-gradient(135deg, #059669, #047857);
+  }
+
+  .mode-indicator-glass {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+}
