@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure the homepage headline and all related user-facing text (including HTML metadata) are fully updated so no outdated “Get Leader-Giotag” wording appears anywhere.
+**Goal:** Fix the homepage fixed header banner English title and subtitle text by updating the `en` translation values used by `t('header.title')` and `t('header.subtitle')`.
 
 **Planned changes:**
-- Search the frontend codebase for any remaining user-facing occurrences/variants of “Get Leader-Giotag” and replace them with the intended updated wording where applicable (including React components and any translation strings).
-- Update `frontend/src/components/RecentReports.tsx` so the homepage headline displays exactly: “Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice”, and ensure no alternate code path overrides it on `/`.
-- Update `frontend/index.html` metadata to remove “Get Leader-Giotag” and use the updated wording consistently in `<title>`, `og:title`, and `twitter:title`.
+- Update the English (`en`) translation string for `header.title` to: "Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice".
+- Update the English (`en`) translation string for `header.subtitle` to: "Help improve our India by reporting civic issues".
 
-**User-visible outcome:** On the homepage and in share/browser title metadata, users consistently see the updated headline wording and no longer encounter “Get Leader-Giotag” anywhere in the app.
+**User-visible outcome:** When English is selected, the homepage fixed header banner displays the new exact title and subtitle text, with the subtitle still appearing as a single-line truncated line without layout changes.

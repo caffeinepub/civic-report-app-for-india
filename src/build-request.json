@@ -1,70 +1,51 @@
 {
   "kind": "build_request",
-  "title": "Fix missing homepage text update by updating all remaining occurrences (including HTML metadata)",
-  "priority": "high",
+  "title": "Fix homepage top banner (Header) English title/subtitle translation text",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-2",
-      "text": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so that the application consistently shows the intended updated wording where applicable.",
+      "id": "REQ-8",
+      "text": "Update the English (en) translation value for `header.title` so the fixed homepage header banner title (rendered by `t('header.title')` in `frontend/src/components/Header.tsx`) displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-3"
         ],
         "quotes": [
-          "I still can't see updated text Dispite of check on 10 devices, please fix this"
+          "Retry"
         ]
       },
       "acceptanceCriteria": [
-        "A codebase-wide check confirms there are no remaining user-facing strings containing \"Get Leader-Giotag\" (including in HTML metadata, React components, and translation strings).",
-        "Where the app previously displayed the old phrase, it now displays the updated wording as specified in REQ-3/REQ-4 (or a deliberate, explicitly preserved alternative if it is not the same UI element)."
+        "When the selected language is English (`en`) and the user visits the homepage, the large fixed header title text shows exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
+        "No other user-facing header title text in English shows the old wording (e.g., \"Get Leader-Giotag\" or \"Civic Reporter\") in the fixed header banner."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Update the homepage section headline in frontend/src/components/RecentReports.tsx to display exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (and ensure no other code path can override it on the homepage).",
+      "id": "REQ-9",
+      "text": "Keep the fixed homepage header banner subtitle text unchanged visually, but update the English (en) translation value for `header.subtitle` so it displays exactly: \"Help improve our India by reporting civic issues\".",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-3"
         ],
         "quotes": [
-          "I still can't see updated text Dispite of check on 10 devices, please fix this"
+          "Retry"
         ]
       },
       "acceptanceCriteria": [
-        "On the route \"/\" (home page), the visible H2 headline above the recent reports section matches exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
-        "There is no alternate rendering (e.g., conditional language mode, duplicated component, or fallback UI) that shows a different headline on the homepage."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Update the document title and social/share metadata in frontend/index.html to remove the old wording and use the updated wording consistently (update <title>, og:title, and twitter:title).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "I still can't see updated text Dispite of check on 10 devices, please fix this"
-        ]
-      },
-      "acceptanceCriteria": [
-        "frontend/index.html <title> no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
-        "frontend/index.html meta property=\"og:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
-        "frontend/index.html meta name=\"twitter:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording."
+        "When the selected language is English (`en`), the fixed header subtitle shows exactly: \"Help improve our India by reporting civic issues\".",
+        "The subtitle remains a single-line truncated subtitle in the header (no layout break/regression from current behavior)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
-    "Keep backend unchanged (single-actor Motoko architecture; no schema/state migration needed for this request).",
-    "Use English for any user-facing text changed/added by this request."
+    "Frontend files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and `frontend/src/components/ui` must not be edited.",
+    "Do not change the backend canister architecture (single Motoko actor in `backend/main.mo`)."
   ],
   "nonGoals": [
-    "Adding new features unrelated to the missing text update.",
-    "Changing layout/styling beyond what is necessary to ensure the correct text is displayed.",
-    "Implementing external caching/CDN invalidation tooling."
+    "Do not redesign the header layout, logo, or mode indicator UI beyond the text changes requested.",
+    "Do not change non-English translations unless explicitly required.",
+    "Do not add new authentication providers or third-party integrations."
   ],
   "imageRequirements": {
     "required": [],

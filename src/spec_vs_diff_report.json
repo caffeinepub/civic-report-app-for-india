@@ -1,26 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T11:09:17.433Z",
-  "summary": "REQ-3 and REQ-4 appear implemented: RecentReports.tsx H2 matches the exact required headline, and frontend/index.html title/og:title/twitter:title use the updated wording. REQ-2 (codebase-wide removal of all remaining user-facing occurrences of \"Get Leader-Giotag\" and other outdated variants) is not demonstrably satisfied from the provided diff summary, since only a few files are shown and no evidence of a comprehensive sweep is included.",
+  "generatedAt": "2026-02-08T15:20:41.894Z",
+  "summary": "The diff only modifies `project_state.json` and does not show any changes to frontend translation resources where `header.title`/`header.subtitle` English strings would be updated. Therefore REQ-8 and REQ-9 are not implemented in the provided diff.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so the app consistently shows the intended updated wording (including HTML metadata, React components, and translation strings).",
-      "reason": "The diff shows updates to RecentReports.tsx and the HTML metadata in frontend/index.html, but does not provide evidence that all remaining occurrences across the rest of the codebase (e.g., other React components, translation/i18n strings, or other metadata) were searched and updated. A codebase-wide confirmation cannot be inferred from the limited file changes shown.",
+      "id": "REQ-8",
+      "requirement": "Update the English (en) translation value for `header.title` so the fixed homepage header banner title displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
+      "reason": "No frontend translation files or `frontend/src/components/Header.tsx`-related resources were modified; only `project_state.json` changed, which does not implement runtime UI text updates.",
       "evidence": [
-        "frontend/src/components/RecentReports.tsx",
-        "frontend/index.html",
-        "frontend-file-summaries.txt (truncated)"
+        "project_state.json"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Update the English (en) translation value for `header.subtitle` so it displays exactly: \"Help improve our India by reporting civic issues\" while keeping the subtitle visually unchanged.",
+      "reason": "No translation/resource file changes are shown; only `project_state.json` was modified, which does not affect the rendered subtitle text.",
+      "evidence": [
+        "project_state.json"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.64,
+  "hallucinated_features": [
+    {
+      "description": "Introduced/updated internal project tracking entries referencing unrelated prior requirements (REQ-1 to REQ-4) and new feature requests (AR-1..AR-4) about updating `RecentReports.tsx` and `frontend/index.html`.",
+      "reason": "BuildRequest only asks for updating English translations for `header.title` and `header.subtitle`; modifying/adding project state tracking for other features is not requested and does not implement the required translation fix.",
+      "evidence": [
+        "project_state.json"
+      ]
+    }
+  ],
+  "confidence": 0.77,
   "changed_files": [
-    "frontend-file-summaries.txt",
-    "frontend/index.html",
-    "frontend/src/components/RecentReports.tsx",
     "project_state.json"
   ]
 }

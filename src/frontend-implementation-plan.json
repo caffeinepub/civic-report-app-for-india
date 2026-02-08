@@ -1,66 +1,35 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove remaining outdated homepage headline wording and update HTML metadata",
+  "title": "Fix English translations for fixed homepage header banner title and subtitle",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Remove any remaining user-facing occurrences of the old homepage phrase (including metadata, components, and translations) so the updated wording is shown consistently.",
+      "id": "REQ-8",
+      "summary": "Update the English translation for `header.title` so the fixed homepage header banner title matches the required exact wording.",
       "acceptanceCriteria": [
-        "A codebase-wide check confirms there are no remaining user-facing strings containing \"Get Leader-Giotag\" (including in HTML metadata, React components, and translation strings).",
-        "Where the app previously displayed the old phrase, it now displays the updated wording as specified in REQ-3/REQ-4 (or a deliberate, explicitly preserved alternative if it is not the same UI element)."
+        "When the selected language is English (`en`) and the user visits the homepage, the large fixed header title text shows exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
+        "No other user-facing header title text in English shows the old wording (e.g., \"Get Leader-Giotag\" or \"Civic Reporter\") in the fixed header banner."
       ],
       "file_operations": [
         {
           "path": "frontend/src/contexts/LanguageContext.tsx",
           "operation": "modify",
-          "description": "Audit and update any translation strings that still include \"Get Leader-Giotag\" (or close/outdated variants of the homepage headline) so that no language mode can surface the old phrase; keep all updated user-facing text in English as required."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Ensure no remaining user-facing metadata strings contain \"Get Leader-Giotag\" by aligning document/share titles with the updated wording (also satisfies REQ-4)."
-        },
-        {
-          "path": "frontend/src/components/RecentReports.tsx",
-          "operation": "modify",
-          "description": "Confirm the homepage recent-reports H2 headline is the single source of truth and cannot be overridden by translation/conditional rendering; remove any unused translation hook usage to prevent alternate code paths (also satisfies REQ-3)."
+          "description": "In the `en` translations map, change the `header.title` value from the current text to exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\" (this is rendered via `t('header.title')` in `frontend/src/components/Header.tsx`)."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Set the RecentReports homepage section headline to the exact required updated text and prevent any alternate rendering from showing a different headline.",
+      "id": "REQ-9",
+      "summary": "Update the English translation for `header.subtitle` so the fixed homepage header banner subtitle matches the required exact wording without changing layout behavior.",
       "acceptanceCriteria": [
-        "On the route \"/\" (home page), the visible H2 headline above the recent reports section matches exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
-        "There is no alternate rendering (e.g., conditional language mode, duplicated component, or fallback UI) that shows a different headline on the homepage."
+        "When the selected language is English (`en`), the fixed header subtitle shows exactly: \"Help improve our India by reporting civic issues\".",
+        "The subtitle remains a single-line truncated subtitle in the header (no layout break/regression from current behavior)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/RecentReports.tsx",
+          "path": "frontend/src/contexts/LanguageContext.tsx",
           "operation": "modify",
-          "description": "Hardcode the H2 headline string exactly as specified and ensure there is no translation-driven, conditional, or duplicate headline rendering on the homepage; remove unused imports/state related to language that could introduce alternate text paths."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Verify the home route (\"/\") renders exactly one RecentReports instance and that no alternate route/component composition can render an older headline variant; keep changes minimal and behavior-preserving."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Update frontend/index.html document title and social/share titles to remove the old wording and use the updated wording consistently.",
-      "acceptanceCriteria": [
-        "frontend/index.html <title> no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
-        "frontend/index.html meta property=\"og:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording.",
-        "frontend/index.html meta name=\"twitter:title\" no longer contains \"Get Leader-Giotag\" and uses the updated wording."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Replace \"Get Leader-Giotag\" in <title>, og:title, and twitter:title with the updated wording aligned to the homepage headline messaging (use English), keeping all other SEO tags unchanged unless necessary for consistency."
+          "description": "In the `en` translations map, change the `header.subtitle` value from the current text to exactly: \"Help improve our India by reporting civic issues\". Do not change `Header.tsx` structure/styles so the existing single-line truncate behavior remains unchanged."
         }
       ]
     }
