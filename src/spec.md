@@ -1,10 +1,1693 @@
-# Specification
+# Civic Report App for India
 
-## Summary
-**Goal:** Fix the homepage fixed header banner English title and subtitle text by updating the `en` translation values used by `t('header.title')` and `t('header.subtitle')`.
+## Overview
+A civic reporting application that allows users in India to report various civic issues including potholes, roadside garbage, broken streetlights, waterlogging, floods, illegal dumping, illegal parking, and other custom issues by uploading photos and generating downloadable certificates for their reports. The app includes a status tracking system where reports can be updated from "Open" to "Resolved" with proof documentation, and comprehensive admin moderation capabilities with robust admin management system. All users can submit reports without authentication or login requirements. The app features a fully implemented verified volunteer program where users can register as volunteers through Internet Identity authentication, with admin approval required for volunteer status. App content language is English.
 
-**Planned changes:**
-- Update the English (`en`) translation string for `header.title` to: "Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice".
-- Update the English (`en`) translation string for `header.subtitle` to: "Help improve our India by reporting civic issues".
+## Core Features
 
-**User-visible outcome:** When English is selected, the homepage fixed header banner displays the new exact title and subtitle text, with the subtitle still appearing as a single-line truncated line without layout changes.
+### Header Design
+- Fixed header at the top of the application with admin-uploaded logo only
+- When no logo is uploaded by admin, display a single light gray circular placeholder
+- Logo and placeholder are consistent in size and appearance across all sections
+- No default logos (including Swachh Bharat logo) are used anywhere in the application
+- Simple gray circular placeholder matching the logo's dimensions displayed as default on initial page load to eliminate jarring transitions
+- Optimized loading of the admin-uploaded logo to appear as quickly as possible when users land on the app, minimizing visual distraction and ensuring a smooth, professional experience
+- Redesigned app title and subtitle as a smaller, fixed header for a cleaner, more professional look
+- Header remains fixed at the top for consistent user experience across all pages
+- Visually appealing design that maintains professional appearance
+- Larger font sizes for header text elements to improve readability and visual prominence
+- Decreased font size for the header subtitle text "Building a cleaner, better India" to make the header more compact and take up less space on all devices
+- Two compact dropdown menus positioned in the header area:
+  1. Multi-language dropdown with reduced font size and width to save space
+  2. New compact menu dropdown positioned beside the language switcher
+- Mobile-responsive header design with optimized button layout:
+  - Menu button displays only the icon on mobile screens (removing "Menu" text) for a more compact appearance
+  - Menu and language button widths remain stable and aligned to prevent shifting when switching languages or changing translations
+  - Header layout remains visually balanced and responsive across all devices and languages
+  - Consistent button alignment and spacing maintained regardless of language selection or translation changes
+- Logo and app title navigation functionality:
+  - Clicking the logo navigates users to the homepage for intuitive navigation
+  - Clicking the app title navigates users to the homepage for intuitive navigation
+  - Navigation behavior works consistently across all devices and languages
+  - Logo and title appearance, size, and styling remain unchanged when made clickable
+  - Hover effects or visual feedback may be added to indicate clickable elements
+  - Navigation functionality is responsive and works on both desktop and mobile devices
+
+### Multi-Language Support and Internationalization
+- Multi-language dropdown component positioned in the header area with reduced font size and width for space efficiency
+- Dropdown defaults to "English" selection
+- Language options displayed in their native scripts:
+  - "English" (default)
+  - "हिंदी" (Hindi) - displayed as separate option from English
+  - "தமிழ்" (Tamil)
+  - "తెలుగు" (Telugu)
+  - "বাংলা" (Bengali)
+  - "मराठी" (Marathi)
+  - "ಕನ್ನಡ" (Kannada)
+  - "भोजपुरी" (Bhojpuri)
+- Smooth dropdown animation when opening and closing
+- Checkmark indicator for the currently selected language
+- Full internationalization (i18n) implementation with language context/provider to manage current language selection
+- App content language base is English with full multilingual interface support
+- When "English" is selected, the entire app interface displays content in English only
+- When any non-English language is selected, the entire app interface updates to display content in the chosen language in real time
+- All static text, labels, buttons, form fields, error messages, success messages, and certificate content are translatable and switch according to the selected language
+- Complete translation coverage for all user-facing text elements throughout the application including:
+  - "Additional Information" section and all its content
+  - "Location & Leaders Information" section and all its content
+  - "Recent Reports" section header and all related text
+  - "View All Reports" button text
+  - "Support This Project" section including all support card content
+  - All form labels, input placeholders, validation messages
+  - All button text, navigation elements, status indicators
+  - All section headers, subsection titles, and descriptive text
+  - All certificate content, disclaimers, and legal notices
+  - All dashboard analytics labels and descriptions
+  - All menu dropdown sections and subsection content
+  - All admin interface elements, buttons, and labels
+  - All roadmap page content including section headers, feature cards, and admin controls
+  - All volunteer program interface elements, forms, and status messages
+- Language context manages translation state and provides translation functions to all components
+- Translation files must contain complete, accurate, and natural translations for all supported languages (Hindi, Tamil, Telugu, Bengali, Marathi, Kannada, Bhojpuri)
+- Every essential content key including labels, buttons, certificate text, disclaimers, form fields, navigation elements, status messages, section headers, and all UI text must be fully and naturally translated for each supported language
+- All translation files must be comprehensively reviewed and updated to provide complete, accurate, and natural translations for all UI sections and labels in Tamil, Telugu, Bengali, Marathi, Kannada, and Bhojpuri
+- Missing or partial translations must be identified and filled in using natural, context-appropriate language for each locale
+- No section should remain in English when another language is selected, except where appropriate (e.g., proper nouns)
+- Language switching functionality must properly display the selected language's translations instead of defaulting to English
+- All translation keys must be present and correctly mapped for each supported language
+- Translation system must ensure that when a non-English language is selected, the interface displays accurate and appropriate translations throughout all components
+- Language switching logic must be properly implemented so that all UI components re-render and reflect the selected language when changed
+- Translation function (t) must be used consistently throughout all app components to ensure proper language switching
+- All components must properly subscribe to language context changes and update their displayed text accordingly
+- Comprehensive audit and testing in each language to verify that all major UI elements, forms, certificate content, navigation, section headers, and support messages are fully translated and display correctly
+- Complete translation file review and update to ensure every essential section is fully and naturally translated with no fallback to English except where absolutely necessary
+- When a user selects any language, the entire app interface—including all forms, report sections, support messages, and navigation—displays in the chosen language with no English text remaining, except where appropriate (e.g., proper nouns)
+
+### Authentication and Admin System
+- Internet Identity authentication integration for admin access only
+- Admin login option accessible from the header menu dropdown
+- Complete admin list reset functionality: all existing admin principals are fully and properly cleared from the backend, ensuring no previous admins—including unauthorized users—retain access
+- First-login admin assignment system: the first user to log in with Internet Identity on each domain (custom domain and canister domain) will automatically be assigned admin rights after the admin list reset
+- Clear feedback system to confirm admin assignment when the first user logs in after reset
+- Backend verification that only new admin(s) have access and that no old admin principal IDs remain in the system
+- After the first admin is assigned on each domain, subsequent admin management is handled through the admin management panel
+- Backend tracks admin assignments per domain to ensure proper first-login admin assignment
+- Authentication state management to track logged-in admin users
+- Secure admin session handling with Internet Identity integration
+- No authentication required for regular users to submit reports - all report submission functionality is available without login
+- Backend explicitly allows unauthenticated users to submit reports without any authentication checks or restrictions
+- Frontend submission process does not require login or authentication for report submission
+- All users, regardless of authentication status, can submit reports successfully while admins retain moderation rights
+
+### Verified Volunteer Program
+- Internet Identity authentication system for volunteer registration and management
+- Volunteer registration form accessible to users who want to become verified volunteers
+- Registration form collects the following required information:
+  - Full name (text input)
+  - Complete address (text area)
+  - Profile photo (file upload with image validation)
+  - Mobile number (text input with validation)
+  - Email address (text input with email validation)
+- All volunteer registration fields are mandatory and must be completed before submission
+- Backend stores all volunteer application data including full name, complete address, profile photo, mobile number, email address, and application submission timestamp
+- Volunteer application system tracks submission timestamp and applicant's Internet Identity principal
+- Volunteers must authenticate with Internet Identity to access volunteer features and submit applications
+- Once approved by admin, volunteers receive "Verified Volunteer" status and badge
+- Approved volunteers have their name auto-filled (non-editable) in report submission forms with the "(Optional)" label removed from the username field
+- Single, consistent volunteer badge icon is displayed next to the volunteer's name in all contexts including report submission forms, report cards, certificates, and status updates for a unified, professional experience
+- The volunteer badge icon on certificates uses the exact same icon, size, and position as on report cards, ensuring perfect visual consistency next to the volunteer's name
+- Badge placement on certificates appears neatly and naturally next to the volunteer's name with proper alignment and spacing for a professional look
+- All volunteer badge appearances throughout the app maintain consistent visual design, size, and alignment for a cohesive user experience
+- Volunteer badge is always visible on report cards, certificates, and status updates for any report submitted or resolved by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who submitted the report), ensuring volunteer recognition is persistent and public
+- When approved volunteers update report status to "Resolved," their name and volunteer badge icon are pre-filled and non-editable for recognition
+- Volunteer status provides credibility and recognition for community contributions
+- Backend maintains volunteer status and badge information linked to Internet Identity principals
+- All volunteer data including personal details, contact information, profile photos, and application dates are stored securely in the backend
+- Real volunteer registration data including name, address, photo, mobile, email, and principal ID is persisted in the backend with no mock data or placeholders
+
+### Volunteer Authentication and Login System
+- Dedicated volunteer login system using Internet Identity authentication
+- Volunteer authentication state management to track logged-in volunteer users
+- Secure volunteer session handling with Internet Identity integration
+- Volunteer login/logout functionality accessible from the header menu dropdown
+- Authentication state determines volunteer-specific UI elements and access permissions
+- Backend verification of volunteer authentication status and approved volunteer status
+- Volunteer authentication system integrates with existing volunteer registration and management features
+- Authenticated volunteers can access volunteer dashboard and volunteer-specific features
+- Volunteer authentication state persists across browser sessions for seamless user experience
+- Volunteer login button displays "Volunteer Logging In" during authentication and status verification process
+- Once authentication and status verification are complete, the button switches to "Sign Out" for logged-in volunteers
+- Login flow is optimized to minimize delays and ensure responsive UI updates as soon as authentication and status checks are complete
+- Clear feedback provided throughout the authentication process without requiring page refresh
+- Smooth user experience with immediate UI updates upon successful authentication
+
+### Role Separation and Access Control
+- Complete separation between admin and volunteer roles to ensure volunteers cannot access admin features
+- Volunteer authentication does not grant admin access or display any admin dashboard or controls
+- Volunteers cannot see or access admin management panels, admin dashboard, or any admin-only functionality
+- Backend enforces strict role separation with separate authentication checks for admin and volunteer access
+- Admin features are only accessible to users with explicit admin privileges
+- Volunteer features are only accessible to users with verified volunteer status
+- Clear distinction between admin and volunteer authentication states in the frontend
+- Role-based UI rendering ensures appropriate features are displayed based on user role
+- Security measures prevent privilege escalation from volunteer to admin role
+- Admin and volunteer sessions are managed separately with distinct authentication flows
+
+### Admin Volunteer Management
+- Dedicated "Volunteer Management" section within the admin dashboard accessible only to authenticated admin users
+- Comprehensive volunteer application review interface displaying all pending, approved, and rejected applications using complete volunteer data
+- Admin volunteer management table with the following columns:
+  - Principal ID (Internet Identity principal of applicant)
+  - Full name (as provided in application)
+  - Profile photo (thumbnail with click-to-expand functionality showing actual uploaded photo)
+  - Email address (actual email from application)
+  - Complete address (full address as provided by applicant)
+  - Mobile number (actual phone number from application)
+  - Application submission timestamp (real date and time of application)
+  - Current status (Pending, Approved, Rejected, Deactivated)
+- Admin action buttons for each volunteer application:
+  - "Approve" button to grant verified volunteer status
+  - "Reject" button to deny volunteer application with optional rejection note field
+  - "Deactivate" button for approved volunteers (removes volunteer status for misconduct)
+  - "Reactivate" button for deactivated volunteers
+- Rejection functionality includes optional text field for admin to provide rejection reason or note
+- Rejection note is stored in the backend and displayed to the volunteer in their dashboard
+- Confirmation dialogs required for all volunteer status changes including rejection with note
+- Admin can review all actual volunteer information before making approval decisions
+- Filtering options to view volunteers by status (All, Pending, Approved, Rejected, Deactivated)
+- Search functionality to find specific volunteers by name, email, or principal ID
+- Admin activity logging for all volunteer management actions including timestamps and acting admin
+- Bulk management tools for efficient volunteer administration
+- Real-time updates ensure volunteer status changes are immediately reflected across the application
+- Admin volunteer management displays actual submitted volunteer information with complete personal details, contact information, and profile photos
+- Backend stores admin approval timestamp when volunteers are approved, tracking the exact date and time of approval for each volunteer
+
+### Volunteer Dashboard and Profile Management
+- Dedicated volunteer dashboard accessible to authenticated volunteers with visually appealing design consistent with the overall app UI
+- Mobile-optimized layout with refined spacing, reduced clutter, and well-aligned elements for easy reading on small devices
+- Volunteer profile display showing current status (Pending, Approved, Rejected, Deactivated) using real data from backend
+- Redesigned "Profile Information" section with polished and appealing layout, especially optimized for mobile:
+  - Visually balanced layout with consistent circular profile photo avatar (standardized to match the style used elsewhere in the app)
+  - Clean, modern design with improved spacing between all elements
+  - Clear, well-organized labels for Full Name, Email, and Mobile fields with enhanced typography
+  - Professional styling that aligns with the overall app design language
+  - Mobile-friendly responsive layout with optimized spacing and alignment
+  - Consistent visual hierarchy with proper font sizes and spacing for mobile readability
+  - Clean, compact profile cards with standardized styling and proper spacing
+  - Circular avatar design that maintains visual consistency across the application
+  - Enhanced visual appeal with modern, user-friendly appearance
+- Single, consistent volunteer badge icon (if approved) using complete volunteer data
+- Volunteer can view their application status and approval timeline
+- "Days Since Application" calculation displays accurate number of days since application submission using proper timestamp calculations
+- Application Timeline displays properly formatted submission date using accurate date formatting
+- For rejected applications, rejection note from admin is displayed if provided
+- For approved volunteers, dashboard shows volunteer statistics including:
+  - Number of reports submitted as verified volunteer
+  - Number of status updates performed
+  - Community impact metrics
+- Profile editing capabilities for approved volunteers to update contact information
+- Single, consistent volunteer badge icon display system that shows verification status prominently next to the volunteer's name
+- Integration with report submission system for auto-filled volunteer information using real volunteer data
+- Dashboard displays complete volunteer data including all personal details, contact information, and application information
+- All statistics cards, badges, and action buttons are visually consistent, compact, and mobile-friendly
+- Improved visual hierarchy and typography for better readability on mobile screens
+- Standardized button styling and spacing throughout the dashboard interface
+- Clean, professional design that matches the overall app aesthetic and maintains usability across all device sizes
+
+### Public Volunteer Directory
+- Public volunteer directory accessible from the header menu dropdown
+- Directory displays all approved volunteers with their complete public information:
+  - Volunteer name (actual name from application)
+  - Profile photo (actual uploaded photo)
+  - Contact information (email and mobile, if permitted by volunteer)
+  - "Volunteer since" date displaying the actual admin approval timestamp for each approved volunteer, syncing correctly with the approval date from the admin dashboard
+- Directory is automatically synchronized with approved volunteers from the admin management system
+- Privacy settings allowing volunteers to control visibility of contact information
+- Search and filter functionality within the volunteer directory
+- Volunteer directory is accessible to all users without authentication requirements
+- Clean, organized layout displaying volunteer information in card format using complete real data
+- Mobile-responsive design for easy browsing on all devices
+- Integration with single, consistent volunteer badge icon system showing verification status next to volunteer names
+- Directory populated with actual approved volunteer data from the backend, automatically updated when admins approve new volunteers
+- "Apply to become a volunteer" button functionality:
+  - If a volunteer is already logged in, clicking the button redirects them to their volunteer dashboard instead of the application form
+  - Preserves authentication state and prevents menu/button glitches
+  - For non-authenticated users, the button redirects to the volunteer application form as expected
+
+### Dashboard Volunteer Filtering
+- "Filter by Volunteer" option added to dashboard filtering capabilities
+- Users can filter reports to show only those submitted by verified volunteers using real volunteer data
+- Volunteer filter dropdown displays list of all approved volunteers with actual names and data
+- Combined filtering allows users to filter by volunteer along with existing filters (issue type, status, date range, location, states)
+- Dashboard statistics update dynamically when volunteer filter is applied
+- Volunteer-specific analytics showing impact metrics for individual volunteers using real data
+- Clear indication when volunteer filter is active with option to clear filter
+- Real-time filtering updates without page refresh
+- Filtering works with actual volunteer data stored in the backend
+
+### Admin Management Panel
+- Dedicated admin management panel accessible only to current admin users
+- Clear list display of all current admins with their Internet Identity principals
+- Add admin functionality allowing existing admins to grant admin rights to new users by entering their Internet Identity principal
+- Remove admin functionality allowing existing admins to revoke admin rights from other users
+- Confirmation dialogs required for all admin role changes (both adding and removing admins)
+- Clear UI feedback for successful admin additions or removals
+- Error handling for invalid principals or failed operations
+- Security measures to prevent admins from removing their own admin rights accidentally
+- Transparent admin management with clear guidance on how to use the system securely
+- Admin activity logging for all admin role changes including timestamps and acting admin
+
+### Admin Content Management
+- Dedicated "Admin Content Management" section within the admin dashboard accessible only to authenticated admin users
+- Current logo display showing the active logo used in both the app header and certificates
+- When no logo is uploaded, display a single light gray circular placeholder
+- Logo upload functionality allowing admins to upload new SVG logo files
+- File upload interface with drag-and-drop support and file picker for SVG files only
+- File validation to ensure only valid SVG files are accepted
+- Preview functionality to show the uploaded logo before confirming the change
+- Confirmation dialog before replacing the current logo with the new upload
+- Immediate logo update across the entire application:
+  - App header logo is instantly updated to reflect the new logo
+  - Certificate generation uses the new logo for all future certificates
+  - All existing UI components that display the logo are refreshed automatically
+- When no admin logo is uploaded, only a single light gray circular placeholder is shown (no default logos)
+- Secure file handling with proper validation and sanitization of uploaded SVG content
+- Error handling for invalid files, upload failures, or processing errors
+- Success feedback confirming when the logo has been successfully updated
+- Logo management history showing when logos were changed and by which admin
+- Rollback capability allowing admins to revert to previous logos if needed
+- File size limits and security measures to prevent malicious SVG uploads
+- Clear instructions and guidelines for optimal logo dimensions and format requirements
+
+### Admin Leader Directory Management
+- Dedicated "Leader Directory Management" section within the admin dashboard accessible only to authenticated admin users
+- Comprehensive leader management interface for Prime Ministers, Chief Ministers, and MPs
+- Admin can add, edit, and delete leader information including:
+  - Full name
+  - Official photo
+  - Constituency (for MPs)
+  - State (for Chief Ministers and MPs)
+  - X (Twitter) handle for social media sharing
+  - Contact information
+  - Remarks field for area/block information to improve MP auto-matching
+- Leader directory is used exclusively for all leader information throughout the app
+- All leader data including names, photos, and X handles are sourced from the admin directory only
+- No external data sources or Wikipedia integration for leader information
+- Admin interface allows bulk import and management of leader data
+- Search and filter functionality for efficient leader management
+- Real-time updates ensure leader changes are immediately reflected across the application
+- Leader information validation to ensure data integrity and proper formatting
+- Admin activity logging for all leader management actions
+
+### Header Menu Dropdown
+- Compact dropdown button positioned beside the language switcher in the header
+- Mobile-friendly design that doesn't disrupt header logo or titles
+- Dropdown menu contains the following organized sections in this specific order:
+
+#### Dashboard Section
+- Analytics subsection displaying real-time, updated data:
+  - Total reports count (dynamically calculated from backend data)
+  - Resolution rate percentage (calculated from current open vs resolved reports)
+  - Issue types breakdown with current numbers for each category
+- Impact Metrics subsection showing real-time data:
+  - Total issues resolved count (dynamically calculated from backend)
+- Leaderboard subsection featuring real-time data:
+  - Top contributors by region (calculated from current backend data)
+  - Top contributors by issue category (calculated from current backend data)
+- Dashboard link for easy navigation to the dashboard page
+
+#### Volunteer Section
+- Dynamic volunteer menu options based on authentication state:
+  - When volunteer is not logged in: "Become a Volunteer" link for new volunteer registration
+  - When volunteer is logged in: "Volunteer Dashboard" link for accessing their dashboard
+- Volunteer login/logout functionality for returning volunteers
+- "Volunteer Directory" link to public directory of approved volunteers
+- Volunteer program information and benefits overview
+
+#### Roadmap Section
+- Roadmap link for easy navigation to the roadmap page
+- Quick overview of current development status
+- Link to view detailed feature roadmap and progress
+
+#### Terms of Service Section
+- Data privacy and usage policy information
+- User responsibilities and guidelines
+- Liability disclaimers
+- Community guidelines and standards
+
+#### Development Info Section
+- About the application information
+- Tech stack details highlighting ICP Blockchain and Caffeine AI
+- How the app works explanation
+- Version history including real-time, updated information:
+  - Last updated date (dynamically retrieved from backend or build metadata)
+  - New features and updates (current version information)
+  - Project counts and key metrics (real-time data from backend)
+
+#### Collaborate/Contribute Section
+- For developers subsection:
+  - Contribute code and features information
+- For citizens subsection:
+  - Spread awareness guidelines
+  - Suggestions submission
+- Funding subsection:
+  - Donation information and links
+- Feedback subsection:
+  - Feature requests submission
+  - Bug reports submission
+
+#### Features Section
+- What's new subsection:
+  - Latest updates and announcements
+- Tips & best practices subsection:
+  - Effective reporting guidelines
+  - Sharing with ministers best practices
+  - Certificate usage tips
+
+#### Admin Section (positioned at the very bottom of the dropdown menu)
+- Admin Login/Logout option
+- Admin Dashboard access
+- Admin Management Panel access for managing admin rights
+
+### Roadmap Page
+- Dedicated roadmap page accessible via the header menu dropdown
+- Creative, visually appealing design with professional layout and responsive design for both mobile and desktop
+- Three main sections organized vertically with only section titles (no subtitles):
+  1. "Implemented Features" - Features that have been completed and are live
+  2. "Under Consideration" - Features being evaluated or in planning phase
+  3. "Upcoming/Planned Features" - Features scheduled for future development
+- Each feature displayed as an attractive card containing:
+  - Icon (selectable from a predefined set or custom upload)
+  - Feature title (editable text)
+  - Short description (editable text area)
+  - Progress bar with percentage (0-100%, editable by admins)
+  - Visual status indicator based on the section
+- Feature cards do not include bordered text boxes or labels indicating section names, as cards are already visually grouped and themed by section
+- Light color theme design with three distinct color schemes:
+  - "Implemented Features" section: Light green theme for completed features
+  - "Under Consideration" section: Light blue theme for features in evaluation
+  - "Upcoming/Planned Features" section: Light orange theme for planned features
+- Cards automatically adopt the color theme of their current section
+- When cards are dragged between sections, they instantly change to match the destination section's color theme
+- Clean, modern card design without dark themes or date displays
+- Cards feature clean white backgrounds with colored accents matching their section theme
+- Admin-only edit controls visible only to authenticated admin users:
+  - "Add New Feature" button in each section
+  - Edit button on each feature card for inline editing
+  - Delete button on each feature card with confirmation dialog
+  - Drag-and-drop functionality to move cards between sections
+- Drag-and-drop functionality:
+  - Cards can be dragged between the three sections
+  - Visual feedback during drag operations
+  - Automatic color theme updates when cards are moved to different sections
+  - Smooth animations for drag and drop operations
+- Search and filter functionality:
+  - Search bar to find specific features by title or description
+  - Filter options to show/hide completed features
+  - Clear search and filter controls
+- Smooth animations and transitions:
+  - Card hover effects
+  - Section transitions
+  - Loading animations for admin operations
+  - Smooth drag and drop animations
+  - Color theme transition animations when cards move between sections
+- Mobile-responsive design:
+  - Cards stack appropriately on mobile devices
+  - Touch-friendly drag and drop on mobile
+  - Optimized layout for small screens
+  - Accessible controls for mobile users
+- Public viewing mode for non-admin users showing read-only roadmap
+- Admin editing mode with full CRUD operations for feature management
+- Real-time updates when admins make changes to the roadmap
+- Backend storage of all roadmap data including feature details, progress, and section assignments
+
+### Admin Dashboard and Report Management
+- Dedicated admin dashboard accessible only to authenticated admin users
+- Robust, compact table layout for admin report management where each report is displayed as a single row
+- Table displays all captured data for each report:
+  - Report ID (non-editable identifier)
+  - Issue type/category
+  - Issue photo (clickable thumbnail that opens full-size view)
+  - Status (Open/Resolved) - In normal viewing mode, all resolution details are clearly displayed in this column including resolution photo thumbnail, resolved by name, and resolution notes. In edit mode, all resolution fields (photo, name, and notes) become editable
+  - Reported by (username or volunteer name with single, consistent volunteer badge icon if applicable)
+  - Notes/comments
+  - Date and time of submission
+  - Location information
+  - Responsible Leaders/Photos information including type, body name, representative name, and photo
+  - Volunteer status indicator (if report was submitted by verified volunteer)
+- Empty fields are visible and clearly marked as editable so admins can fill in missing data
+- Missing photos (such as civic body representative photos) are displayed as placeholders with clear indication that they can be uploaded
+- Each table row has exactly two action buttons:
+  1. "Edit" button - transforms the row into editable input fields allowing modification of all data except report ID
+  2. "Delete" button - permanently removes the report with confirmation dialog
+- Edit functionality:
+  - When "Edit" is clicked, the table row transforms into editable input fields
+  - Issue Type field becomes a dropdown containing all predefined issue types from the report form (potholes, roadside garbage, broken streetlight, waterlogging, flood, illegal dumping, illegal parking, other)
+  - When "Other" is selected from the Issue Type dropdown, a custom text input field appears for entering custom issue type
+  - The associated issue type icon updates automatically based on the selected type from the dropdown
+  - All fields except report ID become editable (text inputs, dropdowns, file uploads)
+  - Image upload/replace functionality for all photos (issue photo, civic body representative photo, proof photos)
+  - Local Civic Body Type dropdown is fully functional and allows admins to select from available civic body types (Municipal Corporation, Municipality, Panchayat, etc.)
+  - When a civic body type is selected, the corresponding body name, representative name, and photo fields become editable
+  - All Local Civic Body fields (type, body name, representative name, photo) are fully editable and can be populated by admins
+  - Address field is fully editable in edit mode and includes a "Select on Map" option, allowing admins to update the entire location
+  - In edit mode, the address field is pre-filled with the actual auto-detected or edited address from the original report (not just a placeholder), appearing as an editable text field that matches what is shown in normal viewing mode, ensuring admins can see and modify the current address easily
+  - When uploading a new photo in edit mode, the thumbnail preview updates immediately to show the new image before saving, ensuring a seamless and accurate visual refresh in the editing interface
+  - Photo preview state is isolated per row, so only the currently edited row displays the new photo thumbnail in edit mode, while all other rows maintain their original thumbnails to prevent visual glitches
+  - In normal viewing mode, the Status column displays all resolution details including resolution photo thumbnail (clickable for full-size view), resolved by name, and resolution notes
+  - In edit mode, all resolution fields (photo, name, and notes) become editable in the Status column, matching the editing experience of other sections
+  - Save and Cancel buttons appear to confirm or discard changes
+  - After saving, changes instantly reflect across all public interfaces (dashboard, report cards, certificates, shared content)
+- Admin status change workflow for reports:
+  - When admin changes a report status from "Open" to "Resolved" via the admin dashboard, they must complete the same resolution form as regular users
+  - Resolution form requires mandatory proof photo upload, mandatory reporter name field, and optional notes field
+  - Admin cannot simply change status without providing resolution documentation
+  - This ensures consistent resolution data regardless of who updates the status
+- Admin resolution editing capabilities:
+  - For already resolved reports, admins can edit resolution details including reporter name, notes, and proof photo through the Status column
+  - Resolution editing is accessible through the admin dashboard table interface with the resolution details displayed in the Status column
+  - Changes to resolution details are instantly reflected across all views (report cards, certificates, dashboard)
+  - Resolution editing maintains data integrity and audit trail
+- Comprehensive backend update method that allows admins to edit and save all report details including:
+  - Updated photos for all image fields (issue photo, civic body representative photo, proof photos)
+  - Text field modifications (username, notes, custom issue type, civic body details, address)
+  - Status changes with proper resolution form completion
+  - Resolution details editing for resolved reports through the Status column
+  - Location updates (coordinates and address information)
+  - Local Civic Body updates (type, body name, representative name, photo)
+  - All changes are validated and saved seamlessly to the backend
+  - Real-time synchronization ensures all modifications are instantly reflected across the dashboard, report cards, certificates, and map view
+- Delete functionality maintains current confirmation dialogs and permanent removal capability
+- Table is fully responsive and optimized for mobile viewing with horizontal scrolling if needed
+- Efficient data loading and management for large numbers of reports
+- Real-time updates ensure changes are immediately visible across the entire application
+- Admin activity logging for all moderation actions including edits and deletions
+- Bulk moderation tools for efficient report management
+- Advanced filtering and search capabilities for admin report management
+- Table remains compact and visually organized with resolution details properly integrated into the Status column
+
+### User Management Section Mobile Responsiveness
+- User Management section within the admin dashboard features improved mobile responsiveness
+- "Your Principal ID" display is made more compact and mobile-friendly to prevent header menu and language selector from shifting or overflowing on small screens
+- Mobile-optimized layout ensures proper display and functionality across all device sizes
+- Responsive design maintains usability and visual integrity on mobile devices
+
+### Main Page Design
+- Remove the line "Civics Issue Report App for India" from the main page, as the header already provides the app's identity
+- Remove the introductory text "Report civic issues and help improve your community" for a cleaner interface
+- Clean, streamlined main page interface without redundant title text or introductory text
+- Increased font sizes for all interface elements, labels, and buttons to enhance readability and visual impact
+- Upper section title updated to "Report by clicking Photo & Get GPS‑tagged leader image, Certificate, Complaint & Legal Notice" to highlight the comprehensive features available
+- New title is styled to fit well on all devices and remains visually appealing with appropriate font sizing and responsive design
+
+### Recent Reports Section
+- Homepage displays a "Recent Reports" section showing the five most recent report cards ordered by date and time with newest first
+- Reports are displayed in strict chronological order with the most recently submitted reports appearing at the top of the list based on their submission timestamp
+- When a new report is submitted, it immediately appears as the first card in the Recent Reports section without requiring a page refresh
+- The section always maintains exactly five report cards, automatically updating to show the five most recent reports
+- Each report card displays essential information including issue type, status, location, and timestamp
+- Report ID is clearly displayed on each report card with reduced font size to fit on a single line, even on mobile, preventing line wrapping and keeping cards compact
+- Recent Reports section features improved, mobile-friendly UI design that matches the dashboard and map view for consistent visual appeal across the application
+- Enhanced responsive layout with optimized spacing, typography, and visual hierarchy for mobile devices
+- Professional styling that maintains visual consistency with other sections of the app
+- "View All Reports" button or link positioned at the bottom of the Recent Reports section
+- "View All Reports" button redirects users to the dedicated dashboard page for comprehensive report viewing
+- When users click "View All Reports" from the homepage, the dashboard page loads at the top with scroll position reset to ensure smooth and intuitive navigation
+- Real-time updates ensure the newest reports are always displayed first in the Recent Reports section based on submission date and time
+
+### Interactive Map View
+- Modern, visually impressive map interface displaying all reported issues at their exact GPS locations
+- Report photo thumbnails used as custom map markers showing the actual civic issue photos for each report
+- Photo thumbnail markers are clear, responsive, and load efficiently on all devices for a smooth user experience
+- Map view initialization logic is specifically designed to automatically load and display all report thumbnails immediately when the map component renders
+- On initial render of the map view, the default filters are explicitly set to "Issue Type = All types" and "Status = All status" and immediately applied
+- The fetch function for report thumbnails is automatically called on component mount without requiring any user interaction
+- All report markers with thumbnails are visible on the map instantly when accessing map view, without requiring any manual filter selection or user interaction
+- Users instantly see all reports upon accessing the map view, with filters only serving to refine the view when manually changed
+- Map view logic ensures that the default filter state ("All Types" and "All Status") is explicitly set and applied on initial render and all report thumbnails are displayed immediately
+- The map does not wait for a filter action before displaying report thumbnails, and users instantly see all reports on the map by default
+- Map initialization process automatically triggers the report data fetching and thumbnail rendering on component mount
+- On initial load, the map automatically adjusts its bounds to fit all report markers ("Fit All" behavior), ensuring every report is visible without user interaction
+- Enhanced loading speed for faster, smoother user experience with optimized data fetching and rendering
+- Map markers are clickable and display report details in popup windows or info panels
+- On mobile devices, when a user taps a report thumbnail marker, a compact info card overlays on top of the map with proper z-index and stacking order
+- The mobile overlay info card displays essential information including:
+  - Issue type
+  - Status
+  - Date & time
+  - Location coordinates clearly displayed alongside the address
+  - Single, consistent volunteer badge icon (if report was submitted by verified volunteer) displayed next to the volunteer's name
+  - "View Full Details" button for accessing complete report information
+- The overlay card is positioned to be easily readable and accessible on mobile screens with correct layering above the map
+- The overlay card is mobile-responsive and visually consistent with the rest of the app design
+- Map overlay info card has proper z-index to ensure it appears above the map and all other elements when displayed
+- Map does not overlap or cover the header section when scrolling, maintaining correct layering and visual hierarchy
+- Mobile-friendly map interface with proper stacking order and clean UI that doesn't interfere with header navigation
+- Fully responsive map design that works smoothly on all devices including mobile, tablet, and desktop
+- Clean, engaging map styling with modern visual design and professional appearance
+- Smart clustering functionality for dense areas to prevent marker overlap and improve readability
+- Cluster markers show the number of reports in each cluster and expand when clicked
+- Smooth map interactions including zoom, pan, and marker selection with optimized performance
+- Map view accessible from both the dashboard page and homepage for easy navigation
+- "Map View" button or link prominently displayed on the dashboard page
+- Optional "View on Map" button on the homepage for quick access to the map interface
+- When users click "Map View" from the homepage, the map page loads at the top with scroll position reset to ensure smooth and intuitive navigation
+- Map displays real-time data showing all current reports with their actual locations
+- Different visual indicators or marker styles for different issue types (potholes, garbage, streetlights, etc.)
+- Map legend or key explaining different marker types and status indicators
+- Search and filter functionality within the map view to find specific types of issues or locations
+- Volunteer filter option within map view to show only reports submitted by verified volunteers using real volunteer data
+- Geolocation integration allowing users to center the map on their current location
+- Smooth transitions and animations when switching between list view and map view
+- Map performance optimization to handle large numbers of markers efficiently
+- Mobile-optimized touch controls and gestures for map navigation on touch devices
+- Map view is thoroughly tested to confirm that all report thumbnails appear as expected on both desktop and mobile devices
+- Leaflet marker clustering library is correctly imported and initialized to prevent "window.L.markerClusterGroup is not a function" errors
+- Map rendering is properly implemented to ensure no black screen or JavaScript errors occur when accessing the Map View
+- All required Leaflet dependencies including the marker clustering plugin are properly loaded and available before map initialization
+- Map component initialization includes proper error handling and fallback mechanisms to prevent JavaScript errors
+- Marker clustering functionality is properly configured and tested to ensure smooth operation without console errors
+- Map markers display reports at their exact custom-selected coordinates when users have pinned custom locations via "Select on Map"
+- Real-time synchronization ensures that admin edits to report data are instantly reflected in map markers and info cards
+- Map thumbnail markers display cleanly and seamlessly with no status indicators, dots, borders, or overlays for a professional and visually clear appearance
+
+### Map View Mobile-Friendly UI Design
+- Fully mobile-responsive Map View interface with optimized layout for small screens
+- Upper section redesign for mobile compatibility:
+  - Map View title and subtitle styled for visual consistency and responsive layout on small screens
+  - List View and Home buttons redesigned to match in style and size for visual consistency
+  - Buttons are easy to use and visually appealing on mobile devices
+  - Proper spacing and alignment maintained across all screen sizes
+  - Consistent layout alignment with Dashboard page - no extra top margin or unnecessary empty space at the top of the Map View page
+  - Title, subtitle, buttons, and all content align consistently with the Dashboard page across all screen sizes
+  - Unified, visually consistent layout between Map View and Dashboard pages
+- Second section mobile optimization:
+  - "Interactive Reports Map" text sized appropriately for mobile screens
+  - Report count display optimized for mobile readability
+  - Open Reports and Resolved Reports indicators redesigned for mobile responsiveness
+  - Text and indicator sizing adjusted for a polished, professional look on small screens
+- Small, accessible full-screen mode option for enhanced map viewing experience
+- Full-screen toggle button positioned conveniently for easy access without cluttering the interface
+- Full-screen mode provides immersive map experience with maximized viewing area
+- Exit full-screen functionality clearly available when in full-screen mode
+- All Map View UI changes maintain clean, user-friendly experience across all devices
+- Consistent visual design language throughout the Map View interface
+- Touch-friendly controls and proper button sizing for mobile interaction
+- Responsive typography that scales appropriately for different screen sizes
+- Optimized spacing and padding for mobile viewing comfort
+
+### Dashboard Page
+- Dedicated dashboard page accessible via "View All Reports" button from the homepage
+- Dashboard displays all submitted report cards with comprehensive viewing capabilities
+- Enhanced upper section design with improved responsiveness and visual appeal:
+  - Dashboard title "Dashboard" and subtitle "Comprehensive view of all civic reports (Live Data)" positioned directly above the call-to-action buttons, matching the structure of the Map View page for consistent design across both views
+  - Dashboard title styled with clean, professional typography that scales appropriately across all screen sizes
+  - Subtitle optimized for readability on all devices with responsive font sizing
+  - Map View and Home buttons positioned below the title and subtitle for visual consistency with Map View page layout
+  - Buttons feature matching style and size for cohesive visual design
+  - Proper spacing and alignment maintained across desktop, tablet, and mobile devices
+  - Clean, visually appealing layout that maintains professional appearance on all screen sizes
+  - Updated layout is fully responsive and visually aligned on all screen sizes
+- Compressed statistics section optimized for mobile viewing:
+  - Statistics section layout compressed and optimized to minimize vertical space usage on mobile devices
+  - Users can see the full dashboard overview with minimal scrolling on mobile screens
+  - Compact presentation of statistics while maintaining readability and visual clarity
+  - Mobile-first responsive design ensures optimal user experience on small screens
+  - Statistics cards and data displays are condensed for efficient space utilization
+  - Key metrics remain easily accessible and readable despite compressed layout
+- Statistics section at the top of the dashboard showing real-time, updated data:
+  - Total reports count (dynamically calculated from current backend data)
+  - Resolution rate percentage (calculated from current open vs resolved reports)
+  - Issue type breakdown with current numbers for each category (dynamically updated)
+  - Volunteer statistics including number of verified volunteers and their contribution metrics using real volunteer data
+- Filtering options allowing users to filter reports by:
+  - Issue type/category
+  - Status (Open, Resolved)
+  - Date range
+  - Location
+  - States (new filter option for sorting and filtering issues by state)
+  - Volunteer status (filter to show only reports submitted by verified volunteers using real volunteer data)
+- All report cards displayed in organized, paginated format for easy browsing
+- Dashboard maintains the same report card design and functionality as the homepage Recent Reports section
+- Users can perform status updates and view report details directly from the dashboard
+- All dashboard analytics and statistics display live, current data from the backend without cached or static values
+- Streamlined "Back to Home" button with reduced size and visual weight to make it less bulky and visually lighter
+- "Map View" button prominently displayed for easy access to the interactive map interface
+- Real-time synchronization ensures that admin edits to reports are instantly reflected in dashboard statistics and report cards
+
+### Location and Civic Body Management
+- Location is automatically fetched only on form reset or page reload
+- Manual "Refresh Location" button allows users to update their location when desired
+- Manual location selection feature with map modal:
+  - Small edit button positioned next to the coordinates display
+  - Edit button opens a mobile-friendly map modal for custom location selection
+  - Users can pin a custom location on the map by clicking/tapping
+  - When a location is pinned, coordinates and address fields are auto-populated based on the selected point
+  - Map modal is fully responsive and optimized for mobile devices
+  - Modal includes clear controls for confirming or canceling the location selection
+  - Selected location updates both GPS coordinates and address information
+  - Map modal does not include a search field to maintain clean and user-friendly interface
+  - Custom-selected coordinates and address are properly saved and persist throughout the report submission process
+- Redesigned "Current Location" section with clean, organized, and mobile-friendly UI:
+  - "Current Location" label positioned prominently at the top of the section
+  - "Select on Map" and "Refresh" buttons redesigned to be smaller, less prominent, and more space-efficient, especially on mobile screens
+  - Buttons arranged in a visually appealing, compact layout with clear spacing and alignment
+  - Location status display positioned below the buttons with proper spacing
+  - Address field positioned at the bottom of the section with consistent styling
+  - All elements arranged in a logical, intuitive flow for easy mobile interaction
+  - Buttons feature intuitive icons and consistent styling that matches the overall app design
+  - Compact layout ensures all controls are easily accessible and readable on small screens
+  - Clear visual hierarchy with appropriate font sizes and spacing for mobile readability
+  - Responsive design that adapts gracefully across all device sizes
+  - Professional appearance that maintains visual consistency with other form sections
+- Clean "Select on Map" modal without search functionality:
+  - Simple map interface for location selection without search input field
+  - Users can navigate the map using standard zoom and pan controls
+  - Location selection by clicking/tapping directly on the map
+  - Modal remains clean and user-friendly without non-functional search elements
+  - Mobile-friendly map interface with touch-optimized controls
+  - Clear modal controls for confirming or canceling the location selection
+  - Smooth integration between map interaction and location selection
+- Combined unified section that integrates:
+  - Current location status display with editable address functionality
+  - Local Civic Body information with dropdown for civic body type selection
+  - Civic body name, representative name, and photo fields that become available based on selected type
+- Local Civic Body section includes:
+  - Dropdown for civic body type selection (Municipal Corporation, Municipality, Panchayat, etc.)
+  - Civic body name field (auto-populated or editable based on selection)
+  - Representative name field (editable)
+  - Representative photo upload functionality
+- Photos are automatically fetched when available based on user's detected location and civic body selection
+- Editable name fields allowing users to modify the displayed civic body representative names
+- Editable address field allowing users to manually enter or update a more detailed or specific address after auto-population from map selection
+- Address edit functionality uses the same edit icon as for civic body names, positioned next to the auto-fetched or map-selected address display
+- When users click the edit icon next to the address, it enables inline editing of the address field
+- Address editing UI is consistent with the existing name edit functionality for civic body representatives
+- Users can modify the auto-fetched or map-selected address to provide more specific or accurate location details
+- For civic body representative thumbnails, a small upload icon is positioned next to each thumbnail
+- When users click the upload icon next to a representative's thumbnail, it opens the phone gallery/file picker to select a new photo for that specific representative
+- Custom uploaded photos will be used in the generated certificate instead of default images
+- The upload icon is clearly associated with the corresponding thumbnail and maintains a clean, intuitive interface
+- Custom-uploaded civic body representative photos are properly saved and persist throughout the report submission process
+- Enhanced civic body photo upload functionality for consistent appearance:
+  - When civic body representative photos are missing, loading, or not found, the image input field displays an "upload" button
+  - The upload button positioning and appearance is consistent across all civic body representative fields
+  - All fields maintain the same styling, positioning, and interaction patterns across all states (initial load, loading, and missing photo)
+- Streamlined, user-friendly interface that consolidates all location and civic body information into one cohesive section
+
+### Photo Upload and Reporting
+- Users can upload photos of civic issues without any authentication or login requirements
+- Each report includes the uploaded photo and automatically captured location data
+- On mobile devices, the app requests geolocation permission to capture GPS coordinates
+- Report submission form includes sections in the following order:
+  1. "What type of civic issue are you reporting?" - Issue category selection from: potholes, roadside garbage, broken streetlight, waterlogging, flood, illegal dumping, illegal parking, and "other" with distinct, visually clear icons for "Water Logging" and "Flood" categories to help users differentiate between these two options and reduce confusion during report submission
+  2. "Upload Photo of the Issue *" - Required photo upload with both camera capture and file upload options, with custom issue type text input (required when "other" is selected). Photo upload button displayed side by side with civic body representative photo upload button in a horizontal 50/50 width split with a small gap between them and smaller button sizes for a more compact layout
+  3. "Location & Leaders Information" section containing redesigned "Current Location" section with clean, organized layout, manual location selection via map modal without search functionality, and Leaders Information with Prime Minister, Chief Minister, and MP sections that auto-fill based on the user's location/address from the admin directory. The MP section is positioned after the Prime Minister and Chief Minister sections and functions similarly to them, auto-filling MP details (name and photo) from the admin directory based on the user's location/address. When an MP is auto-fetched or manually selected, the MP's photo thumbnail is immediately displayed in the form, matching the behavior for PM and CM. Enhanced MP auto-fetch logic that first determines the State from the address, then tries to match the Constituency name in the address, then checks the "Remarks" field in the admin directory for area/block matches; if a match is found, MP details are auto-filled, otherwise users can manually select a Constituency. If no MP is found for the detected location, display a manual Constituency selector that allows users to choose from available constituencies in the admin directory, filtered by the detected or selected State, so users can still select and auto-fill MP details when auto-fetch is not possible.
+  4. "Additional Details" section containing:
+     - Username field with "Anonymous User" as the default value, allowing users to replace it if desired
+     - For verified volunteers: Username field is auto-filled with volunteer name (non-editable), single, consistent volunteer badge icon is displayed next to the volunteer's name, and the "(Optional)" label is removed
+     - For non-volunteers: Username field displays "Username (Optional)" label with only one "(Optional)" text and never duplicates the text
+     - Notes/Comments field that is auto-filled with a concise (150-200 character) description based on the selected issue category and the auto-filled or user-provided location; users can edit or replace this text
+- After the submit button, an "IMPORTANT DISCLAIMER" note is positioned at the bottom of the report submission form in small, clear font stating: "This is NOT an official government document. This is a citizen-generated report for civic awareness purposes only. The use of representative photos does not imply official endorsement or government affiliation. No official action is guaranteed from this report."
+- Frontend UI features a professional, mobile app-like interface with improved spacing, touch-friendly controls, and visually appealing layout for all form sections
+- All form labels, input fields, buttons, and text elements use larger, clear fonts for improved readability and professional appearance
+- Both image upload fields feature consistent side-by-side horizontal button layout with 50/50 width distribution, smaller button sizes, and consistent spacing for a more compact and visually balanced form
+- Reports are stored in the backend with photo, location, timestamp, issue category, custom issue type (if applicable), username (or volunteer name if submitted by verified volunteer), notes, Prime Minister information, Chief Minister information, MP information (if found or manually selected), and volunteer status indicator
+- Custom-selected coordinates from map modal are properly saved in the backend
+- Volunteer information is automatically included in reports when submitted by verified volunteers using real volunteer data
+- No authentication checks or login requirements for report submission - all users can submit reports freely
+- Backend explicitly allows unauthenticated users to submit reports without any authentication checks or restrictions
+- Verified volunteers must authenticate to access volunteer-specific features but can still submit reports without authentication
+
+### Optimized Report Submission Process
+- Report submission process is optimized to complete within 2-5 seconds
+- Backend operations are streamlined to minimize processing time
+- Photo uploads are processed efficiently without unnecessary delays
+- Database operations are optimized for quick data persistence
+- Frontend submission handling is optimized to reduce any processing bottlenecks
+- File upload optimization to reduce transfer time and improve backend response efficiency
+- Submit button consistently displays "Submitting..." from the moment the user clicks until the report is fully processed, without reverting to "Submit report" prematurely
+- After successful report submission, users are automatically redirected to their newly submitted report's dedicated page or confirmation view, not the general homepage
+- "Report Submitted Successfully!" confirmation message appears prominently on the dedicated report page after submission with the following features:
+  - Message automatically dismisses after 2-3 seconds
+  - Small close button (X) included for manual dismissal
+  - Message remains visible until auto-dismissed or manually closed by user
+- The dedicated report page displays the newly submitted report card with immediate access to certificate download and sharing functionality
+- Recent changes that may have impacted submission speed are identified and optimized
+- Performance monitoring ensures submission times remain within the 2-5 second target range
+- No authentication or login checks during the submission process
+- Backend accepts and processes all report submissions without authentication verification
+- Backend explicitly allows unauthenticated users to submit reports without any authentication checks or restrictions
+- Report submission logic ensures that custom-selected coordinates, edited addresses, Prime Minister information, Chief Minister information, MP information (if found or manually selected), and volunteer information are properly saved and reflected in the submitted report
+
+### Report Status Management System
+- All new reports are automatically tagged with "Open" status by default when submitted
+- Users can view their previously submitted reports with current status displayed
+- Users can update report status from "Open" to "Resolved" only (no "Closed" option) without requiring authentication
+- Status update requires:
+  - Mandatory proof photo upload or camera capture showing the resolved issue
+  - Mandatory name/username field for the person updating the status
+  - For verified volunteers: Name field is auto-filled with volunteer name, single, consistent volunteer badge icon is displayed next to the volunteer's name, and field is non-editable for recognition
+  - Optional notes field for additional comments about the resolution
+- Backend stores status updates with timestamp, proof photo, reporter name, volunteer status (if applicable), and optional notes
+- Status history is maintained for each report showing progression from Open to Resolved status
+- Backend supports updating report status to "Resolved" with proof photo, reporter name, volunteer status, and optional notes
+- Admins can modify report status through the admin dashboard but must complete the same resolution form as regular users when changing status from "Open" to "Resolved"
+- Admin status changes require the same mandatory proof photo, reporter name, and optional notes as regular user updates
+- No authentication required for users to update report status
+- Backend validates status updates to ensure only allowed values ("Open" or "Resolved") are accepted
+- Backend prevents unauthorized status changes or content edits through strict validation
+
+### Report Card UI and Status Updates
+- Each report is displayed in a clear, well-organized report card format
+- Report ID is clearly displayed on each report card with reduced font size to fit on a single line, even on mobile, preventing line wrapping and keeping cards compact
+- Single, consistent volunteer badge icon is prominently displayed next to the volunteer's name on report cards submitted by verified volunteers using real volunteer data
+- Volunteer badge is always visible on report cards for any report submitted by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who submitted the report), ensuring volunteer recognition is persistent and public
+- The layout remains compact and visually balanced, ensuring the addition of volunteer badge icons does not make the cards excessively long or cluttered
+- Report card displays comprehensive leader information including:
+  - Prime Minister details (name and photo) from admin directory
+  - Chief Minister details (name and photo) from admin directory
+  - MP details (name, photo, and constituency) from admin directory when MP information was auto-filled or manually selected during report submission
+  - Local Civic Body information (type, body name, representative name, and photo)
+- MP section in report card is styled and positioned consistently with other leader sections (PM, CM, Local Civic Body)
+- All relevant MP data including name, photo, and constituency are displayed for both auto-filled and manually selected entries
+- Report card call-to-action button behavior based on status:
+  - For reports with "Open" status: Display "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus a small edit/update icon placed next to the status indicator for status updates
+  - For reports with "Resolved" status: Hide all call-to-action buttons and status update icon, making resolved report cards view-only for all users
+- Resolved report cards become purely informational displays without any interactive buttons or icons
+- All call-to-action buttons on open report cards are redesigned with:
+  - Uniform color across all four buttons for visual consistency
+  - Equal height across all buttons for visual alignment
+  - Consistent text and icon sizes with standardized spacing
+  - Balanced prominence that blends seamlessly with the card design without being overly bold or distracting
+  - Clean, uncluttered appearance on both mobile and desktop
+  - Perfect vertical alignment and even spacing for professional appearance
+  - Mobile-responsive design with consistent styling across all devices
+  - No color, size, or alignment inconsistencies between buttons
+- All CTA button icons are uniform in size across all devices, especially in mobile view, for a consistent appearance across all action buttons
+- The "Certificate" button includes a download icon (without download text) matching the style of other buttons, ensuring all CTA buttons have one icon and text for visual consistency
+- Every CTA button displays both an icon and text, with consistent alignment and sizing, for a clean, professional, and mobile-friendly appearance
+- "Legal Notice" and "GPS‑tagged leader image" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
+- Small edit/update icon is positioned next to the status indicator on each open report card, allowing users to update status without requiring a full button
+- The edit/update icon is visually consistent with other UI elements and clearly indicates its function for status updates
+- When users click the edit/update icon, they can change the status to "Resolved" only without any authentication requirements
+- Status update interface requires proof photo upload, reporter name input (auto-filled and non-editable for verified volunteers with single, consistent badge icon display next to the volunteer's name using real volunteer data), and includes an optional notes field
+- For verified volunteers updating status to "Resolved," the name field is auto-filled with the volunteer's name and is non-editable, with the single, consistent volunteer badge icon displayed next to the volunteer's name, and the "Mark as Resolved" button remains active and functional
+- Volunteer badge is always visible on status updates for any report resolved by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who resolved the report), ensuring volunteer recognition is persistent and public
+- Report cards show current status clearly with appropriate visual indicators
+- Updated reports display the new status and completion details including optional notes if provided
+- After a successful status update, the report card immediately reflects the new "Resolved" status and hides all call-to-action buttons and the status update icon
+- UI refreshes automatically after status changes, so users see the correct status without needing to reload
+- For resolved reports, the Resolution Details section displays a small thumbnail of the resolution (proof) photo
+- The resolution photo thumbnail is clickable and expands to show the full-size image in a modal or lightbox view
+- Users can view the complete resolution photo by clicking on the thumbnail for better visibility of the proof documentation
+- Certificate download button functionality:
+  - When the "Certificate" download button is tapped, the button text changes to "Generating..." and the button becomes disabled to prevent further taps
+  - The button remains disabled until the certificate generation process is complete
+  - This provides a clear visual indicator during the certificate generation process
+  - Once the certificate is ready, the button returns to its normal state and functionality
+- Only one "Share" button is displayed per report card to avoid duplication
+- Admin users see additional moderation controls on each report card including edit and delete options
+- Report cards display the exact data that was shown in the form at submission, including custom-selected coordinates, edited addresses, Prime Minister information, Chief Minister information, MP information (if found or manually selected), and volunteer information
+- Users can click directly on the report photo itself to view it in full size in a modal or lightbox view for better clarity and detail
+- The photo viewing functionality is mobile-friendly and visually consistent with the app's design
+- Photo viewing modal or lightbox provides enhanced visibility of the civic issue photo with proper zoom and navigation controls
+- Full photo view maintains responsive design and works seamlessly across all device sizes
+- Modal includes clear close functionality and intuitive user controls for optimal viewing experience
+- Real-time synchronization ensures that admin edits to reports are instantly reflected in report cards across all views
+- Mobile-optimized report card design with reduced text sizes and smaller CTA button sizes for mobile screens:
+  - Text elements including titles, labels, descriptions, and status indicators use smaller font sizes on mobile devices for more compact display
+  - CTA buttons are reduced in size on mobile screens while maintaining readability and touch-friendly interaction
+  - Padding and spacing between elements are adjusted for mobile to create more compact cards that take up less vertical space
+  - Font sizes are optimized to remain readable while allowing more content to fit on mobile screens
+  - All UI changes maintain accessibility standards and ensure clean, user-friendly appearance
+  - Report cards remain visually balanced and professional despite the more compact mobile layout
+  - Touch targets for buttons and interactive elements remain appropriately sized for mobile interaction
+  - Responsive design ensures smooth transitions between desktop and mobile layouts
+
+### Report Details Section Mobile Responsiveness
+- The "Report Details" section on individual report pages is fully mobile-responsive
+- "View and manage your civic report" text is visually clean and well-organized with proper typography and spacing
+- Navigation buttons including 'Home' and 'All Reports' are optimized for mobile display:
+  - Buttons are properly sized for touch interaction on mobile devices
+  - Button layout adapts gracefully for different screen sizes
+  - Consistent spacing and alignment maintained across all devices
+  - Text remains readable and buttons remain accessible on small screens
+- Layout structure adapts seamlessly between desktop and mobile views
+- All text elements in the Report Details section use appropriate font sizes for mobile readability
+- Mobile-first responsive design ensures optimal user experience across all device types
+- Clean visual hierarchy maintained on all screen sizes with proper content organization
+
+### Location Processing
+- Frontend uses GPS coordinates to fetch readable location information via public geocoding API
+- Displays comprehensive location details on certificates including all available address fields
+- Location data is processed in real-time when generating certificates
+- Location detection also used to determine appropriate Prime Minister, Chief Minister, and MP information from admin directory
+- Enhanced MP auto-fetch logic that first determines the State from the address, then tries to match the Constituency name in the address, then checks the "Remarks" field in the admin directory for area/block matches; if a match is found, MP details are auto-filled, otherwise users can manually select a Constituency
+- Users can edit the auto-fetched address to provide more specific or detailed location information
+- Users can select custom locations via map modal which auto-populates coordinates and address fields
+- Custom edited addresses or map-selected addresses are used in certificates and stored in the backend
+- Custom-selected coordinates from map modal are properly processed and stored
+- Admins can modify location information through the admin dashboard table interface
+
+### Certificate Generation
+- Generate downloadable certificates for each report with clean, minimalist design
+- Certificate generation occurs only after the report is successfully saved in the backend and a valid report ID is obtained
+- Two types of certificates available:
+  1. Initial report certificate (generated when report is first submitted)
+  2. Completion certificate (generated when report status is updated to "Resolved")
+- Certificate layout features:
+  - Clean, minimalist white background with no decorative borders or orange color scheme
+  - Professional, government document style with clear visual hierarchy
+  - Mobile-friendly responsive design with enhanced vertical spacing and padding for all text sections
+  - Top section: Admin-uploaded logo positioned at the very top of the certificate with significantly increased spacing and margin, or single light gray circular placeholder if no logo is uploaded
+  - Constitutional text: "WE, THE PEOPLE OF INDIA, हम, भारत के लोग" positioned directly below the logo/placeholder as a subtle tagline in smaller, subtle font
+  - Certificate title: "Civic Issue Certificate" or "Civic Issue Completion Certificate" with Hindi translation positioned below the constitutional text with clear separation
+  - Main section layout with clear visual hierarchy:
+    1. Logo/placeholder and constitutional text at the top
+    2. Large reported issue photo with significantly increased height so its top edge aligns with the "Civic Issue Certificate" text, maximizing vertical space and making the photo more dominant while keeping its width unchanged, aligned with the report title text, and fitted vertically as the dominant visual element
+    3. QR code reduced in size by 30% and repositioned slightly lower so that its top edge aligns horizontally with the leader photos
+    4. Report details section positioned on the left side
+    5. "RESPONSIBLE LEADERS" section as a single heading, left-aligned with the left edge of the main issue photo and using the same font size as the "REPORTED ISSUE" text
+    6. Leader photos (Prime Minister, Chief Minister, and MP if found or manually selected) in portrait orientation (7:9 ratio) moved to align with the width of the main issue photo, shifted right to sit directly under the large issue photo
+    7. Leader names and designations displayed below their respective photos
+    8. Certificate acknowledgment text and important disclaimer text shifted slightly lower to take advantage of the free space at the bottom, ensuring improved spacing and visual balance
+  - All certificate text elements including titles, labels, report details, captions, and verification text use significantly larger, clear fonts for enhanced readability and professional visual impact
+  - The reported issue photo is significantly enlarged vertically with increased height to better utilize available vertical space and positioned as the dominant visual element on the right side
+  - Leader photos are converted to portrait orientation (7:9 ratio) and positioned beneath the main issue photo with proper spacing
+  - Leader section only appears when leader information is available
+  - Basic details section including Date/Time, Location (using custom edited address if provided, map-selected address if chosen, otherwise auto-fetched address), Location coordinates clearly displayed alongside the address, Issue type (category or custom type), Status, and other report details positioned with larger, more prominent font sizes and adequate padding
+  - Single, consistent volunteer badge icon prominently displayed next to the volunteer's name on certificates for reports submitted by verified volunteers using real volunteer data
+  - The volunteer badge icon on certificates uses the exact same icon, size, and position as on report cards, ensuring perfect visual consistency next to the volunteer's name
+  - Badge placement on certificates appears neatly and naturally next to the volunteer's name with proper alignment and spacing for a professional look
+  - All volunteer badge appearances throughout the app maintain consistent visual design, size, and alignment for a cohesive user experience
+  - Volunteer badge is always visible on certificates for any report submitted by a verified volunteer, regardless of the current user's login state
+  - Badge is shown for all users (not just the volunteer who submitted the report), ensuring volunteer recognition is persistent and public
+  - For completion certificates: additional section showing completion details including final status, completion date, proof photo, reporter name (with single, consistent volunteer badge icon next to the volunteer's name if applicable using real volunteer data), and optional notes (if provided)
+  - Volunteer badge is always visible on completion certificates for any report resolved by a verified volunteer, regardless of the current user's login state
+  - Badge is shown for all users (not just the volunteer who resolved the report), ensuring volunteer recognition is persistent and public
+  - QR code accompanied by clear verification text and verification URL display using larger, more readable fonts
+  - Important disclaimer positioned at the bottom of the certificate layout in small, visually distinct font stating: "This is NOT an official government document. This is a citizen-generated report for civic awareness purposes only. The use of representative photos does not imply official endorsement or government affiliation. No official action is guaranteed from this report."
+  - Disclaimer is unobtrusive and clearly separated from other certificate content
+  - Document-like styling throughout with enhanced typography for better readability and improved vertical spacing between all sections
+- Certificates include:
+  - Comprehensive location details using custom edited address if provided, map-selected address if chosen, otherwise all available address fields from reverse geocoding
+  - Location coordinates clearly displayed alongside the address for enhanced detail and consistency
+  - Custom-selected coordinates when user has pinned a custom location via map modal
+  - Issue category or custom issue type
+  - Current status (Open or Resolved)
+  - Username (if provided by user) or volunteer name with single, consistent badge icon next to the volunteer's name (if submitted by verified volunteer using real volunteer data)
+  - Notes/Comments (if provided by user)
+  - Prime Minister information (name and photo) from admin directory
+  - Chief Minister information (name and photo) from admin directory
+  - MP information (name and photo, if found or manually selected) from admin directory
+  - Report timestamp and unique identifier
+  - Volunteer status and single, consistent badge icon next to the volunteer's name (if applicable using real volunteer data)
+  - For completion certificates: completion timestamp, proof photo, reporter name (with single, consistent volunteer badge icon next to the volunteer's name if applicable using real volunteer data), and optional notes (if provided)
+  - Functional QR code that links to the valid report verification page using the confirmed report ID
+- Certificates are generated as downloadable image files with all text content translated to the selected language
+- Leader photos must be reliably fetched from admin directory when available and rendered as actual images on every certificate
+- Frontend handles leader information integration to fetch appropriate leader photos from admin directory when available
+- Certificates use the current active logo from the Admin Content Management system for both header and certificate display, or single light gray circular placeholder if no logo is uploaded
+- Real-time synchronization ensures that admin edits to report data are instantly reflected in newly generated certificates
+- "Select Leaders for Certificate" modal always includes MP information (name, photo, and constituency) as a selectable option whenever MP data is present for the report, ensuring users can choose to include the MP on their certificate
+
+### Report Verification System
+- Each report has a unique verification page accessible via QR code
+- QR codes are generated using the confirmed report ID from the successfully saved report
+- Verification pages display report details including issue category/type, current status, volunteer information (if applicable using real volunteer data), and completion details (if applicable) with larger, more readable fonts
+- Backend stores verification data for each report including status history and volunteer information
+- QR codes always link to existing, valid reports to prevent "Report Not Found" errors
+
+### Social Media Sharing
+- Single "Share" button for sharing report text content without certificate image
+- Share button opens social media/text sharing dialog with auto-generated text messages including:
+  - Location information (using custom edited address if provided, map-selected address if chosen)
+  - Issue category or custom type
+  - Current status
+  - Username (if provided) or volunteer name with single, consistent badge icon next to the volunteer's name (if submitted by verified volunteer using real volunteer data)
+  - Prime Minister name and X (Twitter) handle from admin directory
+  - Chief Minister name and X (Twitter) handle from admin directory
+  - MP name and X (Twitter) handle from admin directory (if found or manually selected)
+- Share button does not trigger image sharing or certificate download
+- Share functionality available for:
+  - X (Twitter)
+  - Facebook
+  - WhatsApp
+- Users can share report text content directly from the app to raise awareness
+- All X (Twitter) handles for leaders are sourced exclusively from the admin directory
+
+### Footer Design
+- App footer containing a visually appealing support card with the following design elements:
+  - Card layout with subtle shadow for visual depth and proper spacing
+  - Card header featuring a shuttle-animated coffee cup icon (☕) that moves smoothly to catch attention
+  - "Support This Project" as a bold main heading, center-aligned within the card
+  - Encouraging message text positioned below the heading, center-aligned: "If you find this tool helpful for reporting civic issues, please consider supporting its maintenance with a small donation, like buying me a coffee!"
+  - "Buy Me a Coffee" button styled as a prominent orange button, center-aligned within the card
+  - Button links to https://buymeacoffee.com/prabhatchhirolya for crowdfunding support
+  - All content within the card is center-aligned with proper spacing between elements
+  - Card design is engaging and mobile-friendly to encourage donations
+  - Card maintains visual consistency with the overall app design while standing out as a call-to-action element
+- Legal notice positioned below the support card in small font: "Legal Notice: This platform is dedicated to reporting civic infrastructure issues. Users are responsible for their content, and we do not verify reports or endorse claims. Terms of Service • Operated under Section 79 of the IT Act, 2000."
+- Legal notice is visually unobtrusive and fits well with the existing footer design using small, subtle font styling
+- No branding or attribution text in the footer
+
+### Data Storage
+- Backend stores all submitted reports including:
+  - Photo files
+  - Location coordinates and state information
+  - Custom-selected coordinates from map modal
+  - Timestamp of report
+  - Issue category (potholes, roadside garbage, broken streetlight, waterlogging, flood, illegal dumping, illegal parking, other)
+  - Custom issue type (when "other" category is selected)
+  - Username (optional) or volunteer name (if submitted by verified volunteer)
+  - Notes/Comments (optional)
+  - Prime Minister information (name and photo) from admin directory
+  - Chief Minister information (name and photo) from admin directory
+  - MP information (name and photo, if found or manually selected) from admin directory
+  - Custom address (if edited by user or selected via map)
+  - Report status (Open, Resolved)
+  - Status update history with timestamps
+  - Proof photos for status updates
+  - Reporter names for status updates (with volunteer status if applicable)
+  - Optional notes for status updates
+  - Report status/metadata
+  - Verification data for QR code functionality
+  - Volunteer information and badge status (if applicable)
+- Backend stores admin management data including:
+  - Admin principal IDs from Internet Identity
+  - Admin role assignments and permissions per domain
+  - First-login admin tracking per domain (custom domain and canister domain)
+  - Admin activity logs for moderation actions and admin role changes
+  - Comprehensive admin management system data for adding and removing admins
+- Backend stores complete volunteer program data including:
+  - Volunteer applications with all required information (full name, complete address, profile photo, mobile number, email address)
+  - Volunteer status (Pending, Approved, Rejected, Deactivated)
+  - Volunteer Internet Identity principals
+  - Application submission timestamps with exact date and time
+  - Admin approval/rejection history with timestamps and acting admin
+  - Admin approval timestamps tracking the exact date and time when volunteers are approved
+  - Rejection notes for rejected applications (optional text field for admin to provide rejection reason)
+  - Volunteer activity logs and statistics
+  - Privacy settings for volunteer directory visibility
+  - All volunteer data is stored securely with complete personal details, contact information, and profile photos
+  - Real volunteer registration data including name, address, photo, mobile, email, and principal ID is persisted with no mock data or placeholders
+- Backend stores volunteer authentication session data including:
+  - Volunteer login/logout timestamps
+  - Volunteer authentication state management
+  - Volunteer session persistence across browser sessions
+  - Volunteer authentication status verification
+- Backend stores logo management data including:
+  - Current active SVG logo file with persistent storage (no default logos stored)
+  - Logo upload history with timestamps and admin information
+  - Previous logo versions for rollback capability
+  - Logo change audit trail for admin activity tracking
+  - Logo metadata including file size, upload date, and admin who uploaded
+- Backend stores roadmap data including:
+  - Feature cards with icon, title, description, and progress percentage
+  - Section assignments (Implemented, Under Consideration, Upcoming/Planned)
+  - Feature creation and modification timestamps
+  - Admin activity logs for roadmap changes
+  - Feature ordering within sections
+  - Feature status history and transitions between sections
+- Backend stores leader directory data including:
+  - Prime Minister information (name, photo, constituency, X (Twitter) handle)
+  - Chief Minister information by state (name, photo, state, X (Twitter) handle)
+  - MP information by constituency (name, photo, constituency, state, X (Twitter) handle, remarks field for area/block information)
+  - Admin management interface for adding, editing, and removing leader information
+  - Location-based leader lookup functionality to match user addresses with appropriate leaders
+  - Enhanced MP lookup functionality that first tries to match Constituency name in the address, then checks the "Remarks" field for area/block matches
+  - Constituency-based MP lookup functionality to allow manual selection when auto-fetch fails
+- Users can view their previously submitted reports with issue categories and current status displayed
+- Backend stores analytics data for dashboard including:
+  - Total reports count
+  - Resolution rates
+  - Issue type statistics
+  - Regional contributor data
+  - Category-based contributor rankings
+  - State-wise report statistics for filtering
+  - Volunteer statistics and contribution metrics using real volunteer data
+- Backend provides real-time data endpoints for dashboard analytics, leaderboard information, volunteer statistics, and development metrics
+- All dashboard statistics and menu dropdown analytics display live, current data from the backend without cached or static values
+- Backend tracks and provides current project metrics, latest release dates, and version information for development info sections
+- Admin data modification capabilities with full CRUD operations for all report fields through table interface
+- Backend supports permanent report deletion functionality for admin users
+- Secure admin authentication and authorization using Internet Identity principals
+- Backend supports robust admin management system with explicit admin addition and removal capabilities
+- Complete admin list reset functionality that fully and properly clears all existing admin principals from the backend
+- First-login admin assignment system that automatically grants admin rights to the first user logging in on each domain after reset
+- Backend verification system to ensure only new admin(s) have access and no old admin principal IDs remain
+- Backend tracks admin assignments per domain to ensure proper first-login admin assignment
+- After the first admin is assigned on each domain, subsequent admin management is handled through the admin management panel
+- Backend accepts and processes all report submissions without authentication checks
+- Backend removes all authentication verification for public report submission endpoints
+- Backend ensures all users can submit reports regardless of authentication status
+- Backend explicitly allows unauthenticated users to submit reports without any authentication checks or restrictions
+- Backend properly stores and retrieves custom-selected coordinates, edited addresses, Prime Minister information, Chief Minister information, MP information (if found or manually selected), and volunteer information for each report
+- Backend ensures data integrity for custom location data, leader information, and volunteer status throughout the report lifecycle
+- Backend supports admin table interface with comprehensive edit functionality for all report fields
+- Backend provides real-time data synchronization to ensure admin changes instantly reflect across all public interfaces
+- Comprehensive backend update method that allows admins to edit and save all report details including updated photos, text fields, status, location, leader information, and volunteer information from the admin report management table
+- Backend validation and processing for all admin edits to ensure data integrity and proper storage
+- Real-time synchronization system that instantly propagates admin changes across dashboard, report cards, certificates, and map view
+- Backend roadmap management system with full CRUD operations for feature management
+- Backend endpoints for roadmap data retrieval, feature creation, editing, deletion, and section reassignment
+- Backend validation for roadmap data to ensure data integrity and proper feature management
+- Real-time roadmap updates when admins make changes to features or section assignments
+- Backend resolution data management for storing and editing resolution details including proof photos, reporter names (with volunteer status), and notes
+- Backend supports admin editing of resolution details for already resolved reports with proper validation and data integrity
+- Backend volunteer management system with comprehensive CRUD operations for volunteer applications and status management
+- Backend endpoints for volunteer application submission, admin review, approval/rejection, and status management
+- Backend validation for volunteer data to ensure data integrity and proper application processing
+- Real-time volunteer status updates when admins make changes to volunteer applications
+- Backend volunteer authentication system with session management and authentication state tracking
+- Backend endpoints for volunteer login/logout functionality using Internet Identity
+- Backend verification of volunteer authentication status and approved volunteer status
+- Backend volunteer session persistence and authentication state management
+- All volunteer backend operations work with complete volunteer data stored securely in the backend including full personal details, contact information, and profile photos
+
+### Domain Configuration
+- Frontend includes a .well-known/ directory directly inside the frontend/public/ folder
+- The .well-known/ directory contains an ic-domains file with the domain configuration:
+  - civicreport.xyz
+  - www.civicreport.xyz
+- The .well-known/ic-domains file is served from the public directory and accessible at the /.well-known/ic-domains path for domain verification
+
+## Technical Requirements
+- Internet Identity authentication integration for admin access control and volunteer program management
+- Complete admin list reset functionality that fully and properly clears all existing admin principals from the backend, ensuring no previous admins—including unauthorized users—retain access
+- First-login admin assignment system where the first user to log in with Internet Identity on each domain (custom domain and canister domain) automatically receives admin rights after the admin list reset
+- Clear feedback system to confirm admin assignment when the first user logs in after reset
+- Backend verification that only new admin(s) have access and that no old admin principal IDs remain in the system
+- Backend tracking of admin assignments per domain to ensure proper first-login admin assignment
+- After first admin assignment, subsequent admin management handled through admin management panel
+- Dedicated backend admin management methods:
+  - `getAdmins()` method to list all current admin principals
+  - `addAdmin(principal)` method to add a new admin by principal ID
+  - `removeAdmin(principal)` method to remove an admin by principal ID
+  - All admin management methods are restricted to authenticated admin users only
+  - Admin management methods include comprehensive security validation and authentication checks
+  - All admin role changes are logged with timestamps, acting admin, and action details for security audit trail
+  - Backend ensures only authenticated admins can access and use admin management methods
+  - Regular users cannot access or modify admin management functions through any backend endpoint
+  - Admin management methods integrate seamlessly with the frontend admin management panel
+- Dedicated volunteer program backend methods with complete data storage:
+  - `submitVolunteerApplication(applicationData)` method for volunteer registration that stores all required information (full name, complete address, profile photo, mobile number, email address, application timestamp, principal ID)
+  - `getVolunteerApplications()` method for admin to retrieve all applications with complete volunteer data including personal details, contact information, and profile photos
+  - `approveVolunteer(principal)` method for admin to approve volunteer applications with admin approval timestamp tracking
+  - `rejectVolunteer(principal, rejectionNote)` method for admin to reject volunteer applications with optional rejection note
+  - `deactivateVolunteer(principal)` method for admin to deactivate volunteers for misconduct
+  - `reactivateVolunteer(principal)` method for admin to reactivate deactivated volunteers
+  - `getVolunteerStatus(principal)` method to check volunteer status and retrieve rejection note if applicable
+  - `getApprovedVolunteers()` method for public volunteer directory that returns complete approved volunteer data including admin approval timestamps
+  - All volunteer management methods include proper authentication checks and validation
+  - Volunteer application methods integrate with Internet Identity authentication
+  - Backend stores complete volunteer data securely with proper validation and sanitization
+  - Backend stores rejection notes for rejected applications with proper data persistence
+  - Backend stores admin approval timestamps when volunteers are approved, tracking the exact date and time of approval for each volunteer
+  - All volunteer backend methods work with complete volunteer data stored securely in the backend including full personal details, contact information, and profile photos
+  - No mock data or placeholders used in volunteer backend operations
+- Dedicated volunteer authentication backend methods:
+  - `volunteerLogin(principal)` method for volunteer authentication using Internet Identity
+  - `volunteerLogout(principal)` method for volunteer logout functionality
+  - `getVolunteerAuthStatus(principal)` method to check volunteer authentication status
+  - `isVolunteerAuthenticated(principal)` method to verify volunteer authentication state
+  - Backend volunteer session management with authentication state tracking
+  - Volunteer authentication methods integrate with Internet Identity authentication system
+  - Backend verification of volunteer authentication status and approved volunteer status
+  - Volunteer authentication state persistence across browser sessions
+  - All volunteer authentication methods include proper security validation and authentication checks
+- Role separation and access control backend implementation:
+  - Separate authentication checks for admin and volunteer access with distinct role validation
+  - Backend enforces strict role separation to prevent volunteers from accessing admin features
+  - Admin features are only accessible to users with explicit admin privileges
+  - Volunteer features are only accessible to users with verified volunteer status
+  - Security measures prevent privilege escalation from volunteer to admin role
+  - Admin and volunteer sessions are managed separately with distinct authentication flows
+  - Backend methods include role-based access control to ensure appropriate feature access
+  - Clear distinction between admin and volunteer authentication states in backend validation
+- Dedicated admin management panel with clear list of current admins and explicit approval/removal capabilities
+- Confirmation dialogs required for all admin role changes with clear UI feedback
+- Security measures to prevent admins from accidentally removing their own admin rights
+- Transparent admin management with clear guidance on secure usage
+- Admin activity logging for all admin role changes including timestamps and acting admin
+- Secure admin session handling and authentication state management
+- Admin volunteer management interface with comprehensive application review capabilities:
+  - Admin table displaying all volunteer applications with status filtering using complete volunteer data
+  - Volunteer application details including principal ID, full name, profile photo, email address, complete address, mobile number, and application submission timestamp
+  - Admin action buttons for approve, reject (with optional rejection note), deactivate, and reactivate operations
+  - Rejection functionality includes optional text field for admin to provide rejection reason or note
+  - Confirmation dialogs for all volunteer status changes including rejection with note
+  - Search and filter functionality for efficient volunteer management
+  - Real-time updates when volunteer status changes are made
+  - Admin activity logging for all volunteer management actions
+  - All admin volunteer management features work with complete volunteer data from the backend
+- Admin dashboard with robust, compact table layout for report management:
+  - Each report displayed as a single table row with all captured data visible
+  - Table columns for report ID, issue type, issue photo (clickable thumbnail), status, reported by (with single, consistent volunteer badge icon if applicable), notes, date/time, location, and Responsible Leaders/Photos information
+  - Empty fields clearly marked as editable for admins to fill in missing data
+  - Missing photos displayed as placeholders with clear upload indication
+  - Each row has exactly two action buttons: "Edit" and "Delete"
+  - Edit functionality transforms row into editable input fields with image upload/replace capability
+  - Issue Type field in edit mode becomes a dropdown containing all predefined issue types from the report form (potholes, roadside garbage, broken streetlight, waterlogging, flood, illegal dumping, illegal parking, other)
+  - When "Other" is selected from the Issue Type dropdown, a custom text input field appears for entering custom issue type
+  - The associated issue type icon updates automatically based on the selected type from the dropdown
+  - Address field is fully editable in edit mode and includes a "Select on Map" option, allowing admins to update the entire location
+  - In edit mode, the address field is pre-filled with the actual auto-detected or edited address from the original report (not just a placeholder), appearing as an editable text field that matches what is shown in normal viewing mode, ensuring admins can see and modify the current address easily
+  - When uploading a new photo in edit mode, the thumbnail preview updates immediately to show the new image before saving, ensuring a seamless and accurate visual refresh in the editing interface
+  - Photo preview state is isolated per row, so only the currently edited row displays the new photo thumbnail in edit mode, while all other rows maintain their original thumbnails to prevent visual glitches
+  - In normal viewing mode, the Status column displays all resolution details including resolution photo thumbnail (clickable for full-size view), resolved by name (with single, consistent volunteer badge icon if applicable), and resolution notes
+  - In edit mode, all resolution fields (photo, name, and notes) become editable in the Status column, matching the editing experience of other sections
+  - Save and Cancel buttons for confirming or discarding changes during edit mode
+  - Changes instantly reflect across all public interfaces after saving
+  - Responsive table design optimized for mobile viewing with horizontal scrolling if needed
+  - Table remains compact and visually organized with resolution details properly integrated into the Status column
+  - Volunteer status indicators clearly displayed in the admin table for reports submitted by verified volunteers using real volunteer data
+- Admin status change workflow requiring resolution form completion:
+  - When admin changes report status from "Open" to "Resolved" via admin dashboard, they must complete the same resolution form as regular users
+  - Resolution form interface appears when admin attempts to change status to "Resolved"
+  - Form requires mandatory proof photo upload, mandatory reporter name field, and optional notes field
+  - Admin cannot bypass resolution form requirements when updating status
+  - Resolution form submission creates proper resolution data with timestamp and admin information
+  - Backend validates that all required resolution data is provided before allowing status change
+- Admin resolution editing capabilities:
+  - Backend methods for editing resolution details of already resolved reports
+  - Admin interface for modifying resolution proof photo, reporter name (with volunteer status), and notes through the Status column
+  - Resolution editing accessible through admin dashboard table interface with resolution details displayed in the Status column
+  - Changes to resolution details instantly reflected across all application views
+  - Resolution editing maintains proper audit trail and data integrity
+  - Backend validation for resolution data modifications
+- Comprehensive backend update method for admin report editing:
+  - Backend method that accepts all report field updates including photos, text fields, status, location, leader information, and volunteer information
+  - Validation and processing of all admin edits to ensure data integrity
+  - Secure handling of photo uploads and replacements for all image fields
+  - Location coordinate and address update processing
+  - Status change validation with mandatory resolution form completion for "Open" to "Resolved" transitions
+  - Resolution details editing for already resolved reports through the Status column
+  - Leader information updates
+  - Volunteer information updates and badge management using real volunteer data
+  - Real-time data synchronization to instantly propagate changes across all application interfaces
+  - Error handling and validation for all admin edit operations
+  - Audit logging of all admin modifications for security and accountability
+- Reliable report deletion functionality with user-friendly interface and confirmation dialogs
+- Admin can delete any report card directly from the admin dashboard with immediate feedback
+- Delete action includes proper error handling and success confirmation
+- Admin activity logging and audit trail functionality
+- Role-based access control ensuring admin features are only accessible to authorized users
+- Admin Content Management system with secure SVG logo upload functionality:
+  - Backend endpoints for logo upload, retrieval, and management accessible only to authenticated admins
+  - SVG file validation and sanitization to prevent malicious uploads
+  - File size limits and security measures for uploaded logos
+  - Logo storage and retrieval system with version history
+  - Real-time logo updates across the application when new logos are uploaded
+  - When no admin logo is uploaded, only a single light gray circular placeholder is shown (no default logos stored or used)
+  - Logo management audit trail with timestamps and admin information
+  - Rollback capability for reverting to previous logos
+  - Secure file handling with proper validation of SVG content
+  - Backend methods: `getCurrentLogo()` for retrieving current active logo, `uploadLogo(logoData: Text)` for admin-only logo upload with validation, and `getLogoHistory()` for admin-only access to logo change history
+  - Persistent storage of logo data with change history and admin activity logging
+  - Integration with existing frontend Admin Content Management UI for full functionality
+- Backend roadmap management system with comprehensive CRUD operations:
+  - Backend methods for roadmap feature management accessible only to authenticated admins
+  - `getRoadmapFeatures()` method to retrieve all features organized by section
+  - `createFeature(sectionId, featureData)` method for adding new features to specific sections
+  - `updateFeature(featureId, featureData)` method for editing existing features
+  - `deleteFeature(featureId)` method for removing features with proper validation
+  - `moveFeature(featureId, newSectionId)` method for moving features between sections
+  - Backend validation for all roadmap operations to ensure data integrity
+  - Secure handling of feature data including icons, titles, descriptions, and progress percentages
+  - Real-time synchronization to instantly reflect admin changes across all roadmap views
+  - Audit logging of all roadmap modifications for security and accountability
+  - Feature ordering and section management with proper data persistence
+  - Error handling and validation for all roadmap operations
+  - Integration with frontend drag-and-drop functionality for seamless feature management
+- Backend leader directory management system:
+  - Backend methods for leader information management accessible only to authenticated admins
+  - `getLeadersByLocation(address)` method to retrieve appropriate Prime Minister, Chief Minister, and MP information based on user's location/address from admin directory with enhanced MP auto-fetch logic that first tries to match Constituency name in the address, then checks the "Remarks" field for area/block matches
+  - `getConstituenciesByState(state)` method to retrieve available constituencies filtered by state for manual MP selection from admin directory
+  - `getMPByConstituency(constituency)` method to retrieve MP information based on manually selected constituency from admin directory
+  - `addLeader(leaderData)` method for admin to add new leader information (PM, CM, MP) to admin directory including remarks field for area/block information
+  - `updateLeader(leaderId, leaderData)` method for admin to edit existing leader information in admin directory including remarks field updates
+  - `deleteLeader(leaderId)` method for admin to remove leader information from admin directory
+  - `getLeaderDirectory()` method for admin to view all stored leader information in admin directory
+  - Backend validation for all leader management operations to ensure data integrity
+  - Secure handling of leader data including names, photos, constituencies, states, X (Twitter) handles, and remarks field for area/block information
+  - Enhanced location-based leader lookup functionality that matches user addresses with appropriate leaders from admin directory using improved MP matching logic
+  - Constituency-based MP lookup functionality for manual selection when auto-fetch fails from admin directory
+  - Admin interface for managing leader directory with full CRUD operations including remarks field management
+  - Real-time synchronization to instantly reflect leader changes across all application views
+  - Audit logging of all leader management modifications for security and accountability
+  - Error handling and validation for all leader management operations
+  - Integration with report submission form to auto-fill leader information based on user location or manual constituency selection from admin directory using enhanced MP auto-fetch logic
+  - All leader information including names, photos, and X (Twitter) handles are sourced exclusively from the admin directory
+  - No external data sources or fallback logic for leader information
+- Backend security audit and hardening to ensure only authenticated admins can perform sensitive actions
+- Robust authentication checks for all backend data modification and moderation endpoints
+- Restriction of all backend data modification and moderation endpoints to admin principals only
+- Strict validation to prevent unauthorized status changes or content edits
+- Validation to block any attempt to set invalid or offensive values in reports or status updates
+- Review and hardening of all backend endpoints to prevent direct exploits or privilege escalation
+- Comprehensive logging of all sensitive actions for auditability and security monitoring
+- Backend ensures regular users can only submit new reports and update their own report statuses to allowed values ("Open" or "Resolved")
+- Backend validates all user inputs and prevents injection of malicious content
+- Backend implements proper error handling and security measures for all endpoints
+- Backend maintains separation between public endpoints (report submission, status updates) and admin-only endpoints (moderation, deletion, content management, roadmap management, volunteer management, leader management)
+- No authentication requirements for regular users - all report submission and status update functionality available without login
+- Backend accepts all report submissions and status updates without authentication checks for regular users
+- Backend removes all authentication verification from public report submission endpoints
+- Frontend removes all authentication requirements and login prompts from report submission and status update flows
+- All users can access full report submission and status update functionality without any login or authentication requirements
+- Backend explicitly allows unauthenticated users to submit reports without any authentication checks or restrictions
+- Frontend submission process does not require login or authentication for report submission
+- All users, regardless of authentication status, can submit reports successfully while admins retain moderation rights
+- Volunteer authentication system using Internet Identity for volunteer-specific features:
+  - Frontend volunteer authentication state management to track logged-in volunteer users
+  - Volunteer login/logout functionality accessible from the header menu dropdown
+  - Dynamic volunteer menu options based on authentication state in header dropdown
+  - Volunteer authentication state determines volunteer-specific UI elements and access permissions
+  - Volunteer authentication state persists across browser sessions for seamless user experience
+  - Integration with existing volunteer registration and management features
+  - Authenticated volunteers can access volunteer dashboard and volunteer-specific features
+  - Volunteer login button displays "Volunteer Logging In" during authentication and status verification process
+  - Once authentication and status verification are complete, the button switches to "Sign Out" for logged-in volunteers
+  - Login flow is optimized to minimize delays and ensure responsive UI updates as soon as authentication and status checks are complete
+  - Clear feedback provided throughout the authentication process without requiring page refresh
+  - Smooth user experience with immediate UI updates upon successful authentication
+- Backend properly handles and stores custom-selected coordinates from map modal selection
+- Backend properly handles and stores Prime Minister, Chief Minister, and MP information from admin directory with appropriate validation and enhanced MP auto-fetch logic
+- Backend properly handles and stores complete volunteer information and badge status with appropriate validation using real volunteer data including full personal details, contact information, and profile photos
+- Backend ensures data consistency between form submission data and stored report data
+- Frontend-backend integration ensures that custom location data, leader information from admin directory, and volunteer information are properly transmitted and stored
+- Data validation and integrity checks to ensure custom coordinates, addresses, leader information from admin directory, and volunteer status are properly saved and retrievable
+- Backend supports admin table interface with comprehensive CRUD operations for all report fields including leader information and volunteer information
+- Backend provides real-time data synchronization to ensure admin changes instantly reflect across all public interfaces (dashboard, report cards, certificates, shared content)
+- Backend table management endpoints for admin edit functionality with proper validation and security
+- Backend resolution data management system:
+  - Storage and retrieval of resolution details including proof photos, reporter names (with volunteer status), and notes
+  - Admin editing capabilities for resolution data of already resolved reports through the Status column
+  - Validation and processing of resolution data modifications
+  - Real-time synchronization of resolution changes across all application views
+  - Audit trail for resolution data modifications
+  - Integration with status change workflow to ensure proper resolution data collection
+- Full internationalization (i18n) implementation with language context/provider system
+- Complete translation support for all user-facing text elements including static text, labels, buttons, form fields, error messages, success messages, certificate content, admin interface elements, roadmap page content, and volunteer program interface elements
+- Real-time language switching when user selects different language from dropdown
+- English and Hindi displayed as separate, distinct language options in the dropdown
+- Multi-language dropdown with smooth animations and visual feedback, reduced font size and width for space efficiency
+- Compact header menu dropdown positioned beside language switcher with mobile-friendly design and admin section positioned at the very bottom of the dropdown menu for better organization
+- Dashboard link in header menu dropdown for easy navigation to dashboard page
+- Roadmap link in header menu dropdown for easy navigation to roadmap page
+- Volunteer section in header menu dropdown with dynamic options based on authentication state:
+  - When volunteer is not logged in: "Become a Volunteer" link for new volunteer registration
+  - When volunteer is logged in: "Volunteer Dashboard" link for accessing their dashboard
+- Volunteer login/logout functionality for returning volunteers accessible from header menu dropdown
+- Volunteer directory link in header menu dropdown for public directory access
+- Mobile-responsive header optimization:
+  - Menu button displays only icon on mobile screens (no "Menu" text) for compact appearance
+  - Stable menu and language button widths that remain aligned and prevent shifting during language changes
+  - Consistent header layout balance across all devices and languages
+  - Fixed button positioning that maintains visual stability regardless of translation changes
+- Logo and app title navigation functionality:
+  - Frontend implementation of clickable logo and app title elements in the header
+  - Navigation handlers that redirect users to the homepage when logo or title is clicked
+  - Navigation functionality works consistently across all devices (desktop, tablet, mobile) and all supported languages
+  - Logo and title appearance, size, and styling remain unchanged when made clickable
+  - Optional hover effects or visual feedback to indicate clickable elements without affecting appearance
+  - Navigation functionality is responsive and works on both desktop click and mobile touch interactions
+  - Proper event handling for both logo and title click events
+  - Navigation preserves current language selection when redirecting to homepage
+  - Smooth navigation experience without page refresh or loading delays
+  - Navigation functionality integrates seamlessly with existing header design and layout
+- Real-time dashboard analytics system displaying live, updated data from backend:
+  - Total reports count (dynamically calculated from current backend data)
+  - Resolution rates (calculated from current open vs resolved reports)
+  - Issue type breakdowns (dynamically updated from current backend data)
+  - Impact metrics (real-time calculation from backend)
+  - Contributor leaderboards (calculated from current backend data)
+  - Volunteer statistics and contribution metrics (real-time data from backend using real volunteer data)
+- Real-time development info section displaying:
+  - Latest release date (dynamically retrieved from backend or build metadata)
+  - Current project counts and key metrics (live data from backend)
+  - Version information (current build/release data)
+- Comprehensive menu system with organized sections for Dashboard, Volunteer, Roadmap, Terms of Service, Development Info, Collaborate/Contribute, Features, and Admin (positioned at the bottom)
+- Backend API endpoints that provide real-time data for all dashboard analytics, volunteer statistics, and menu dropdown statistics
+- Data refresh mechanisms to ensure dashboard and menu analytics always display current, live information
+- Comprehensive translation file audit and completion to ensure all translation keys are present and correctly mapped for each supported language (Hindi, Tamil, Telugu, Bengali, Marathi, Kannada, Bhojpuri)
+- Every essential content key including labels, buttons, certificate text, disclaimers, form fields, navigation elements, status messages, section headers ("Additional Information," "Location & Leaders Information," "Recent Reports," "View All Reports," "Support This Project"), admin interface elements, roadmap page content, volunteer program interface elements, and all UI text must be fully and naturally translated using context-appropriate language for each locale
+- All translation files must be comprehensively reviewed and updated to provide complete, accurate, and natural translations for all UI sections and labels in Tamil, Telugu, Bengali, Marathi, Kannada, and Bhojpuri
+- Missing or partial translations must be identified and filled in with natural, culturally appropriate translations
+- Language context logic must properly handle non-English language selections and display accurate translations instead of defaulting to English
+- Translation system validation to ensure each language option displays appropriate and accurate translations throughout the interface
+- Language switching logic must be properly debugged and fixed to ensure all UI components re-render and reflect the selected language when changed from English to any other supported language
+- Translation function (t) must be used consistently throughout all app components to ensure proper language switching functionality
+- All components must properly subscribe to language context changes and update their displayed text accordingly when language is switched
+- Language context must properly propagate language changes to all child components throughout the application
+- Comprehensive testing in each supported language to verify that all major UI elements, forms, certificate content, navigation, section headers, support messages, admin interface, roadmap page, and volunteer program interface are fully translated and display correctly
+- No section should remain in English when another language is selected except where absolutely necessary
+- Complete UI audit to identify any remaining untranslated or partially translated content and provide complete, context-appropriate translations for all user-facing text
+- When a user selects any language, the entire app interface—including all forms, report sections, support messages, navigation, admin interface, roadmap page, and volunteer program interface—displays in the chosen language with no English text remaining, except where appropriate (e.g., proper nouns)
+- Report card UI logic for status-based button visibility:
+  - Frontend logic to conditionally display call-to-action buttons based on report status
+  - For "Open" status reports: show "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
+  - For "Resolved" status reports: hide all call-to-action buttons and status update icon, making cards view-only
+  - Real-time UI updates when report status changes to immediately reflect button visibility changes
+  - Consistent button hiding logic across all report card instances (homepage, dashboard, individual report pages)
+  - Only one "Share" button displayed per report card to avoid duplication
+  - Single, consistent volunteer badge icon display logic for reports submitted by verified volunteers using real volunteer data
+- Report card leader information display logic:
+  - Frontend logic to display comprehensive leader information including Prime Minister, Chief Minister, MP (when available), and Local Civic Body details from admin directory
+  - MP section in report card styled and positioned consistently with other leader sections (PM, CM, Local Civic Body)
+  - All relevant MP data including name, photo, and constituency displayed for both auto-filled and manually selected entries from admin directory
+  - Leader information sections only appear when data is available from the admin directory
+  - Consistent styling and layout for all leader sections within the report card
+  - Real-time updates when admin edits leader information to ensure changes reflect immediately in report cards
+- Volunteer form field behavior for approved volunteers:
+  - Frontend logic to detect when an approved volunteer is logged in during report submission
+  - Username field auto-filled with volunteer name when approved volunteer is authenticated
+  - Username field becomes non-editable for approved volunteers
+  - "(Optional)" label is removed from the username field for approved volunteers
+  - Single, consistent volunteer badge icon is prominently displayed next to the volunteer's name for approved volunteers
+  - Form validation updated to handle non-editable volunteer username field
+  - Real-time authentication state checking to determine volunteer status and form behavior
+  - For non-volunteers: Username field displays "Username (Optional)" label with only one "(Optional)" text and never duplicates the text
+- Volunteer status update behavior for approved volunteers:
+  - Frontend logic to detect when an approved volunteer is logged in during status update process
+  - Reporter name field auto-filled with volunteer name when approved volunteer is authenticated
+  - Reporter name field becomes non-editable for approved volunteers during status updates
+  - Single, consistent volunteer badge icon is prominently displayed next to the volunteer's name during status updates
+  - Status update form validation updated to handle non-editable volunteer reporter name field
+  - Real-time authentication state checking to determine volunteer status and status update form behavior
+  - For verified volunteers updating status to "Resolved," the name field is auto-filled with the volunteer's name and is non-editable, with the single, consistent volunteer badge icon displayed next to the volunteer's name, and the "Mark as Resolved" button remains active and functional
+- Volunteer badge visibility logic fix:
+  - Frontend logic updated to ensure volunteer badge is always visible on report cards, certificates, and status updates for any report submitted or resolved by a verified volunteer, regardless of the current user's login state
+  - Badge display logic is based on the report data (whether the report was submitted/resolved by a verified volunteer) rather than the current user's authentication state
+  - Badge is shown for all users (not just the volunteer who submitted/resolved the report), ensuring volunteer recognition is persistent and public
+  - Certificate generation logic updated to always display volunteer badge when report was submitted/resolved by verified volunteer, regardless of who is generating the certificate
+  - Report card rendering logic updated to always show volunteer badge for volunteer-submitted reports, regardless of current user's login state
+  - Status update display logic updated to always show volunteer badge for volunteer-resolved reports, regardless of current user's login state
+- Mobile-responsive design with geolocation support
+- Professional, mobile app-like interface with improved spacing, touch-friendly controls, and visually appealing layout
+- Enhanced typography throughout the application with larger, clear fonts for all text elements including titles, labels, buttons, report details, captions, and interface text to improve readability and visual impact
+- Fixed header design with admin-uploaded logo only, or single light gray circular placeholder if no logo is uploaded, and smaller, professional title/subtitle using larger fonts for the title and decreased font size for the subtitle to create a more compact header
+- Simple gray circular placeholder matching the logo's dimensions displayed as default on initial page load to eliminate jarring transitions
+- Optimized loading of the admin-uploaded logo to appear as quickly as possible when users land on the app, minimizing visual distraction and ensuring a smooth, professional experience
+- Clean main page without redundant title text or introductory text, with increased font sizes for all interface elements
+- Upper section title "Report by clicking Photo & Get GPS‑tagged leader image, Certificate, Complaint & Legal Notice" styled to fit well on all devices with appropriate responsive design and visual appeal
+- Recent Reports section on homepage displaying the five most recent report cards ordered chronologically by submission date and time with newest reports first, with real-time updates when new reports are submitted without requiring page refresh
+- Recent Reports section features improved, mobile-friendly UI design that matches the dashboard and map view for consistent visual appeal across the application
+- Enhanced responsive layout with optimized spacing, typography, and visual hierarchy for mobile devices
+- Professional styling that maintains visual consistency with other sections of the app
+- "View All Reports" button positioned at the bottom of Recent Reports section for navigation to dashboard
+- Navigation logic ensures that when users click "View All Reports" from the homepage, the dashboard page loads at the top with scroll position reset to ensure smooth and intuitive navigation
+- Dedicated dashboard page with comprehensive report viewing, live statistics display, and filtering capabilities
+- Enhanced dashboard upper section design with improved responsiveness and visual appeal:
+  - Dashboard title "Dashboard" and subtitle "Comprehensive view of all civic reports (Live Data)" positioned directly above the call-to-action buttons, matching the structure of the Map View page for consistent design across both views
+  - Dashboard title styled with clean, professional typography that scales appropriately across all screen sizes
+  - Subtitle optimized for readability on all devices with responsive font sizing
+  - Map View and Home buttons positioned below the title and subtitle for visual consistency with Map View page layout
+  - Buttons feature matching style and size for cohesive visual design
+  - Proper spacing and alignment maintained across desktop, tablet, and mobile devices
+  - Clean, visually appealing layout that maintains professional appearance on all screen sizes
+  - Updated layout is fully responsive and visually aligned on all screen sizes
+- Compressed statistics section optimized for mobile viewing:
+  - Statistics section layout compressed and optimized to minimize vertical space usage on mobile devices
+  - Users can see the full dashboard overview with minimal scrolling on mobile screens
+  - Compact presentation of statistics while maintaining readability and visual clarity
+  - Mobile-first responsive design ensures optimal user experience on small screens
+  - Statistics cards and data displays are condensed for efficient space utilization
+  - Key metrics remain easily accessible and readable despite compressed layout
+- Dashboard filtering options for issue type, status, date range, location, states, and volunteer status using real volunteer data
+- Streamlined "Back to Home" button with reduced size and visual weight for less bulky appearance
+- Interactive map view integration with modern, visually impressive styling and photo thumbnail markers
+- Map view initialization logic specifically designed to automatically load and display all report thumbnails immediately when the map component renders
+- On initial render of the map view, the default filters are explicitly set to "Issue Type = All types" and "Status = All status" and immediately applied
+- The fetch function for report thumbnails is automatically called on component mount without requiring any user interaction
+- All report markers with thumbnails are visible on the map instantly when accessing map view, without requiring any manual filter selection or user interaction
+- Users instantly see all reports upon accessing the map view, with filters only serving to refine the view when manually changed
+- Map view logic ensures that the default filter state ("All Types" and "All Status") is explicitly set and applied on initial render and all report thumbnails are displayed immediately
+- The map does not wait for a filter action before displaying report thumbnails, and users instantly see all reports on the map by default
+- Map initialization process automatically triggers the report data fetching and thumbnail rendering on component mount
+- On initial load, the map automatically adjusts its bounds to fit all report markers ("Fit All" behavior), ensuring every report is visible without user interaction
+- Enhanced loading speed for faster, smoother user experience with optimized data fetching and rendering
+- On mobile devices, when a user taps a report thumbnail marker, a compact info card overlays on top of the map with proper z-index and stacking order
+- The mobile overlay info card displays essential information including issue type, status, date & time, location coordinates clearly displayed alongside the address, single, consistent volunteer badge icon (if applicable using real volunteer data) displayed next to the volunteer's name, and "View Full Details" button
+- The overlay card is positioned to be easily readable and accessible on mobile screens with correct layering above the map
+- The overlay card is mobile-responsive and visually consistent with the rest of the app design
+- Map overlay info card has proper z-index to ensure it appears above the map and all other elements when displayed
+- Map does not overlap or cover the header section when scrolling, maintaining correct layering and visual hierarchy
+- Mobile-friendly map interface with proper stacking order and clean UI that doesn't interfere with header navigation
+- Fully responsive map design optimized for all devices with smooth touch controls and gestures
+- Smart clustering functionality for dense marker areas with expandable cluster markers
+- Real-time map data display showing all current reports with their actual locations
+- Different visual indicators for issue types and status-based marker styling
+- Map legend explaining marker types and status indicators
+- Search and filter functionality within map view including volunteer filter option using real volunteer data
+- Geolocation integration for centering map on user's current location
+- Smooth transitions between list view and map view
+- Map performance optimization for handling large numbers of markers efficiently
+- Mobile-optimized touch controls and gestures for map navigation on touch devices
+- Photo thumbnail markers that are clear, responsive, and load efficiently on all devices for smooth user experience
+- Map view is thoroughly tested to confirm that all report thumbnails appear as expected on both desktop and mobile devices
+- Leaflet marker clustering library is correctly imported and initialized to prevent "window.L.markerClusterGroup is not a function" errors
+- Map rendering is properly implemented to ensure no black screen or JavaScript errors occur when accessing the Map View
+- All required Leaflet dependencies including the marker clustering plugin are properly loaded and available before map initialization
+- Map component initialization includes proper error handling and fallback mechanisms to prevent JavaScript errors
+- Marker clustering functionality is properly configured and tested to ensure smooth operation without console errors
+- Map markers display reports at their exact custom-selected coordinates when users have pinned custom locations via "Select on Map"
+- Real-time synchronization ensures that admin edits to report data are instantly reflected in map markers and info cards
+- Map thumbnail markers display cleanly and seamlessly with no status indicators, dots, borders, or overlays for a professional and visually clear appearance
+- Fully mobile-responsive Map View interface with optimized layout for small screens:
+  - Upper section redesigned for mobile compatibility with Map View title and subtitle styled for visual consistency and responsive layout
+  - List View and Home buttons redesigned to match in style and size for visual consistency and mobile usability
+  - Second section mobile optimization with "Interactive Reports Map" text, report count, and Open/Resolved Reports indicators sized appropriately for mobile screens
+  - Small, accessible full-screen mode option for enhanced map viewing experience with convenient toggle button positioning
+  - All Map View UI changes maintain clean, user-friendly experience across all devices with consistent visual design language
+  - Touch-friendly controls and proper button sizing for mobile interaction with responsive typography and optimized spacing
+  - Consistent layout alignment with Dashboard page - no extra top margin or unnecessary empty space at the top of the Map View page
+  - Title, subtitle, buttons, and all content align consistently with the Dashboard page across all screen sizes
+  - Unified, visually consistent layout between Map View and Dashboard pages
+- Redesigned "Current Location" section with clean, organized, and mobile-friendly UI:
+  - "Current Location" label positioned prominently at the top of the section
+  - "Select on Map" and "Refresh" buttons redesigned to be smaller, less prominent, and more space-efficient, especially on mobile screens
+  - Buttons arranged in a visually appealing, compact layout with clear spacing and alignment
+  - Location status display positioned below the buttons with proper spacing
+  - Address field positioned at the bottom of the section with consistent styling
+  - All elements arranged in a logical, intuitive flow for easy mobile interaction
+  - Buttons feature intuitive icons and consistent styling that matches the overall app design
+  - Compact layout ensures all controls are easily accessible and readable on small screens
+  - Clear visual hierarchy with appropriate font sizes and spacing for mobile readability
+  - Responsive design that adapts gracefully across all device sizes
+  - Professional appearance that maintains visual consistency with other form sections
+- Clean "Select on Map" modal without search functionality:
+  - Simple map interface for location selection without search input field
+  - Users can navigate the map using standard zoom and pan controls
+  - Location selection by clicking/tapping directly on the map
+  - Modal remains clean and user-friendly without non-functional search elements
+  - Mobile-friendly map interface with touch-optimized controls
+  - Clear modal controls for confirming or canceling the location selection
+  - Smooth integration between map interaction and location selection
+  - Proper data persistence ensuring selected coordinates and address are saved
+- Unified location and leaders section with manual refresh location button, editable address functionality, manual location selection via mobile-friendly map modal without search functionality, and streamlined interface combining location status and leaders information
+- Map modal for location selection:
+  - Small edit button positioned next to coordinates display that opens the map modal
+  - Mobile-friendly map modal interface optimized for touch interaction without search field
+  - Users can pin custom locations by clicking/tapping on the map
+  - Auto-population of coordinates and address fields based on selected map point
+  - Clear modal controls for confirming or canceling location selection
+  - Responsive modal design that works well on all device sizes
+  - Proper data handling to ensure custom coordinates persist through submission
+- Address edit functionality with edit icon positioned next to the auto-fetched or map-selected address display, consistent with existing name edit functionality
+- Leaders Information section with Prime Minister, Chief Minister, and MP sections that auto-fill based on the user's location/address from admin directory:
+  - Prime Minister section displays PM name and photo auto-filled from admin directory
+  - Chief Minister section displays CM name and photo auto-filled from admin directory based on detected state
+  - MP section positioned after the Prime Minister and Chief Minister sections, designed and functioning similarly to the PM and CM sections
+  - MP section auto-fills MP details (name and photo) from the admin directory based on the user's location/address using enhanced MP auto-fetch logic that first determines the State from the address, then tries to match the Constituency name in the address, then checks the "Remarks" field in the admin directory for area/block matches; if a match is found, MP details are auto-filled, otherwise users can manually select a Constituency
+  - When an MP is auto-fetched or manually selected, the MP's photo thumbnail is immediately displayed in the form, matching the behavior for PM and CM
+  - If no MP is found for the detected location, display a manual Constituency selector that allows users to choose from available constituencies in the admin directory, filtered by the detected or selected State, so users can still select and auto-fill MP details when auto-fetch is not possible
+  - All leader sections only appear when leader information is available in the admin directory or when manual selection is possible
+  - Backend integration to fetch appropriate leader information based on user's detected or selected location, or manual constituency selection from admin directory using enhanced MP auto-fetch logic
+- Custom-uploaded photo persistence ensuring uploaded images are saved and displayed correctly
+- Volunteer program integration with report submission form:
+  - For verified volunteers: Username field is auto-filled with volunteer name (non-editable), single, consistent volunteer badge icon is displayed next to the volunteer's name, and the "(Optional)" label is removed using real volunteer data from backend
+  - Single, consistent volunteer badge icon prominently displayed next to the volunteer's name throughout the form for verified volunteers
+  - Backend integration to automatically include volunteer information in reports when submitted by verified volunteers using real volunteer data
+  - Volunteer authentication check to determine if user is a verified volunteer using real volunteer data
+  - For non-volunteers: Username field displays "Username (Optional)" label with only one "(Optional)" text and never duplicates the text
+- Visually appealing support card in footer with shuttle-animated coffee cup icon, center-aligned content, bold "Support This Project" heading, encouraging message text, and prominent orange "Buy Me a Coffee" button with subtle shadow and proper spacing for mobile-friendly donation encouragement
+- Legal notice positioned below support card in small, unobtrusive font styling, and no branding or attribution text
+- Image upload and processing capabilities for civic issue photos (with both camera capture and file upload options), leader photos (auto-filled from admin directory), volunteer profile photos (file upload with validation), and proof photos for status updates (with both camera capture and file upload options)
+- Issue category selection with conditional custom type input and distinct, visually clear icons for "Water Logging" and "Flood" categories to help users differentiate between these two options and reduce confusion during report submission
+- Important disclaimer note positioned after the submit button at the bottom of the report submission form in small, clear font
+- Optimized report submission process that completes within 2-5 seconds with streamlined backend operations, efficient photo processing, and optimized database operations
+- File upload optimization to reduce transfer time and improve backend response efficiency
+- Submit button consistently displays "Submitting..." from the moment the user clicks until the report is fully processed, without reverting to "Submit report" prematurely
+- Automatic redirection to the newly submitted report's dedicated page or confirmation view after successful submission, not the general homepage
+- "Report Submitted Successfully!" confirmation message prominently displayed on the dedicated report page with auto-dismiss after 2-3 seconds and manual close button functionality
+- Performance monitoring to maintain submission times within the 2-5 second target range
+- Sequential report submission flow: save report first, then generate certificate with valid report ID
+- Report submission data integrity ensuring custom coordinates, addresses, leader information from admin directory, and volunteer information are properly saved and reflected in all views
+- Status management system with automatic "Open" tagging for new reports
+- Status update functionality requiring proof photo, mandatory reporter name (auto-filled and non-editable for verified volunteers using real volunteer data), and optional notes field without authentication requirements
+- Small edit/update icon positioned next to the status indicator on each open report card for status updates, replacing the "Update Status" button to reduce CTA buttons from 5 to 4
+- The edit/update icon is visually consistent with other UI elements and clearly indicates its function for status updates
+- Only one edit/update icon displayed per report card to prevent duplication
+- Well-organized report card format displaying current status with appropriate visual indicators
+- Report ID clearly displayed on each report card with reduced font size to fit on a single line, even on mobile, preventing line wrapping and keeping cards compact
+- Single, consistent volunteer badge icon prominently displayed next to the volunteer's name on report cards submitted by verified volunteers using real volunteer data
+- Volunteer badge is always visible on report cards for any report submitted by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who submitted the report), ensuring volunteer recognition is persistent and public
+- The layout remains compact and visually balanced, ensuring the addition of volunteer badge icons does not make the cards excessively long or cluttered
+- Status-based call-to-action button visibility:
+  - For "Open" status reports: display "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
+  - For "Resolved" status reports: hide all call-to-action buttons and status update icon, making resolved report cards view-only for all users
+  - Real-time UI updates when status changes to immediately reflect button visibility changes
+  - Only one "Share" button displayed per report card to avoid duplication
+- All call-to-action buttons on open report cards are redesigned with:
+  - Uniform color across all four buttons for visual consistency
+  - Equal height across all buttons for visual alignment
+  - Consistent text and icon sizes with standardized spacing
+  - Balanced prominence that blends seamlessly with the card design without being overly bold or distracting
+  - Clean, uncluttered appearance on both mobile and desktop
+  - Perfect vertical alignment and even spacing for professional appearance
+  - Mobile-responsive design with consistent styling across all devices
+  - No color, size, or alignment inconsistencies between buttons
+- All CTA button icons are uniform in size across all devices, especially in mobile view, for a consistent appearance across all action buttons
+- The "Certificate" button includes a download icon (without download text) matching the style of other buttons, ensuring all CTA buttons have one icon and text for visual consistency
+- Every CTA button displays both an icon and text, with consistent alignment and sizing, for a clean, professional, and mobile-friendly appearance
+- "Legal Notice" and "GPS‑tagged leader image" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
+- When users click the edit/update icon, they can change the status to "Resolved" only without any authentication requirements
+- Status update interface requires proof photo upload, reporter name input (auto-filled and non-editable for verified volunteers with single, consistent badge icon display next to the volunteer's name using real volunteer data), and includes an optional notes field
+- For verified volunteers updating status to "Resolved," the name field is auto-filled with the volunteer's name and is non-editable, with the single, consistent volunteer badge icon displayed next to the volunteer's name, and the "Mark as Resolved" button remains active and functional
+- Volunteer badge is always visible on status updates for any report resolved by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who resolved the report), ensuring volunteer recognition is persistent and public
+- Report cards show current status clearly with appropriate visual indicators
+- Updated reports display the new status and completion details including optional notes if provided
+- After a successful status update, the report card immediately reflects the new "Resolved" status and hides all call-to-action buttons and the status update icon
+- UI refreshes automatically after status changes, so users see the correct status without needing to reload
+- For resolved reports, the Resolution Details section displays a small thumbnail of the resolution (proof) photo
+- The resolution photo thumbnail is clickable and expands to show the full-size image in a modal or lightbox view
+- Users can view the complete resolution photo by clicking on the thumbnail for better visibility of the proof documentation
+- Certificate download button functionality:
+  - When the "Certificate" download button is tapped, the button text changes to "Generating..." and the button becomes disabled to prevent further taps
+  - The button remains disabled until the certificate generation process is complete
+  - This provides a clear visual indicator during the certificate generation process
+  - Once the certificate is ready, the button returns to its normal state and functionality
+- Admin users see additional moderation controls on each report card including edit and delete options
+- Report cards display the exact data that was shown in the form at submission, including custom-selected coordinates, edited addresses, leader information from admin directory, and volunteer information
+- Users can click directly on the report photo itself to view it in full size in a modal or lightbox view for better clarity and detail
+- The photo viewing functionality is mobile-friendly and visually consistent with the app's design
+- Photo viewing modal or lightbox provides enhanced visibility of the civic issue photo with proper zoom and navigation controls
+- Full photo view maintains responsive design and works seamlessly across all device sizes
+- Modal includes clear close functionality and intuitive user controls for optimal viewing experience
+- Real-time synchronization ensures that admin edits to reports are instantly reflected in report cards across all views
+- Mobile-optimized report card design with reduced text sizes and smaller CTA button sizes for mobile screens:
+  - Text elements including titles, labels, descriptions, and status indicators use smaller font sizes on mobile devices for more compact display
+  - CTA buttons are reduced in size on mobile screens while maintaining readability and touch-friendly interaction
+  - Padding and spacing between elements are adjusted for mobile to create more compact cards that take up less vertical space
+  - Font sizes are optimized to remain readable while allowing more content to fit on mobile screens
+  - All UI changes maintain accessibility standards and ensure clean, user-friendly appearance
+  - Report cards remain visually balanced and professional despite the more compact mobile layout
+  - Touch targets for buttons and interactive elements remain appropriately sized for mobile interaction
+  - Responsive design ensures smooth transitions between desktop and mobile layouts
+- Fully mobile-responsive Report Details section with optimized layout for "View and manage your civic report" text and navigation buttons ('Home' and 'All Reports') that adapt gracefully across all screen sizes with clean visual organization and proper touch-friendly button sizing
+- Data consistency validation throughout the application to ensure custom-selected coordinates, edited addresses, leader information from admin directory, and volunteer information are properly saved, retrieved, and displayed in report cards, certificates, and map views
+- Frontend-backend data synchronization to ensure form submission data matches exactly with stored and displayed report data
+- Custom location and leader handling logic to prioritize user-provided data over default or auto-fetched data from admin directory
+- Error handling and validation for custom data submission to ensure data integrity and proper storage
+- Real-time data synchronization between admin table edits and all public interfaces to ensure changes instantly reflect across dashboard, report cards, certificates, and shared content
+- Comprehensive backend update method that allows admins to edit and save all report details including updated photos, text fields, status, location, leader information, and volunteer information from the admin report management table
+- Backend validation and processing for all admin edits to ensure data integrity and proper storage
+- Real-time synchronization system that instantly propagates admin changes across dashboard, report cards, certificates, and map view
+- Roadmap page implementation with creative, visually appealing design and full admin management capabilities
+- Light color theme design with three distinct color schemes:
+  - "Implemented Features" section: Light green theme for completed features
+  - "Under Consideration" section: Light blue theme for features in evaluation
+  - "Upcoming/Planned Features" section: Light orange theme for planned features
+- Cards automatically adopt the color theme of their current section
+- When cards are dragged between sections, they instantly change to match the destination section's color theme
+- Clean, modern card design without dark themes or date displays
+- Cards feature clean white backgrounds with colored accents matching their section theme
+- Feature cards do not include bordered text boxes or labels indicating section names, as cards are already visually grouped and themed by section
+- Drag-and-drop functionality for moving feature cards between sections with smooth animations and visual feedback
+- Color theme transition animations when cards move between sections
+- Search and filter functionality for roadmap features with clear controls and responsive design
+- Mobile-responsive roadmap interface with touch-friendly drag and drop operations and optimized layout for all screen sizes
+- Admin-only edit controls for roadmap management with proper authentication checks and user feedback
+- Real-time roadmap updates when admins make changes with instant synchronization across all views
+- Comprehensive roadmap data management with full CRUD operations and proper validation
+- Volunteer program frontend implementation:
+  - Volunteer registration form with all required fields (full name, complete address, profile photo, mobile number, email address) that stores complete real data in backend
+  - Volunteer dashboard for authenticated volunteers showing status and statistics using complete volunteer data including personal details, contact information, and profile photos with visually appealing design consistent with the overall app UI
+  - Mobile-optimized volunteer dashboard layout with refined spacing, reduced clutter, and well-aligned elements for easy reading on small devices
+  - Redesigned "Profile Information" section with polished and appealing layout, especially optimized for mobile:
+    - Visually balanced layout with consistent circular profile photo avatar (standardized to match the style used elsewhere in the app)
+    - Clean, modern design with improved spacing between all elements
+    - Clear, well-organized labels for Full Name, Email, and Mobile fields with enhanced typography
+    - Professional styling that aligns with the overall app design language
+    - Mobile-friendly responsive layout with optimized spacing and alignment
+    - Consistent visual hierarchy with proper font sizes and spacing for mobile readability
+    - Clean, compact profile cards with standardized styling and proper spacing
+    - Circular avatar design that maintains visual consistency across the application
+    - Enhanced visual appeal with modern, user-friendly appearance
+  - All statistics cards, badges, and action buttons are visually consistent, compact, and mobile-friendly
+  - Improved visual hierarchy and typography for better readability on mobile screens
+  - Standardized button styling and spacing throughout the dashboard interface
+  - Clean, professional design that matches the overall app aesthetic and maintains usability across all device sizes
+  - "Days Since Application" calculation displays accurate number of days since application submission using proper timestamp calculations
+  - Application Timeline displays properly formatted submission date using accurate date formatting
+  - For rejected applications, rejection note from admin is displayed if provided
+  - Public volunteer directory with approved volunteers and contact information using complete volunteer data
+  - "Volunteer since" date in the public volunteer directory displays the actual admin approval timestamp for each approved volunteer, syncing correctly with the approval date from the admin dashboard
+  - Volunteer authentication integration with Internet Identity including login/logout functionality
+  - Volunteer authentication state management with session persistence across browser sessions
+  - Dynamic volunteer menu options in header dropdown based on authentication state
+  - Single, consistent volunteer badge icon display system throughout the application using real volunteer data, displayed next to volunteer names
+  - Privacy settings for volunteer directory visibility
+  - Real-time volunteer status updates and notifications
+  - All volunteer frontend features work with complete volunteer data stored in the backend including full personal details, contact information, and profile photos
+  - "Apply to become a volunteer" button functionality in the volunteer directory:
+    - If a volunteer is already logged in, clicking the button redirects them to their volunteer dashboard instead of the application form
+    - Preserves authentication state and prevents menu/button glitches
+    - For non-authenticated users, the button redirects to the volunteer application form as expected
+- Admin volunteer management interface:
+  - Comprehensive volunteer application review table using complete volunteer data including full personal details, contact information, and profile photos
+  - Admin controls for approve, reject (with optional rejection note), deactivate, and reactivate operations
+  - Rejection functionality includes optional text field for admin to provide rejection reason or note
+  - Volunteer application filtering and search functionality
+  - Real-time updates when volunteer status changes
+  - Admin activity logging for volunteer management actions
+  - All admin volunteer management features work with complete volunteer data from the backend including full personal details, contact information, and profile photos
+- Domain configuration setup with .well-known/ic-domains file properly served from the public directory for domain verification
+- Location fetching only on form reset or page reload with manual refresh capability and manual location selection via map modal without search functionality
+- No branding or attribution text visible anywhere in the application
+- Main civic issue photo upload supports both camera capture and file upload options
+- Leader photos are auto-filled from admin directory based on user location or manual constituency selection using enhanced MP auto-fetch logic
+- Volunteer profile photo uploads support file upload with image validation
+- Proof photo uploads for status updates support both camera capture and file upload options
+- Backend data persistence for status tracking, proof documentation, completion certificate generation, custom address storage, map-selected location storage, state information storage, admin management, roadmap management, resolution data management, leader information storage from admin directory with enhanced MP auto-fetch logic, volunteer authentication session management, and complete volunteer program data management using real volunteer data including full personal details, contact information, and profile photos
+- Simplified status update system with only "Resolved" option available (no "Closed" option)
+- Optional notes field in status update interface for additional resolution comments
+- Enhanced certificate rendering with improved vertical spacing and padding between all text sections, especially optimized for mobile and smaller screens
+- Real-time data integration ensuring all dashboard analytics, leaderboard information, development metrics, volunteer statistics, and menu dropdown statistics display current, live data from the backend without cached or static values
+- Admin moderation interface with robust table layout for comprehensive report management
+- Admin table interface with comprehensive editing tools, photo replacement capabilities, and reliable permanent deletion functionality
+- Admin dashboard table includes the ability to edit all report fields and upload/replace all photos including leader photos, providing complete control over all report content
+- Mobile-responsive User Management section with compact "Your Principal ID" display that prevents header menu and language selector overflow on small screens
+- Secure admin authentication flow with Internet Identity integration and role-based access control
+- Volunteer authentication flow with Internet Identity integration for volunteer-specific features including login/logout functionality and session management
+- Comprehensive volunteer program backend implementation with full CRUD operations and proper validation using complete volunteer data stored securely in the backend including full personal details, contact information, and profile photos
+- Volunteer authentication backend implementation with session management, authentication state tracking, and login/logout functionality using Internet Identity
+- Single, consistent volunteer badge icon implementation across all areas of the app including certificates, report cards, status updates, admin dashboard, volunteer directory, and all volunteer-related interfaces
+- The volunteer badge icon on certificates uses the exact same icon, size, and position as on report cards, ensuring perfect visual consistency next to the volunteer's name
+- Badge placement on certificates appears neatly and naturally next to the volunteer's name with proper alignment and spacing for a professional look
+- All volunteer badge appearances throughout the app maintain consistent visual design, size, and alignment for a cohesive user experience
+- Volunteer badge is always visible on report cards, certificates, and status updates for any report submitted or resolved by a verified volunteer, regardless of the current user's login state
+- Badge is shown for all users (not just the volunteer who submitted/resolved the report), ensuring volunteer recognition is persistent and public
+- Username field label fix to ensure "Username (Optional)" displays only one "(Optional)" text and never duplicates when no volunteer is logged in
+- Complete removal of all Wikipedia sync code from the codebase, including any fallback logic or references
+- All X (Twitter) account handles for report sharing and all leader information (names, photos, X handles) are sourced exclusively from the admin directory
+- Report sharing logic updated to use X handles associated with leaders listed in the report card, as stored in the admin directory, for accurate and consistent social sharing
+- No external data sources or Wikipedia integration for leader information anywhere in the application

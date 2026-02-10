@@ -3,8 +3,10 @@ import { Link } from '@tanstack/react-router';
 import { useGetRecentReports } from '../hooks/useQueries';
 import { ReportCard } from './ReportCard';
 import { Loader2, FileText } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function RecentReports() {
+  const { t } = useLanguage();
   const { data: reports, isLoading, error } = useGetRecentReports();
 
   if (isLoading) {
@@ -42,7 +44,7 @@ export function RecentReports() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Recent Reports</h2>
         <p className="text-sm sm:text-base text-gray-600">Latest civic issues reported by the community</p>
       </div>
 

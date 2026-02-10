@@ -202,7 +202,6 @@ persistent actor {
     var feedbacks = feedbackMap.empty<Feedback>();
     var uniqueVisitors = principalMap.empty<Bool>();
     var pendingProfileEdits = pendingEditMap.empty<PendingProfileEdit>();
-    var adminList : [Principal] = [];
 
     let approvalState = UserApproval.initState(accessControlState);
 
@@ -405,10 +404,6 @@ persistent actor {
     // Public - First caller becomes admin
     public shared ({ caller }) func initializeAccessControl() : async () {
         AccessControl.initialize(accessControlState, caller);
-        // Track first admin
-        if (adminList.size() == 0) {
-            adminList := [caller];
-        };
     };
 
     // Public query
@@ -489,7 +484,16 @@ persistent actor {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view admin list");
         };
-        adminList;
+        var adminList = List.nil<Principal>();
+        for ((principal, role) in principalMap.entries(accessControlState.userRoles)) {
+            switch (role) {
+                case (#admin) {
+                    adminList := List.push(principal, adminList);
+                };
+                case (_) {};
+            };
+        };
+        List.toArray(adminList);
     };
 
     // Admin only
@@ -498,16 +502,6 @@ persistent actor {
             Debug.trap("Unauthorized: Only admins can add new admins");
         };
         AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
-        // Track admin
-        var found = false;
-        for (admin in adminList.vals()) {
-            if (admin == newAdmin) {
-                found := true;
-            };
-        };
-        if (not found) {
-            adminList := Array.append(adminList, [newAdmin]);
-        };
     };
 
     // Admin only
@@ -519,8 +513,6 @@ persistent actor {
             Debug.trap("Cannot remove yourself as admin");
         };
         AccessControl.assignRole(accessControlState, caller, adminToRemove, #user);
-        // Remove from tracking
-        adminList := Array.filter<Principal>(adminList, func(admin) { admin != adminToRemove });
     };
 
     // Admin only
@@ -657,11 +649,8 @@ persistent actor {
         AccessControl.hasPermission(accessControlState, caller, #admin) or UserApproval.isApproved(approvalState, caller);
     };
 
-    // User only - authenticated users can request approval
+    // Public - any authenticated user can request approval
     public shared ({ caller }) func requestApproval() : async () {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can request approval");
-        };
         UserApproval.requestApproval(approvalState, caller);
     };
 
@@ -681,11 +670,8 @@ persistent actor {
         UserApproval.listApprovals(approvalState);
     };
 
-    // User only - authenticated users can apply to be a volunteer
+    // Public - any authenticated user can apply to be a volunteer
     public shared ({ caller }) func applyVolunteer(name : Text, photoPath : Text, contactInfo : Text, address : Text, showFullMobile : Bool) : async Text {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can apply as volunteers");
-        };
         let id = Int.toText(Time.now());
         let volunteer : Volunteer = {
             id;
@@ -768,9 +754,6 @@ persistent actor {
 
     // Approved volunteer only - can edit own profile
     public shared ({ caller }) func submitVolunteerProfileEdit(volunteerId : Text, updates : VolunteerProfileUpdate) : async Text {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can submit profile edits");
-        };
         switch (volunteerMap.get(volunteers, volunteerId)) {
             case (null) {
                 Debug.trap("Volunteer not found");
@@ -801,9 +784,6 @@ persistent actor {
 
     // Volunteer can view own pending edit
     public query ({ caller }) func getMyPendingProfileEdit() : async ?PendingProfileEdit {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can view pending edits");
-        };
         var pendingList = List.nil<PendingProfileEdit>();
         for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
             if (edit.volunteerPrincipal == caller and edit.status == "Pending") {
@@ -815,9 +795,6 @@ persistent actor {
 
     // Volunteer can view own edit history
     public query ({ caller }) func getMyProfileEditHistory() : async [PendingProfileEdit] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can view edit history");
-        };
         var editList = List.nil<PendingProfileEdit>();
         for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
             if (edit.volunteerPrincipal == caller) {
@@ -916,11 +893,8 @@ persistent actor {
         List.toArray(volunteerList);
     };
 
-    // User only - authenticated users can view own volunteer profile
+    // Volunteer can view own profile
     public query ({ caller }) func getMyVolunteerProfile() : async ?Volunteer {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can view their volunteer profile");
-        };
         var volunteerList = List.nil<Volunteer>();
         for ((id, volunteer) in volunteerMap.entries(volunteers)) {
             if (volunteer.principal == caller) {
@@ -2316,11 +2290,8 @@ persistent actor {
         directory;
     };
 
-    // User only - authenticated users can register NGO/NPO
+    // Public - any authenticated user can register NGO/NPO
     public shared ({ caller }) func registerNgoNpo(organizationName : Text, logoPath : Text, contactPerson : Text, email : Text, phone : Text, address : Text, website : Text, description : Text, missionStatement : Text, showContactInfo : Bool) : async Text {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can register NGOs/NPOs");
-        };
         let id = Int.toText(Time.now());
         let ngoNpo : NgoNpo = {
             id;
@@ -2417,11 +2388,8 @@ persistent actor {
         List.toArray(ngoNpoList);
     };
 
-    // User only - authenticated users can view own NGO/NPO profile
+    // NGO/NPO can view own profile
     public query ({ caller }) func getMyNgoNpoProfile() : async ?NgoNpo {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can view their NGO/NPO profile");
-        };
         var ngoNpoList = List.nil<NgoNpo>();
         for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
             if (ngoNpo.principal == caller) {
@@ -2671,11 +2639,8 @@ persistent actor {
         Array.tabulate(actualCount, func(i : Nat) : Report { sorted[len - 1 - (offset + i)] });
     };
 
-    // User only - authenticated users can track visits
+    // Public - no auth required (allows guest tracking)
     public shared ({ caller }) func trackUniqueVisitor() : async () {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can be tracked as visitors");
-        };
         if (not principalMap.contains(uniqueVisitors, caller)) {
             uniqueVisitors := principalMap.put(uniqueVisitors, caller, true);
         };
