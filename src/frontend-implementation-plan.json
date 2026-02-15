@@ -1,78 +1,61 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Lazy-load all images within Admin Dashboard using existing LazyImage",
+  "title": "Admin Directory: show representative photoPath as text with click-to-open full photo modal (no lazy loading)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace Admin Dashboard image rendering with the existing LazyImage component so images load only when near/in viewport (or eagerly when marked high priority), with stable placeholders to avoid layout shift.",
+      "summary": "Replace all representative photo thumbnails in Admin Directory list/table views with readable photoPath/filename text.",
       "acceptanceCriteria": [
-        "All `<img>` usages within Admin Dashboard-related components are replaced with `LazyImage` where applicable (e.g., report photos, proof photos, representative photos, logo previews, and any other images shown in admin flows).",
-        "Images only start downloading when they are near/inside the viewport (or immediately when marked as high priority).",
-        "Above-the-fold/critical images (e.g., images visible immediately in an opened modal or a primary preview) use `priority=\"high\"` so they load eagerly when needed.",
-        "While an image is loading, a non-jarring placeholder/skeleton is visible and the layout does not shift significantly."
+        "In Admin Directory list/table views, no <img> thumbnails are rendered for representative photos; only the filename/photoPath text is shown for each entry.",
+        "The displayed text is readable and clearly indicates it is the photo reference (e.g., the stored path/filename)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AdminDashboard.tsx",
-          "operation": "modify",
-          "description": "Audit all AdminDashboard tab content (volunteers, NGO/NPO, pending edits, etc.) for any `<img>` usage and replace with the existing `LazyImage` component; apply `priority=\"high\"` to images that are immediately visible when a modal/detail panel opens. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/AdminReportsTable.tsx",
-          "operation": "modify",
-          "description": "Replace all report-related `<img>` elements (table/card thumbnails, edit previews, proof photos, leader photos, etc.) with `LazyImage`; ensure placeholders have explicit/stable dimensions (e.g., fixed w/h classes) to prevent layout shift; use `priority=\"high\"` for images that appear immediately in an opened modal. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/AdminReportCard.tsx",
-          "operation": "modify",
-          "description": "Replace all `<img>` elements (report photo, proof photo, MLA/PM/CM/MP headshots, any full-size modal images) with `LazyImage`; use `priority=\"high\"` for the primary image shown in any modal upon open and keep stable container sizing for non-jarring skeletons. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Replace all representative photo `<img>` usages (lists/cards, edit form previews, and photo modal rendering) with `LazyImage`; ensure list views are lazy (default/low) and modal images use `priority=\"high\"`; keep fixed aspect/size wrappers to avoid layout shift. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/AdminContentManagement.tsx",
-          "operation": "modify",
-          "description": "Replace all logo preview `<img>` usages (new-logo preview block and preview modal image) with `LazyImage`; use `priority=\"high\"` inside the preview modal and maintain stable preview dimensions for skeleton/placeholder rendering. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/LazyImage.tsx",
-          "operation": "modify",
-          "description": "Harden LazyImage behavior for admin use: ensure placeholder sizing is stable (no unexpected layout shifts) and that className/styling is applied consistently between wrapper and image; keep IntersectionObserver-based lazy behavior and eager loading for `priority=\"high\"`. Verify the component's usage instructions before implementing."
+          "description": "Update Admin Directory list/table rendering to remove any representative photo thumbnail rendering and instead display the stored photoPath string as readable text for every leader/representative photo reference (PM/CM/MP/MLA/administrator entries). Ensure the text is styled as a clear photo reference (e.g., monospace, truncated with tooltip/title where appropriate)."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure lazy loading is correctly applied on image-heavy admin surfaces (Reports, Directory, and Content/Logo management), including eager loading for modal previews.",
+      "summary": "Open a modal overlay with the full-size photo when an admin clicks a representative photoPath text in Admin Directory.",
       "acceptanceCriteria": [
-        "Admin Reports UI: photos shown in lists/cards and any expanded/edit views use lazy loading and show placeholders until loaded.",
-        "Admin Directory UI: representative photos use lazy loading in lists/cards, and any photo modal loads the image eagerly when opened (priority high).",
-        "Admin Content Management UI: logo preview `<img>` elements use lazy loading; the preview modal loads its image eagerly when opened (priority high)."
+        "Clicking a photo filename/text opens an overlay modal on top of the Admin Directory page.",
+        "The modal displays the corresponding full image and includes an obvious close control (e.g., an X button) and supports closing via ESC and clicking the backdrop.",
+        "Closing the modal returns the admin to the same scroll position/state on the Admin Directory page."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AdminReportsTable.tsx",
-          "operation": "modify",
-          "description": "Implement/verify lazy behavior specifically for the Reports management surface: thumbnails in tables/cards use `LazyImage` with default (low) priority; expanded/edit sections keep placeholders and do not trigger eager downloads; full-size preview modals render with `LazyImage priority=\"high\"`. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/AdminReportCard.tsx",
-          "operation": "modify",
-          "description": "Implement/verify lazy behavior for the Reports detail surface: inline images lazy-load with placeholders; when opening proof/full-photo modals, render the modal image with `LazyImage priority=\"high\"` so it loads immediately upon modal open. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/RepresentativePhotoModal.tsx",
+          "operation": "create",
+          "description": "Create a focused modal/overlay component for viewing a representative photo at full size. It should accept the selected photoPath and open/close state, render the resolved image, include a visible close control, and support ESC + backdrop click to close while preserving the underlying Admin Directory page state (no navigation). Use the blob-storage hook(s) to resolve the photo URL for the provided photoPath. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Implement/verify lazy behavior for Directory representative photos: list/card photos use `LazyImage` (low) with stable sizing; the photo modal swaps to `LazyImage priority=\"high\"` to load immediately when opened. Verify the component's usage instructions before implementing."
+          "description": "Wire the photoPath text in the Admin Directory list/table rows to open RepresentativePhotoModal with the clicked entry's photoPath. Add state to track the selected photoPath, pass open/close handlers, and ensure close returns the user to the same in-page state (do not change routes)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Avoid lazy-loading behavior for representative photos; only resolve/load the image when the modal is opened.",
+      "acceptanceCriteria": [
+        "No lazy-loading component/behavior is introduced for representative photos on Admin Directory.",
+        "The photo URL resolution and image load happens only after the admin clicks the filename/text to open the modal (not during initial directory render)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminDirectory.tsx",
+          "operation": "modify",
+          "description": "Ensure Admin Directory does not render any images for representative photos in the list/table and does not import/use LazyImage or any IntersectionObserver-based image loading for representative photos. Only pass a non-empty photoPath to the modal after click so photo URL resolution does not occur during initial directory render."
         },
         {
-          "path": "frontend/src/components/AdminContentManagement.tsx",
+          "path": "frontend/src/components/RepresentativePhotoModal.tsx",
           "operation": "modify",
-          "description": "Implement/verify lazy behavior for Content/Logo management previews: inline preview uses `LazyImage` (low) with stable dimensions; preview modal uses `LazyImage priority=\"high\"` to load immediately when opened. Verify the component's usage instructions before implementing."
+          "description": "Gate photo URL resolution and <img> rendering on the modal being open and having a valid photoPath (e.g., avoid resolving a URL until opened). Do not implement any intersection-observer-based behavior; rely on modal open state only. Verify the component's usage instructions before implementing."
         }
       ]
     }

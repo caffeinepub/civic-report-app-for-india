@@ -1,57 +1,81 @@
 {
   "kind": "build_request",
-  "title": "Add lazy loading for all images in the Admin Dashboard",
-  "priority": "normal",
+  "title": "Admin Directory: render leader photo as filename with click-to-open modal (no lazy loading)",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
+      "text": "Update the Admin Directory page so that every leader/representative photo is displayed as text (the image file name or stored photoPath string) instead of rendering any image thumbnail in the list/table view.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-9"
         ],
         "quotes": [
-          "Can you please implement last loading for all the admin dashboard imeges?"
+          "1- yes every leader photo"
         ]
       },
       "acceptanceCriteria": [
-        "All `<img>` usages within Admin Dashboard-related components are replaced with `LazyImage` where applicable (e.g., report photos, proof photos, representative photos, logo previews, and any other images shown in admin flows).",
-        "Images only start downloading when they are near/inside the viewport (or immediately when marked as high priority).",
-        "Above-the-fold/critical images (e.g., images visible immediately in an opened modal or a primary preview) use `priority=\"high\"` so they load eagerly when needed.",
-        "While an image is loading, a non-jarring placeholder/skeleton is visible and the layout does not shift significantly."
+        "In Admin Directory list/table views, no <img> thumbnails are rendered for representative photos; only the filename/photoPath text is shown for each entry.",
+        "The displayed text is readable and clearly indicates it is the photo reference (e.g., the stored path/filename)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
+      "text": "When an admin clicks the displayed photo filename/text for a leader/representative in Admin Directory, open a modal/window overlay popup that shows the full-size photo.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-9"
         ],
         "quotes": [
-          "Can you please implement last loading for all the admin dashboard imeges?"
+          "2- a model/window overlay popup"
         ]
       },
       "acceptanceCriteria": [
-        "Admin Reports UI: photos shown in lists/cards and any expanded/edit views use lazy loading and show placeholders until loaded.",
-        "Admin Directory UI: representative photos use lazy loading in lists/cards, and any photo modal loads the image eagerly when opened (priority high).",
-        "Admin Content Management UI: logo preview `<img>` elements use lazy loading; the preview modal loads its image eagerly when opened (priority high)."
+        "Clicking a photo filename/text opens an overlay modal on top of the Admin Directory page.",
+        "The modal displays the corresponding full image and includes an obvious close control (e.g., an X button) and supports closing via ESC and clicking the backdrop.",
+        "Closing the modal returns the admin to the same scroll position/state on the Admin Directory page."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure Admin Directory does not perform lazy-loading behavior for representative photos as part of this change (i.e., do not add intersection-observer-based image lazy-loading); only fetch/resolve the image URL when the modal is opened.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "3- no I dont want lazy loading for now."
+        ]
+      },
+      "acceptanceCriteria": [
+        "No lazy-loading component/behavior is introduced for representative photos on Admin Directory.",
+        "The photo URL resolution and image load happens only after the admin clicks the filename/text to open the modal (not during initial directory render)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/components/ui` (compose these components instead).",
-    "Do not modify any files in `frontend` marked as immutable by the system context (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`)."
+    "Do not add lazy loading for representative photos at this time.",
+    "Frontend immutable paths must not be edited (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui)."
   ],
   "nonGoals": [
-    "Do not change backend canister interfaces or storage formats.",
-    "Do not introduce new authentication/authorization behavior for admins.",
-    "Do not redesign admin workflows beyond what is required to lazy-load images."
+    "Do not change backend data models or storage formats for representative photos.",
+    "Do not redesign other admin pages or change photo behavior outside the Admin Directory page."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

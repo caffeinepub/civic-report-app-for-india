@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-lazy-loading-for-all-images-rendered-anywhere-inside-the-admin-dashboard-all-tabs-using-the-existing-lazyimage-component-so-admin-pages-do-not-eagerly-download-every-image-at-once",
-      "featureTitle": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
+      "featureId": "feature-update-the-admin-directory-page-so-that-every-leader-representative-photo-is-displayed-as-text-the-image-file-name-or-stored-photopath-string-instead-of-rendering-any-image-thumbnail-in-the-list-table-view",
+      "featureTitle": "Update the Admin Directory page so that every leader/representative photo is displayed as text (the image file name or stored photoPath string) instead of rendering any image thumbnail in the list/table view.",
       "files": [
-        "frontend/src/components/AdminDashboard.tsx",
-        "frontend/src/components/AdminReportCard.tsx"
+        "frontend/src/components/AdminDirectory.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -27,10 +26,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-apply-lazy-loading-to-image-heavy-admin-surfaces-specifically-including-reports-management-tables-cards-edit-previews-and-full-size-preview-modals-directory-representative-photos-lists-cards-and-photo-modals-and-content-logo-management-previews",
-      "featureTitle": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
+      "featureId": "feature-when-an-admin-clicks-the-displayed-photo-filename-text-for-a-leader-representative-in-admin-directory-open-a-modal-window-overlay-popup-that-shows-the-full-size-photo",
+      "featureTitle": "When an admin clicks the displayed photo filename/text for a leader/representative in Admin Directory, open a modal/window overlay popup that shows the full-size photo.",
       "files": [
-        "frontend/src/components/AdminReportCard.tsx"
+        "frontend/src/components/AdminDirectory.tsx",
+        "frontend/src/components/RepresentativePhotoModal.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -47,6 +47,31 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-admin-directory-does-not-perform-lazy-loading-behavior-for-representative-photos-as-part-of-this-change-i-e-do-not-add-intersection-observer-based-image-lazy-loading-only-fetch-resolve-the-image-url-when-the-modal-is-opened",
+      "featureTitle": "Ensure Admin Directory does not perform lazy-loading behavior for representative photos as part of this change (i.e., do not add intersection-observer-based image lazy-loading); only fetch/resolve the image URL when the modal is opened.",
+      "files": [
+        "frontend/src/components/AdminDirectory.tsx",
+        "frontend/src/components/RepresentativePhotoModal.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@1.1.2",
+        "user-approval@1.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

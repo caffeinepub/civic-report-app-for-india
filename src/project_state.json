@@ -1,24 +1,36 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "summary": "Optimize admin Directory performance by changing leader photo display to filename-only with click-to-open full image in a modal overlay (no lazy loading for now).",
+  "architectural_notes": [
+    "Admin Directory should avoid rendering/loading leader images inline; render filename text and fetch/display full image only on click via modal overlay."
+  ],
+  "known_issues": [
+    "Live app becomes unresponsive on admin login when opening Admin Directory, likely due to inefficient leader photo loading/rendering."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-lazy-loading-for-all-images-rendered-anywhere-inside-the-admin-dashboard-all-tabs-using-the-existing-lazyimage-component-so-admin-pages-do-not-eagerly-download-every-image-at-once",
-      "title": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
+      "id": "feature-update-the-admin-directory-page-so-that-every-leader-representative-photo-is-displayed-as-text-the-image-file-name-or-stored-photopath-string-instead-of-rendering-any-image-thumbnail-in-the-list-table-view",
+      "title": "Update the Admin Directory page so that every leader/representative photo is displayed as text (the image file name or stored photoPath string) instead of rendering any image thumbnail in the list/table view.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-apply-lazy-loading-to-image-heavy-admin-surfaces-specifically-including-reports-management-tables-cards-edit-previews-and-full-size-preview-modals-directory-representative-photos-lists-cards-and-photo-modals-and-content-logo-management-previews",
-      "title": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
+      "id": "feature-when-an-admin-clicks-the-displayed-photo-filename-text-for-a-leader-representative-in-admin-directory-open-a-modal-window-overlay-popup-that-shows-the-full-size-photo",
+      "title": "When an admin clicks the displayed photo filename/text for a leader/representative in Admin Directory, open a modal/window overlay popup that shows the full-size photo.",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-admin-directory-does-not-perform-lazy-loading-behavior-for-representative-photos-as-part-of-this-change-i-e-do-not-add-intersection-observer-based-image-lazy-loading-only-fetch-resolve-the-image-url-when-the-modal-is-opened",
+      "title": "Ensure Admin Directory does not perform lazy-loading behavior for representative photos as part of this change (i.e., do not add intersection-observer-based image lazy-loading); only fetch/resolve the image URL when the modal is opened.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -26,12 +38,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement lazy loading for all images in the admin dashboard",
+      "summary": "Admin Directory: replace leader photo thumbnails with image filename text; clicking filename opens full photo in modal overlay (no lazy loading).",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Add lazy loading for all images in the Admin Dashboard",
+  "projectName": "Admin Directory: render leader photo as filename with click-to-open modal (no lazy loading)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
