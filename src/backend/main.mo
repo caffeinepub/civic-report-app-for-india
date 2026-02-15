@@ -205,10 +205,7 @@ persistent actor {
 
     let approvalState = UserApproval.initState(accessControlState);
 
-    public shared ({ caller }) func registerFileReference(path : Text, hash : Text) : async () {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can register file references");
-        };
+    public shared func registerFileReference(path : Text, hash : Text) : async () {
         Registry.add(registry, path, hash);
     };
 
@@ -220,10 +217,7 @@ persistent actor {
         Registry.list(registry);
     };
 
-    public shared ({ caller }) func dropFileReference(path : Text) : async () {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can drop file references");
-        };
+    public shared func dropFileReference(path : Text) : async () {
         Registry.remove(registry, path);
     };
 
@@ -296,9 +290,6 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportStatus(id : Text, newStatus : Text, proofPhotoPath : Text, reporterName : Text, completionNotes : ?Text, isVolunteer : Bool) : async Bool {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can update report status");
-        };
         switch (reportMap.get(reports, id)) {
             case (null) { false };
             case (?report) {

@@ -5,7 +5,6 @@ import { useFileUrl, useFileUpload } from '../blob-storage/FileStorage';
 import { CertificateGenerator } from './CertificateGenerator';
 import { useDeleteReport } from '../hooks/useQueries';
 import { useLanguage } from '../contexts/LanguageContext';
-import { LazyImage } from './LazyImage';
 
 interface AdminReportCardProps {
   report: Report;
@@ -398,7 +397,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               <div className="flex flex-col items-center space-y-1">
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-200 bg-gray-100 flex items-center justify-center">
                   {getPmPhotoUrl() ? (
-                    <LazyImage
+                    <img
                       src={getPmPhotoUrl()!}
                       alt="Prime Minister"
                       className="w-full h-full object-cover"
@@ -417,7 +416,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               <div className="flex flex-col items-center space-y-1">
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-200 bg-gray-100 flex items-center justify-center">
                   {getCmPhotoUrl() ? (
-                    <LazyImage
+                    <img
                       src={getCmPhotoUrl()!}
                       alt="Chief Minister"
                       className="w-full h-full object-cover"
@@ -437,7 +436,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 <div className="flex flex-col items-center space-y-1">
                   <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200 bg-gray-100 flex items-center justify-center">
                     {mlaImageUrl ? (
-                      <LazyImage
+                      <img
                         src={mlaImageUrl}
                         alt="MLA"
                         className="w-full h-full object-cover"
@@ -459,7 +458,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
           <div className="relative group cursor-pointer" onClick={() => setShowFullPhotoModal(true)}>
             {imageUrl ? (
               <>
-                <LazyImage
+                <img
                   src={imageUrl}
                   alt="Report"
                   className="w-full h-48 object-cover rounded-lg"
@@ -486,233 +485,503 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                         };
                         input.click();
                       }}
-                      className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 shadow-lg"
+                      className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+                      title="Replace main photo"
                     >
-                      <Upload className="h-4 w-4" />
+                      <ImageIcon className="h-4 w-4" />
                     </button>
+                  </div>
+                )}
+                
+                {newMainPhoto && (
+                  <div className="absolute bottom-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs">
+                    New photo selected
                   </div>
                 )}
               </>
             ) : (
-              <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-                <ImageIcon className="h-12 w-12 text-gray-400" />
+              <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500 text-base">Loading image...</span>
               </div>
             )}
           </div>
 
-          {/* Report Details */}
+          {/* Report Info */}
           <div className="space-y-3">
+            {/* Report ID - Clearly displayed */}
+            <div className="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+              <Hash className="h-4 w-4" />
+              <span className="font-mono font-medium">ID: {report.id}</span>
+            </div>
+
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getIssueTypeColor(report.issueType)}`}>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editForm.issueType}
+                  onChange={(e) => setEditForm({ ...editForm, issueType: e.target.value })}
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm mr-2"
+                />
+              ) : (
+                <span className={`px-3 py-1 rounded-full text-base font-medium ${getIssueTypeColor(report.issueType)}`}>
                   {getIssueTypeEmoji(report.issueType)} {report.issueType}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(report.status)}`}>
+              )}
+              
+              {isEditing ? (
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                  className="px-2 py-1 border border-gray-300 rounded text-sm"
+                >
+                  <option value="Open">Open</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              ) : (
+                <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${getStatusColor(report.status)}`}>
                   {getStatusIcon(report.status)}
                   <span>{getStatusDisplayText(report.status)}</span>
                 </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                {!isEditing && (
-                  <>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="text-blue-600 hover:text-blue-700 p-2"
-                      title="Edit Report"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="text-red-600 hover:text-red-700 p-2"
-                      title="Delete Report"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
-                {isEditing && (
-                  <>
-                    <button
-                      onClick={handleSave}
-                      disabled={isUploading}
-                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50 flex items-center space-x-1"
-                    >
-                      <Save className="h-4 w-4" />
-                      <span>Save</span>
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 flex items-center space-x-1"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Cancel</span>
-                    </button>
-                  </>
-                )}
-              </div>
+              )}
             </div>
 
-            <div className="flex items-start space-x-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span className="flex-1">{formatLocationDisplay()}</span>
+            {/* Username */}
+            <div className="flex items-center space-x-2 text-base text-gray-600">
+              <User className="h-5 w-5" />
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  placeholder="Username"
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                />
+              ) : (
+                <span>Reported by: {report.username || 'Anonymous'}</span>
+              )}
             </div>
 
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
+            {/* Location */}
+            <div className="flex items-start space-x-2 text-base text-gray-600">
+              <MapPin className="h-5 w-5 mt-0.5 shrink-0" />
+              {isEditing ? (
+                <textarea
+                  value={editForm.customAddress}
+                  onChange={(e) => setEditForm({ ...editForm, customAddress: e.target.value })}
+                  placeholder="Custom address (leave empty to use auto-detected)"
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm resize-none"
+                  rows={2}
+                />
+              ) : (
+                <span className="break-words">
+                  {formatLocationDisplay()}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2 text-base text-gray-600">
+              <Calendar className="h-5 w-5" />
               <span>{formatDate(report.timestamp)}</span>
             </div>
 
-            {report.username && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <User className="h-4 w-4 flex-shrink-0" />
-                <span>Reported by: {report.username}</span>
-              </div>
-            )}
-
-            {report.submittedByVolunteer && (
-              <div className="flex items-center space-x-2 text-sm text-blue-600">
-                <UserCheck className="h-4 w-4 flex-shrink-0" />
-                <span className="font-medium">Submitted by Volunteer</span>
-              </div>
-            )}
-
-            {report.notes && (
-              <div className="flex items-start space-x-2 text-sm text-gray-600">
-                <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span className="flex-1">{report.notes}</span>
-              </div>
-            )}
-
-            {report.status.toLowerCase() === 'resolved' && report.proofPhotoPath && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="text-sm font-semibold text-green-900 mb-2 flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Resolution Details
-                </h4>
+            {/* PM and CM Photos Section - Only shown in edit mode */}
+            {isEditing && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                <h4 className="text-sm font-semibold text-blue-800">Leader Photos (Admin Control)</h4>
+                <p className="text-xs text-blue-600">Note: Leader information should be managed through the Admin Directory for consistency across all reports.</p>
+                
+                {/* PM Photo */}
                 <div className="space-y-2">
-                  {report.reporterName && (
-                    <p className="text-sm text-gray-700">
-                      <strong>Resolved by:</strong> {report.reporterName}
-                    </p>
-                  )}
-                  {report.completionNotes && (
-                    <p className="text-sm text-gray-700">
-                      <strong>Notes:</strong> {report.completionNotes}
-                    </p>
-                  )}
-                  {proofImageUrl && (
-                    <div className="mt-2">
-                      <button
-                        onClick={() => setShowProofModal(true)}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
-                      >
-                        <Camera className="h-4 w-4 mr-1" />
-                        View Proof Photo
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">Prime Minister Photo:</span>
+                    {getPmPhotoUrl() && (
+                      <img
+                        src={getPmPhotoUrl()!}
+                        alt="PM"
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={editForm.pmName}
+                      onChange={(e) => setEditForm({ ...editForm, pmName: e.target.value })}
+                      placeholder="PM Name"
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) handlePhotoSelect(file, 'pm');
+                        };
+                        input.click();
+                      }}
+                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      Replace PM Photo
+                    </button>
+                    {newPmPhoto && (
+                      <span className="text-xs text-green-600">New photo selected</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* CM Photo */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">Chief Minister Photo:</span>
+                    {getCmPhotoUrl() && (
+                      <img
+                        src={getCmPhotoUrl()!}
+                        alt="CM"
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={editForm.cmName}
+                      onChange={(e) => setEditForm({ ...editForm, cmName: e.target.value })}
+                      placeholder="CM Name"
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) handlePhotoSelect(file, 'cm');
+                        };
+                        input.click();
+                      }}
+                      className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                    >
+                      Replace CM Photo
+                    </button>
+                    {newCmPhoto && (
+                      <span className="text-xs text-green-600">New photo selected</span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <Hash className="h-3 w-3" />
-              <span className="font-mono">{report.id}</span>
+            {/* MLA Name */}
+            <div className="flex items-center space-x-2 text-base text-gray-600">
+              <UserCheck className="h-5 w-5" />
+              {isEditing ? (
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    value={editForm.mlaName}
+                    onChange={(e) => setEditForm({ ...editForm, mlaName: e.target.value })}
+                    placeholder="MLA Name"
+                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) handlePhotoSelect(file, 'mla');
+                        };
+                        input.click();
+                      }}
+                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      Replace MLA Photo
+                    </button>
+                    {newMlaPhoto && (
+                      <span className="text-xs text-green-600">New photo selected</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <span>MLA: {report.mlaName || 'Not specified'}</span>
+              )}
             </div>
+
+            {/* Notes */}
+            <div className="flex items-start space-x-2 text-base text-gray-600">
+              <MessageSquare className="h-5 w-5 mt-0.5 shrink-0" />
+              {isEditing ? (
+                <textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                  placeholder="Notes/Comments"
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm resize-none"
+                  rows={3}
+                />
+              ) : (
+                <span className="break-words">{report.notes || 'No notes'}</span>
+              )}
+            </div>
+
+            {/* Resolution Details for Resolved Reports */}
+            {report.status.toLowerCase() === 'resolved' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                <h4 className="text-sm font-semibold text-green-800">Resolution Details</h4>
+                
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editForm.reporterName}
+                      onChange={(e) => setEditForm({ ...editForm, reporterName: e.target.value })}
+                      placeholder="Reporter Name"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <textarea
+                      value={editForm.completionNotes}
+                      onChange={(e) => setEditForm({ ...editForm, completionNotes: e.target.value })}
+                      placeholder="Completion Notes"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
+                      rows={2}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handlePhotoSelect(file, 'proof');
+                          };
+                          input.click();
+                        }}
+                        className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                      >
+                        Replace Proof Photo
+                      </button>
+                      {newProofPhoto && (
+                        <span className="text-xs text-green-600">New proof photo selected</span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-2 text-sm text-green-700">
+                      <UserCheck className="h-4 w-4" />
+                      <span>Resolved by: {report.reporterName}</span>
+                    </div>
+                    {report.completionNotes && (
+                      <div className="flex items-start space-x-2 text-sm text-green-700">
+                        <MessageSquare className="h-4 w-4 mt-0.5 shrink-0" />
+                        <span>{report.completionNotes}</span>
+                      </div>
+                    )}
+                    {/* Resolution Photo Thumbnail */}
+                    {proofImageUrl && (
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-green-800 mb-2">Resolution Photo:</p>
+                        <button
+                          onClick={() => setShowProofModal(true)}
+                          className="block hover:opacity-80 transition-opacity"
+                        >
+                          <img
+                            src={proofImageUrl}
+                            alt="Resolution proof"
+                            className="w-20 h-20 object-cover rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-400 transition-colors"
+                          />
+                        </button>
+                        <p className="text-xs text-green-600 mt-1">Click to view full size</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Admin Actions */}
-          <div className="pt-3 border-t border-gray-200">
-            <div className="flex flex-wrap gap-2">
-              <CertificateGenerator report={report} />
-              <button
-                onClick={handleDownloadComplaint}
-                className="flex-1 sm:flex-none bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download Complaint</span>
-              </button>
-              <button
-                onClick={handleEmailAuthorities}
-                className="flex-1 sm:flex-none bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2"
-              >
-                <Mail className="h-4 w-4" />
-                <span>Email Authorities</span>
-              </button>
-            </div>
+          {/* Admin Actions - Uniform styling with single color and uniform icon sizes */}
+          <div className="pt-2 border-t border-gray-100">
+            {isEditing ? (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleSave}
+                  disabled={isUploading}
+                  className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isUploading ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm min-h-[42px]"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Report</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isDeleting}
+                    className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>{isDeleting ? 'Deleting...' : 'Delete Report'}</span>
+                  </button>
+                </div>
+                
+                {/* Certificate Actions - Uniform styling with uniform icon sizes */}
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <CertificateGenerator report={report} imageUrl={imageUrl} />
+                  </div>
+                  
+                  {/* Additional Actions with uniform icon sizes */}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleDownloadComplaint}
+                      className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Printable Complaint</span>
+                    </button>
+                    <button
+                      onClick={handleEmailAuthorities}
+                      className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Email to Authorities</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Full Photo Modal */}
       {showFullPhotoModal && imageUrl && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowFullPhotoModal(false)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh] w-full">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4">
+          <div className="relative max-w-6xl max-h-full w-full">
             <button
               onClick={() => setShowFullPhotoModal(false)}
-              className="absolute top-4 right-4 bg-white text-gray-900 p-2 rounded-full hover:bg-gray-100 shadow-lg z-10"
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors z-10"
             >
-              <X className="h-6 w-6" />
+              <X className="h-8 w-8" />
             </button>
-            <LazyImage
-              src={imageUrl}
-              alt="Report Full Size"
-              className="w-full h-full object-contain rounded-lg"
-              priority="high"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Proof Photo Modal */}
-      {showProofModal && proofImageUrl && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowProofModal(false)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh] w-full">
-            <button
-              onClick={() => setShowProofModal(false)}
-              className="absolute top-4 right-4 bg-white text-gray-900 p-2 rounded-full hover:bg-gray-100 shadow-lg z-10"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <LazyImage
-              src={proofImageUrl}
-              alt="Proof Photo"
-              className="w-full h-full object-contain rounded-lg"
-              priority="high"
-            />
+            <div className="relative bg-white rounded-lg overflow-hidden shadow-2xl">
+              <img
+                src={imageUrl}
+                alt="Full size report photo"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-lg">{report.issueType}</p>
+                    <p className="text-sm opacity-90">Report ID: {report.id}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm opacity-90">{formatDate(report.timestamp)}</p>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                      report.status.toLowerCase() === 'resolved' ? 'bg-green-500' : 'bg-blue-500'
+                    }`}>
+                      {getStatusDisplayText(report.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Confirm Deletion</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this report? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                Cancel
-              </button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Report</h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to permanently delete this report? This action cannot be undone.
+              </p>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 shrink-0" />
+                  <div className="text-sm text-yellow-800">
+                    <p className="font-medium">Report Details:</p>
+                    <p>ID: {report.id}</p>
+                    <p>Type: {report.issueType}</p>
+                    <p>Status: {report.status}</p>
+                    {report.username && <p>Reporter: {report.username}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
               >
-                {isDeleting ? 'Deleting...' : 'Delete Report'}
+                <Trash2 className="h-4 w-4" />
+                <span>{isDeleting ? 'Deleting...' : 'Delete Report'}</span>
               </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 disabled:opacity-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proof Photo Modal */}
+      {showProofModal && proofImageUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl max-h-full">
+            <button
+              onClick={() => setShowProofModal(false)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <img
+              src={proofImageUrl}
+              alt="Resolution proof - full size"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 rounded-b-lg">
+              <p className="text-center font-medium">Resolution Photo</p>
+              {report.reporterName && (
+                <p className="text-center text-sm opacity-90">Resolved by: {report.reporterName}</p>
+              )}
             </div>
           </div>
         </div>
@@ -720,3 +989,4 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
     </>
   );
 }
+
