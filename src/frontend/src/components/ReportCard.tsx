@@ -856,7 +856,7 @@ export function ReportCard({ report, priority = 'low' }: ReportCardProps) {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `civic-report-${report.id}-gps-tagged-leaders.jpg`;
+          a.download = `civic-report-${report.id}-geotag.jpg`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -972,8 +972,8 @@ Generated via Civic Report App`;
     setShowLegalNoticeModal(true);
   };
 
-  // Handler for GPS-tagged leader image button
-  const handleGpsTaggedLeaderImage = () => {
+  // Handler for Leader-Giotag button
+  const handleLeaderGiotag = () => {
     // Pre-select all available leaders by default
     const allLeaders = getAvailableLeaders();
     const allLeaderTypes = new Set(allLeaders.map(l => l.type));
@@ -1099,7 +1099,7 @@ Generated via Civic Report App`;
             </div>
           </div>
 
-          {/* Report Image - Clickable to view full size with GPS-tagged leader image label */}
+          {/* Report Image - Clickable to view full size with Leader-Giotag label */}
           <div className="relative group cursor-pointer" onClick={() => setShowFullPhotoModal(true)}>
             {imageUrl ? (
               <>
@@ -1109,10 +1109,10 @@ Generated via Civic Report App`;
                   className="w-full h-40 sm:h-48 object-cover rounded-lg"
                   priority={priority}
                 />
-                {/* GPS-tagged leader image Label - Always visible in bottom-right corner */}
+                {/* Leader-Giotag Label - Always visible in bottom-right corner */}
                 <div className="absolute bottom-2 right-2 bg-black/30 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
                   <span>📍</span>
-                  <span>GPS‑tagged leader image</span>
+                  <span>Leader-Giotag</span>
                 </div>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium flex items-center space-x-1.5 sm:space-x-2 shadow-lg">
@@ -1463,7 +1463,7 @@ Generated via Civic Report App`;
                 </button>
               </div>
               
-              {/* NEW ROW: Legal Notice and GPS-tagged leader image */}
+              {/* NEW ROW: Legal Notice and Leader-Giotag */}
               <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                 <button
                   onClick={handleLegalNotice}
@@ -1474,12 +1474,11 @@ Generated via Civic Report App`;
                 </button>
                 
                 <button
-                  onClick={handleGpsTaggedLeaderImage}
+                  onClick={handleLeaderGiotag}
                   className="bg-gray-50 text-gray-700 border border-gray-200 py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-100 hover:border-gray-300 transition-colors flex items-center justify-center space-x-1 sm:space-x-1.5 min-h-[36px] sm:min-h-[42px]"
-                  title="Download GPS-tagged leader image"
                 >
                   <Image className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>GPS‑tagged leader image</span>
+                  <span>Leader-Giotag</span>
                 </button>
               </div>
             </div>
@@ -1521,7 +1520,7 @@ Generated via Civic Report App`;
         formatDate={formatDate}
       />
 
-      {/* Full Photo Modal with Leader, Map, and GPS-tagged overlays - PERFECTLY MATCHING DOWNLOAD */}
+      {/* Full Photo Modal with Leader, Map, and Geotag Overlays - PERFECTLY MATCHING DOWNLOAD */}
       {showFullPhotoModal && imageUrl && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[1000] p-2 sm:p-4">
           <div className="relative max-w-6xl max-h-full w-full">
@@ -1536,10 +1535,9 @@ Generated via Civic Report App`;
                   setShowLeaderSelectionModal(true);
                 }}
                 className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-medium flex items-center space-x-1 sm:space-x-2 transition-colors shadow-lg text-xs sm:text-sm border border-white/30"
-                title="Download GPS-tagged leader image"
               >
                 <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>GPS‑tagged leader image</span>
+                <span>Leader-Giotag Photo Download</span>
               </button>
               <button
                 onClick={() => setShowFullPhotoModal(false)}
@@ -1555,10 +1553,10 @@ Generated via Civic Report App`;
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
               
-              {/* GPS-tagged leader image Label - Always visible in bottom-right corner */}
+              {/* Leader-Giotag Label - Always visible in bottom-right corner */}
               <div className="absolute bottom-2 right-2 bg-black/30 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
                 <span>📍</span>
-                <span>GPS‑tagged leader image</span>
+                <span>Leader-Giotag</span>
               </div>
               
               {/* Leader Overlay at Top - ALL PHOTOS ALIGNED AT SAME LEVEL */}
@@ -1747,7 +1745,7 @@ Generated via Civic Report App`;
           <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Select Leaders for GPS‑tagged Image</h3>
+                <h3 className="text-xl font-bold text-gray-900">Select Leaders for Download</h3>
                 <button
                   onClick={() => {
                     setShowLeaderSelectionModal(false);
@@ -1760,7 +1758,7 @@ Generated via Civic Report App`;
               </div>
               
               <p className="text-sm text-gray-600 mb-4">
-                Select leaders to include in the GPS-tagged photo overlay with static map. All leaders are pre-selected by default:
+                Select leaders to include in the photo overlay with static map. All leaders are pre-selected by default:
               </p>
               
               <div className="space-y-3 mb-6">
@@ -1821,7 +1819,7 @@ Generated via Civic Report App`;
                   ) : (
                     <>
                       <Download className="h-4 w-4" />
-                      <span>Download GPS‑tagged Image</span>
+                      <span>Leader-Giotag Photo Download</span>
                     </>
                   )}
                 </button>

@@ -1,4 +1,54 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-implement-lazy-loading-for-all-images-rendered-anywhere-inside-the-admin-dashboard-all-tabs-using-the-existing-lazyimage-component-so-admin-pages-do-not-eagerly-download-every-image-at-once",
+      "featureTitle": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
+      "files": [
+        "frontend/src/components/AdminDashboard.tsx",
+        "frontend/src/components/AdminReportCard.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@1.1.2",
+        "user-approval@1.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-lazy-loading-to-image-heavy-admin-surfaces-specifically-including-reports-management-tables-cards-edit-previews-and-full-size-preview-modals-directory-representative-photos-lists-cards-and-photo-modals-and-content-logo-management-previews",
+      "featureTitle": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
+      "files": [
+        "frontend/src/components/AdminReportCard.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@1.1.2",
+        "user-approval@1.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

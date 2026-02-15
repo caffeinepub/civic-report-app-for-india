@@ -1,39 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T15:20:41.897Z",
+  "generatedAt": "2026-02-14T21:22:59.909Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 2,
-    "implemented": 0,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-8",
-        "summary": "Update the English (en) translation value for `header.title` so the fixed homepage header banner title (rendered by `t('header.title')` in `frontend/src/components/Header.tsx`) displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
-        "status": "missing",
+        "id": "REQ-1",
+        "summary": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/contexts/LanguageContext.tsx"
+          "frontend/src/components/AdminDashboard.tsx",
+          "frontend/src/components/AdminReportsTable.tsx",
+          "frontend/src/components/AdminReportCard.tsx",
+          "frontend/src/components/AdminDirectory.tsx",
+          "frontend/src/components/AdminContentManagement.tsx",
+          "frontend/src/components/LazyImage.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/AdminDashboard.tsx",
+          "frontend/src/components/AdminReportCard.tsx"
+        ]
       },
       {
-        "id": "REQ-9",
-        "summary": "Keep the fixed homepage header banner subtitle text unchanged visually, but update the English (en) translation value for `header.subtitle` so it displays exactly: \"Help improve our India by reporting civic issues\".",
-        "status": "missing",
+        "id": "REQ-2",
+        "summary": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/contexts/LanguageContext.tsx"
+          "frontend/src/components/AdminReportsTable.tsx",
+          "frontend/src/components/AdminReportCard.tsx",
+          "frontend/src/components/AdminDirectory.tsx",
+          "frontend/src/components/AdminContentManagement.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/AdminReportCard.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/AdminDashboard.tsx",
+    "frontend/src/components/AdminReportCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -44,7 +44,7 @@ export function useGetNextReports(offset: number, count: number) {
       const reports = await actor.getNextReports(BigInt(offset), BigInt(count));
       return reports;
     },
-    enabled: false, // Only fetch when explicitly called
+    enabled: false,
     staleTime: 0,
   });
 }
@@ -545,18 +545,75 @@ export function useMoveFeature() {
   });
 }
 
-// VOLUNTEER SYSTEM HOOKS
+export function useIsApproved() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isApproved'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerApproved();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRequestApproval() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.requestApproval();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['isApproved'] });
+      queryClient.invalidateQueries({ queryKey: ['approvals'] });
+    },
+  });
+}
+
+export function useSetApproval() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ user, status }: { user: Principal; status: ApprovalStatus }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setApproval(user, status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['isApproved'] });
+    },
+  });
+}
+
+export function useListApprovals() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<UserApprovalInfo[]>({
+    queryKey: ['approvals'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.listApprovals();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useApplyVolunteer() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, photoPath, contactInfo, address, showFullMobile = true }: {
+    mutationFn: async ({ name, photoPath, contactInfo, address, showFullMobile }: {
       name: string;
       photoPath: string;
       contactInfo: string;
       address: string;
-      showFullMobile?: boolean;
+      showFullMobile: boolean;
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.applyVolunteer(name, photoPath, contactInfo, address, showFullMobile);
@@ -564,7 +621,6 @@ export function useApplyVolunteer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
-      queryClient.invalidateQueries({ queryKey: ['volunteerDirectory'] });
     },
   });
 }
@@ -581,7 +637,6 @@ export function useApproveVolunteer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
       queryClient.invalidateQueries({ queryKey: ['volunteerDirectory'] });
-      queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
     },
   });
 }
@@ -598,7 +653,6 @@ export function useRejectVolunteer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
       queryClient.invalidateQueries({ queryKey: ['volunteerDirectory'] });
-      queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
     },
   });
 }
@@ -616,13 +670,6 @@ export function useUpdateVolunteerPrivacy() {
       queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['volunteerDirectory'] });
       queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
-      queryClient.refetchQueries({ queryKey: ['volunteerDirectory'] });
-      queryClient.refetchQueries({ queryKey: ['myVolunteerProfile'] });
-      queryClient.refetchQueries({ queryKey: ['allVolunteers'] });
-    },
-    onError: (error) => {
-      console.error('Failed to update privacy settings:', error);
-      throw error;
     },
   });
 }
@@ -637,7 +684,6 @@ export function useSubmitVolunteerProfileEdit() {
       return actor.submitVolunteerProfileEdit(volunteerId, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['myPendingProfileEdit'] });
       queryClient.invalidateQueries({ queryKey: ['myProfileEditHistory'] });
       queryClient.invalidateQueries({ queryKey: ['allPendingProfileEdits'] });
@@ -647,35 +693,27 @@ export function useSubmitVolunteerProfileEdit() {
 
 export function useGetMyPendingProfileEdit() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<PendingProfileEdit | null>({
-    queryKey: ['myPendingProfileEdit', identity?.getPrincipal().toString()],
+    queryKey: ['myPendingProfileEdit'],
     queryFn: async () => {
-      if (!actor || !identity) return null;
+      if (!actor) return null;
       return actor.getMyPendingProfileEdit();
     },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: false,
-    staleTime: 1000,
-    refetchOnWindowFocus: true,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useGetMyProfileEditHistory() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<PendingProfileEdit[]>({
-    queryKey: ['myProfileEditHistory', identity?.getPrincipal().toString()],
+    queryKey: ['myProfileEditHistory'],
     queryFn: async () => {
-      if (!actor || !identity) return [];
+      if (!actor) return [];
       return actor.getMyProfileEditHistory();
     },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: false,
-    staleTime: 1000,
-    refetchOnWindowFocus: true,
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -689,7 +727,6 @@ export function useGetAllPendingProfileEdits() {
       return actor.getAllPendingProfileEdits();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
@@ -706,9 +743,8 @@ export function useApproveVolunteerProfileEdit() {
       queryClient.invalidateQueries({ queryKey: ['allPendingProfileEdits'] });
       queryClient.invalidateQueries({ queryKey: ['myPendingProfileEdit'] });
       queryClient.invalidateQueries({ queryKey: ['myProfileEditHistory'] });
-      queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
       queryClient.invalidateQueries({ queryKey: ['volunteerDirectory'] });
-      queryClient.invalidateQueries({ queryKey: ['myVolunteerProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['allVolunteers'] });
     },
   });
 }
@@ -740,27 +776,19 @@ export function useGetVolunteerDirectory() {
       return actor.getVolunteerDirectory();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
   });
 }
 
 export function useGetMyVolunteerProfile() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<Volunteer | null>({
-    queryKey: ['myVolunteerProfile', identity?.getPrincipal().toString()],
+    queryKey: ['myVolunteerProfile'],
     queryFn: async () => {
-      if (!actor || !identity) return null;
+      if (!actor) return null;
       return actor.getMyVolunteerProfile();
     },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: false,
-    staleTime: 1000,
-    refetchOnWindowFocus: true,
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -774,285 +802,22 @@ export function useGetAllVolunteers() {
       return actor.getAllVolunteers();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
-export function useIsApprovedVolunteer() {
-  const { data: volunteerProfile } = useGetMyVolunteerProfile();
-
-  return useQuery<boolean>({
-    queryKey: ['isApprovedVolunteer'],
-    queryFn: async () => {
-      return volunteerProfile?.approved || false;
-    },
-    enabled: !!volunteerProfile,
-    retry: false,
-  });
-}
-
-export function useGetVolunteerStats(volunteerName?: string) {
-  const { data: allReports } = useGetAllReports();
-  const { data: volunteerProfile } = useGetMyVolunteerProfile();
-
-  return useQuery({
-    queryKey: ['volunteerStats', volunteerName],
-    queryFn: async () => {
-      if (!allReports || !volunteerName) {
-        return { 
-          reportsSubmitted: 0, 
-          statusUpdates: 0, 
-          impactScore: volunteerProfile?.impactScore ? Number(volunteerProfile.impactScore) : 0 
-        };
-      }
-      
-      const volunteerReports = allReports.filter(report => 
-        report.username === volunteerName || report.reporterName === volunteerName
-      );
-      
-      const reportsSubmitted = volunteerReports.filter(r => r.username === volunteerName).length;
-      const statusUpdates = volunteerReports.filter(r => r.reporterName === volunteerName && r.status === 'Resolved').length;
-      const impactScore = volunteerProfile?.impactScore ? Number(volunteerProfile.impactScore) : 0;
-      
-      return {
-        reportsSubmitted,
-        statusUpdates,
-        impactScore
-      };
-    },
-    enabled: !!allReports && !!volunteerName,
-    retry: false,
-  });
-}
-
-export function useIsCallerApproved() {
+export function useGetVolunteerById(volunteerId: string) {
   const { actor, isFetching } = useActor();
 
-  return useQuery<boolean>({
-    queryKey: ['isCallerApproved'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return actor.isCallerApproved();
-    },
-    enabled: !!actor && !isFetching,
-    retry: false,
-  });
-}
-
-export function useRequestApproval() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.requestApproval();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isCallerApproved'] });
-      queryClient.invalidateQueries({ queryKey: ['volunteerApplications'] });
-      queryClient.invalidateQueries({ queryKey: ['approvedVolunteers'] });
-    },
-  });
-}
-
-export function useGetVolunteerApplications() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<UserApprovalInfo[]>({
-    queryKey: ['volunteerApplications'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listApprovals();
-    },
-    enabled: !!actor && !isFetching,
-    retry: false,
-  });
-}
-
-export function useSetApproval() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ user, status }: { user: Principal; status: ApprovalStatus }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.setApproval(user, status);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['volunteerApplications'] });
-      queryClient.invalidateQueries({ queryKey: ['isCallerApproved'] });
-      queryClient.invalidateQueries({ queryKey: ['approvedVolunteers'] });
-      queryClient.invalidateQueries({ queryKey: ['volunteerStatus'] });
-    },
-  });
-}
-
-export function useGetApprovedVolunteers() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<UserApprovalInfo[]>({
-    queryKey: ['approvedVolunteers'],
-    queryFn: async () => {
-      if (!actor) return [];
-      const applications = await actor.listApprovals();
-      return applications.filter(app => app.status === ApprovalStatus.approved);
-    },
-    enabled: !!actor && !isFetching,
-    retry: false,
-  });
-}
-
-export function useGetVolunteerStatus() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery({
-    queryKey: ['volunteerStatus'],
-    queryFn: async () => {
-      if (!actor || !identity) return null;
-      
-      try {
-        const isApproved = await actor.isCallerApproved();
-        const applications = await actor.listApprovals();
-        const currentUserPrincipal = identity.getPrincipal();
-        
-        if (currentUserPrincipal) {
-          const userApplication = applications.find(app => 
-            app.principal.toString() === currentUserPrincipal.toString()
-          );
-          
-          if (userApplication) {
-            return {
-              status: userApplication.status === ApprovalStatus.approved ? 'Approved' : 
-                     userApplication.status === ApprovalStatus.rejected ? 'Rejected' : 'Pending',
-              applicationDate: new Date().toISOString().split('T')[0],
-              approvalDate: userApplication.status === ApprovalStatus.approved ? new Date().toISOString().split('T')[0] : undefined
-            };
-          }
-        }
-        
-        return {
-          status: isApproved ? 'Approved' : 'Not Applied',
-          applicationDate: undefined,
-          approvalDate: undefined
-        };
-      } catch (error) {
-        console.error('Error fetching volunteer status:', error);
-        return {
-          status: 'Not Applied',
-          applicationDate: undefined,
-          approvalDate: undefined
-        };
-      }
-    },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: false,
-  });
-}
-
-export function useIsVerifiedVolunteer() {
-  const { data: volunteerProfile } = useGetMyVolunteerProfile();
-
-  return useQuery<{ isVolunteer: boolean; volunteerName?: string }>({
-    queryKey: ['isVerifiedVolunteer'],
-    queryFn: async () => {
-      if (!volunteerProfile) {
-        return { isVolunteer: false };
-      }
-      
-      return { 
-        isVolunteer: volunteerProfile.approved, 
-        volunteerName: volunteerProfile.name
-      };
-    },
-    enabled: !!volunteerProfile,
-    retry: false,
-  });
-}
-
-export function useGetVolunteerProfile(principal: Principal) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['volunteerProfile', principal.toString()],
+  return useQuery<Volunteer | null>({
+    queryKey: ['volunteer', volunteerId],
     queryFn: async () => {
       if (!actor) return null;
-      
-      try {
-        const profile = await actor.getUserProfile(principal);
-        const applications = await actor.listApprovals();
-        const volunteerApplication = applications.find(app => 
-          app.principal.toString() === principal.toString()
-        );
-        
-        if (profile && volunteerApplication) {
-          return {
-            principal,
-            name: profile.name,
-            status: volunteerApplication.status,
-            email: 'volunteer@example.com',
-            mobile: '9876543210',
-            address: '123 Main Street, City, State',
-            joinDate: new Date().toISOString().split('T')[0],
-          };
-        }
-        
-        return null;
-      } catch (error) {
-        console.error('Error fetching volunteer profile:', error);
-        return null;
-      }
+      return actor.getVolunteerById(volunteerId);
     },
-    enabled: !!actor && !isFetching && !!principal,
-    retry: false,
+    enabled: !!actor && !isFetching && !!volunteerId,
   });
 }
 
-export function useSubmitVolunteerApplication() {
-  return useRequestApproval();
-}
-
-export function useDeactivateVolunteer() {
-  const { mutate: setApproval } = useSetApproval();
-  
-  return {
-    mutate: (principal: Principal) => {
-      setApproval({ user: principal, status: ApprovalStatus.rejected });
-    }
-  };
-}
-
-export function useVolunteerAuthState() {
-  const { identity } = useInternetIdentity();
-  const { data: volunteerProfile, isLoading: isLoadingVolunteerProfile } = useGetMyVolunteerProfile();
-
-  return useQuery({
-    queryKey: ['volunteerAuthState', identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      if (!identity) {
-        return {
-          isAuthenticated: false,
-          isVolunteer: false,
-          volunteerProfile: null,
-          isLoading: false
-        };
-      }
-
-      return {
-        isAuthenticated: true,
-        isVolunteer: !!volunteerProfile,
-        volunteerProfile: volunteerProfile || null,
-        isLoading: isLoadingVolunteerProfile
-      };
-    },
-    enabled: true,
-    retry: false,
-    staleTime: 500,
-  });
-}
-
-// ADMINISTRATIVE DIRECTORY HOOKS
 export function useGetDirectory() {
   const { actor, isFetching } = useActor();
 
@@ -1063,9 +828,33 @@ export function useGetDirectory() {
       return actor.getDirectory();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useGetState(stateName: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<State | null>({
+    queryKey: ['state', stateName],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getState(stateName);
+    },
+    enabled: !!actor && !isFetching && !!stateName,
+  });
+}
+
+export function useGetConstituency(stateName: string, constituencyName: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Constituency | null>({
+    queryKey: ['constituency', stateName, constituencyName],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getConstituency(stateName, constituencyName);
+    },
+    enabled: !!actor && !isFetching && !!stateName && !!constituencyName,
   });
 }
 
@@ -1076,17 +865,12 @@ export function useGetConstituenciesByState(stateName: string) {
     queryKey: ['constituenciesByState', stateName],
     queryFn: async () => {
       if (!actor || !stateName) return [];
-      const constituencies = await actor.getConstituenciesByState(stateName);
-      // Filter to only include Lok Sabha constituencies with valid MP entries
-      return constituencies.filter(constituency => constituency.mp !== null && constituency.mp !== undefined);
+      return actor.getConstituenciesByState(stateName);
     },
     enabled: !!actor && !isFetching && !!stateName,
-    retry: false,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 }
 
-// NEW: Fetch Vidhan Sabha constituencies by state for MLA selection
 export function useGetVidhanSabhaConstituenciesByState(stateName: string) {
   const { actor, isFetching } = useActor();
 
@@ -1095,19 +879,29 @@ export function useGetVidhanSabhaConstituenciesByState(stateName: string) {
     queryFn: async () => {
       if (!actor || !stateName) return [];
       const constituencies = await actor.getConstituenciesByState(stateName);
-      // Filter to only include Vidhan Sabha constituencies with valid MLA entries
-      return constituencies.filter(constituency => 
-        constituency.mlas !== null && 
-        constituency.mlas !== undefined && 
-        constituency.mlas.length > 0
-      );
+      return constituencies.filter(c => c.mlas && c.mlas.length > 0);
     },
     enabled: !!actor && !isFetching && !!stateName,
-    retry: false,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 }
 
+export function useUpdateDirectory() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newDirectory: Directory) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateDirectory(newDirectory);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['directory'] });
+      queryClient.refetchQueries({ queryKey: ['directory'] });
+    },
+  });
+}
+
+// Admin Directory hooks
 export function useAddState() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -1188,33 +982,12 @@ export function useAddMlaToConstituency() {
   });
 }
 
-export function useSetPrimeMinister() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (pm: Representative) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.setPrimeMinister(pm);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['directory'] });
-      queryClient.refetchQueries({ queryKey: ['directory'] });
-    },
-  });
-}
-
 export function useUpdateRepresentative() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stateName, constituencyName, repType, representative }: { 
-      stateName: string; 
-      constituencyName: string; 
-      repType: string; 
-      representative: Representative 
-    }) => {
+    mutationFn: async ({ stateName, constituencyName, repType, representative }: { stateName: string; constituencyName: string; repType: string; representative: Representative }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateRepresentative(stateName, constituencyName, repType, representative);
     },
@@ -1246,11 +1019,7 @@ export function useDeleteRepresentative() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stateName, constituencyName, repType }: { 
-      stateName: string; 
-      constituencyName: string; 
-      repType: string 
-    }) => {
+    mutationFn: async ({ stateName, constituencyName, repType }: { stateName: string; constituencyName: string; repType: string }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.deleteRepresentative(stateName, constituencyName, repType);
     },
@@ -1298,11 +1067,7 @@ export function useUpdateConstituency() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stateName, constituencyName, updatedConstituency }: { 
-      stateName: string; 
-      constituencyName: string; 
-      updatedConstituency: Constituency 
-    }) => {
+    mutationFn: async ({ stateName, constituencyName, updatedConstituency }: { stateName: string; constituencyName: string; updatedConstituency: Constituency }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateConstituency(stateName, constituencyName, updatedConstituency);
     },
@@ -1318,13 +1083,7 @@ export function useUpdateRepresentativeDetails() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ stateName, constituencyName, repType, repName, updatedRep }: { 
-      stateName: string; 
-      constituencyName: string; 
-      repType: string; 
-      repName: string;
-      updatedRep: Representative 
-    }) => {
+    mutationFn: async ({ stateName, constituencyName, repType, repName, updatedRep }: { stateName: string; constituencyName: string; repType: string; repName: string; updatedRep: Representative }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateRepresentativeDetails(stateName, constituencyName, repType, repName, updatedRep);
     },
@@ -1335,17 +1094,18 @@ export function useUpdateRepresentativeDetails() {
   });
 }
 
-export function useExportDirectory() {
+export function useSetPrimeMinister() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (pm: Representative) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.exportDirectory();
+      return actor.setPrimeMinister(pm);
     },
-    onError: (error) => {
-      console.error('Failed to export directory:', error);
-      throw error;
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['directory'] });
+      queryClient.refetchQueries({ queryKey: ['directory'] });
     },
   });
 }
@@ -1363,14 +1123,64 @@ export function useImportDirectory() {
       queryClient.invalidateQueries({ queryKey: ['directory'] });
       queryClient.refetchQueries({ queryKey: ['directory'] });
     },
-    onError: (error) => {
-      console.error('Failed to import directory:', error);
-      throw error;
+  });
+}
+
+export function useExportDirectory() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.exportDirectory();
     },
   });
 }
 
-// NGO/NPO SYSTEM HOOKS
+// Volunteer stats hook - accepts optional volunteer name parameter
+export function useGetVolunteerStats(volunteerName?: string) {
+  const { actor, isFetching } = useActor();
+  const { data: allReports } = useGetAllReports();
+  
+  return useQuery({
+    queryKey: ['volunteerStats', volunteerName],
+    queryFn: async () => {
+      if (!volunteerName || !allReports) {
+        return {
+          reportsSubmitted: 0,
+          reportsResolved: 0,
+          statusUpdates: 0,
+          impactScore: BigInt(0),
+        };
+      }
+
+      // Count reports submitted by this volunteer
+      const reportsSubmitted = allReports.filter(
+        report => report.submittedByVolunteer && report.username === volunteerName
+      ).length;
+
+      // Count reports resolved by this volunteer
+      const reportsResolved = allReports.filter(
+        report => report.resolvedByVolunteer && report.reporterName === volunteerName
+      ).length;
+
+      // Status updates = reports resolved
+      const statusUpdates = reportsResolved;
+
+      // Calculate impact score (same as backend logic)
+      const impactScore = BigInt((reportsSubmitted + reportsResolved) * 10);
+
+      return {
+        reportsSubmitted,
+        reportsResolved,
+        statusUpdates,
+        impactScore,
+      };
+    },
+    enabled: !!actor && !isFetching && !!volunteerName,
+  });
+}
+
 export function useRegisterNgoNpo() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -1394,7 +1204,6 @@ export function useRegisterNgoNpo() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myNgoNpoProfile'] });
       queryClient.invalidateQueries({ queryKey: ['allNgoNpos'] });
-      queryClient.invalidateQueries({ queryKey: ['ngoNpoDirectory'] });
     },
   });
 }
@@ -1411,7 +1220,6 @@ export function useApproveNgoNpo() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allNgoNpos'] });
       queryClient.invalidateQueries({ queryKey: ['ngoNpoDirectory'] });
-      queryClient.invalidateQueries({ queryKey: ['myNgoNpoProfile'] });
     },
   });
 }
@@ -1428,7 +1236,6 @@ export function useRejectNgoNpo() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allNgoNpos'] });
       queryClient.invalidateQueries({ queryKey: ['ngoNpoDirectory'] });
-      queryClient.invalidateQueries({ queryKey: ['myNgoNpoProfile'] });
     },
   });
 }
@@ -1446,13 +1253,6 @@ export function useUpdateNgoNpoPrivacy() {
       queryClient.invalidateQueries({ queryKey: ['myNgoNpoProfile'] });
       queryClient.invalidateQueries({ queryKey: ['ngoNpoDirectory'] });
       queryClient.invalidateQueries({ queryKey: ['allNgoNpos'] });
-      queryClient.refetchQueries({ queryKey: ['ngoNpoDirectory'] });
-      queryClient.refetchQueries({ queryKey: ['myNgoNpoProfile'] });
-      queryClient.refetchQueries({ queryKey: ['allNgoNpos'] });
-    },
-    onError: (error) => {
-      console.error('Failed to update privacy settings:', error);
-      throw error;
     },
   });
 }
@@ -1467,27 +1267,19 @@ export function useGetNgoNpoDirectory() {
       return actor.getNgoNpoDirectory();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
   });
 }
 
 export function useGetMyNgoNpoProfile() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   return useQuery<NgoNpo | null>({
-    queryKey: ['myNgoNpoProfile', identity?.getPrincipal().toString()],
+    queryKey: ['myNgoNpoProfile'],
     queryFn: async () => {
-      if (!actor || !identity) return null;
+      if (!actor) return null;
       return actor.getMyNgoNpoProfile();
     },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: false,
-    staleTime: 1000,
-    refetchOnWindowFocus: true,
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -1501,21 +1293,28 @@ export function useGetAllNgoNpos() {
       return actor.getAllNgoNpos();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
-// FEEDBACK/BUG REPORTING AND CONTACT US SYSTEM HOOKS
+export function useGetNgoNpoById(ngoNpoId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<NgoNpo | null>({
+    queryKey: ['ngoNpo', ngoNpoId],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getNgoNpoById(ngoNpoId);
+    },
+    enabled: !!actor && !isFetching && !!ngoNpoId,
+  });
+}
+
 export function useSubmitFeedback() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ type, message, contactInfo }: {
-      type: string;
-      message: string;
-      contactInfo: string;
-    }) => {
+    mutationFn: async ({ type, message, contactInfo }: { type: string; message: string; contactInfo: string }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.submitFeedback(type, message, contactInfo);
     },
@@ -1535,7 +1334,6 @@ export function useGetAllFeedback() {
       return actor.getAllFeedback();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
@@ -1550,7 +1348,6 @@ export function useUpdateFeedbackStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allFeedback'] });
-      queryClient.refetchQueries({ queryKey: ['allFeedback'] });
     },
   });
 }
@@ -1566,7 +1363,6 @@ export function useRespondToFeedback() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allFeedback'] });
-      queryClient.refetchQueries({ queryKey: ['allFeedback'] });
     },
   });
 }
@@ -1582,44 +1378,31 @@ export function useDeleteFeedback() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allFeedback'] });
-      queryClient.refetchQueries({ queryKey: ['allFeedback'] });
     },
   });
 }
 
-// UNIQUE VISITOR TRACKING HOOKS
 export function useTrackUniqueVisitor() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.trackUniqueVisitor();
     },
-    onSuccess: () => {
-      // Invalidate the visitor count to refresh it
-      queryClient.invalidateQueries({ queryKey: ['totalUniqueVisitors'] });
-    },
   });
 }
 
 export function useGetTotalUniqueVisitors() {
   const { actor, isFetching } = useActor();
-  const BASE_OFFSET = 100; // Historic visitor offset
 
-  return useQuery<number>({
+  return useQuery<bigint>({
     queryKey: ['totalUniqueVisitors'],
     queryFn: async () => {
-      if (!actor) return BASE_OFFSET;
-      const count = await actor.getTotalUniqueVisitors();
-      // Add base offset to represent historic visitors
-      return Number(count) + BASE_OFFSET;
+      if (!actor) return BigInt(0);
+      return actor.getTotalUniqueVisitors();
     },
     enabled: !!actor && !isFetching,
-    staleTime: 30000, // Cache for 30 seconds
-    refetchInterval: 60000, // Refetch every minute
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 30000,
   });
 }
-

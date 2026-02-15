@@ -1,46 +1,24 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
-  "summary": "User still sees old homepage top banner title \"Report by clicking Photo & Get Leader-Giotag, Certificate, Complaint & Legal Notice\"; needs banner title updated to exactly \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\" while keeping subtitle \"Help improve our India by reporting civic issues\" unchanged.",
-  "architectural_notes": [
-    "Homepage top banner text is sourced from i18n translations via keys t('header.title') and t('header.subtitle'), not from RecentReports.tsx."
-  ],
-  "known_issues": [
-    "Reported: updated homepage H2 text still not visible across ~10 devices/browsers; likely deployment/build not applying change or wrong component/source of text.",
-    "Mismatch between requested/updated element and the user-visible banner: RecentReports.tsx H2 changes do not affect the top banner; banner text must be updated via header translation keys.",
-    "Deployed build still shows old homepage top banner title (\"Get Leader-Giotag\") across user devices; banner title must be changed to \"Get GPS Leader image\"."
-  ],
-  "isFixRequest": true,
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-text-content-of-the-selected-h2-element-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-1-div-1-h2-1-on-the-home-page-so-it-reads-exactly-report-by-clicking-photo-gps-leader-image-certificate-complaint-legal-notice-implement-this-by-updating-the-h2-in-frontend-src-components-recentreports-tsx-currently-recent-reports-without-changing-any-other-ui-text-or-layout",
-      "title": "Update the text content of the selected H2 element (XPath: /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[1]/div[1]/h2[1]) on the home page so it reads exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\". Implement this by updating the <h2> in frontend/src/components/RecentReports.tsx (currently \"Recent Reports\") without changing any other UI text or layout.",
+      "id": "feature-implement-lazy-loading-for-all-images-rendered-anywhere-inside-the-admin-dashboard-all-tabs-using-the-existing-lazyimage-component-so-admin-pages-do-not-eagerly-download-every-image-at-once",
+      "title": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-identify-and-update-any-remaining-user-facing-occurrences-of-the-old-phrase-get-leader-giotag-and-any-other-outdated-variants-of-the-homepage-headline-so-that-the-application-consistently-shows-the-intended-updated-wording-where-applicable",
-      "title": "Identify and update any remaining user-facing occurrences of the old phrase \"Get Leader-Giotag\" (and any other outdated variants of the homepage headline) so that the application consistently shows the intended updated wording where applicable.",
+      "id": "feature-apply-lazy-loading-to-image-heavy-admin-surfaces-specifically-including-reports-management-tables-cards-edit-previews-and-full-size-preview-modals-directory-representative-photos-lists-cards-and-photo-modals-and-content-logo-management-previews",
+      "title": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-homepage-section-headline-in-frontend-src-components-recentreports-tsx-to-display-exactly-report-by-clicking-photo-gps-leader-image-certificate-complaint-legal-notice-and-ensure-no-other-code-path-can-override-it-on-the-homepage",
-      "title": "Update the homepage section headline in frontend/src/components/RecentReports.tsx to display exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (and ensure no other code path can override it on the homepage).",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-document-title-and-social-share-metadata-in-frontend-index-html-to-remove-the-old-wording-and-use-the-updated-wording-consistently-update-title-og-title-and-twitter-title",
-      "title": "Update the document title and social/share metadata in frontend/index.html to remove the old wording and use the updated wording consistently (update <title>, og:title, and twitter:title).",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -48,64 +26,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update the app title text to: 'Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice'",
+      "summary": "Implement lazy loading for all images in the admin dashboard",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Update the homepage top banner text by changing translation keys for header.title (and header.subtitle if needed) so the highlighted banner shows the new wording",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Update the homepage top banner title text (Header component) by changing the English translation value for the key `header.title` so the fixed header banner displays exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Update homepage top banner title text to exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\" (replacing current \"Get Leader-Giotag\"); keep subtitle \"Help improve our India by reporting civic issues\" unchanged.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Update the homepage top banner title shown in the fixed Header (the large title text rendered by `t('header.title')`) so that, when the selected language is English (`en`), it displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Keep the homepage top banner subtitle in the fixed Header unchanged from the user-provided text. Update the English (`en`) translation for `header.subtitle` so that it displays exactly: \"Help improve our India by reporting civic issues\".",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Update the English (en) translation value for `header.title` so the fixed homepage header banner title (rendered by `t('header.title')` in `frontend/src/components/Header.tsx`) displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Keep the fixed homepage header banner subtitle text unchanged visually, but update the English (en) translation value for `header.subtitle` so it displays exactly: \"Help improve our India by reporting civic issues\".",
-      "reqIds": [
-        "REQ-9"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Update home page section title text",
+  "projectName": "Add lazy loading for all images in the Admin Dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

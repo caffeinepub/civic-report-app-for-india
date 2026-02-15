@@ -205,25 +205,21 @@ persistent actor {
 
     let approvalState = UserApproval.initState(accessControlState);
 
-    // File reference management - Admin only
     public shared ({ caller }) func registerFileReference(path : Text, hash : Text) : async () {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can register file references");
+        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+            Debug.trap("Unauthorized: Only authenticated users can register file references");
         };
         Registry.add(registry, path, hash);
     };
 
-    // Public query - no auth required
     public query func getFileReference(path : Text) : async Registry.FileReference {
         Registry.get(registry, path);
     };
 
-    // Public query - no auth required
     public query func listFileReferences() : async [Registry.FileReference] {
         Registry.list(registry);
     };
 
-    // Admin only
     public shared ({ caller }) func dropFileReference(path : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can drop file references");
@@ -231,7 +227,6 @@ persistent actor {
         Registry.remove(registry, path);
     };
 
-    // Public - No authentication required for report submission
     public shared ({ caller }) func submitReport(photoPath : Text, latitude : Float, longitude : Float, username : ?Text, notes : ?Text, issueType : Text, mlaName : ?Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text, pmName : ?Text, cmName : ?Text, customAddress : ?Text, state : Text, mlaDesignation : Text, isVolunteer : Bool, pmData : ?Representative, cmData : ?Representative, mpData : ?Representative, address : Text, coordinates : Text, localCivicBody : ?LocalCivicBody) : async Text {
         let id = Int.toText(Time.now());
         let report : Report = {
@@ -288,12 +283,10 @@ persistent actor {
         id;
     };
 
-    // Public query - no auth required
     public query func getReport(id : Text) : async ?Report {
         reportMap.get(reports, id);
     };
 
-    // Public query - no auth required
     public query func getAllReports() : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -302,8 +295,10 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public - No authentication required for status updates
     public shared ({ caller }) func updateReportStatus(id : Text, newStatus : Text, proofPhotoPath : Text, reporterName : Text, completionNotes : ?Text, isVolunteer : Bool) : async Bool {
+        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+            Debug.trap("Unauthorized: Only authenticated users can update report status");
+        };
         switch (reportMap.get(reports, id)) {
             case (null) { false };
             case (?report) {
@@ -341,7 +336,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getRecentReports(count : Nat) : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -357,7 +351,6 @@ persistent actor {
         Array.tabulate(actualCount, func(i : Nat) : Report { sorted[len - 1 - i] });
     };
 
-    // Public query - no auth required
     public query func getReportsByState(state : Text) : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -368,7 +361,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Admin only
     public shared ({ caller }) func deleteReport(id : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can delete reports");
@@ -401,22 +393,18 @@ persistent actor {
         };
     };
 
-    // Public - First caller becomes admin
     public shared ({ caller }) func initializeAccessControl() : async () {
         AccessControl.initialize(accessControlState, caller);
     };
 
-    // Public query
     public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
         AccessControl.getUserRole(accessControlState, caller);
     };
 
-    // Admin only (enforced inside assignRole)
     public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
         AccessControl.assignRole(accessControlState, caller, user, role);
     };
 
-    // Public query
     public query ({ caller }) func isCallerAdmin() : async Bool {
         AccessControl.isAdmin(accessControlState, caller);
     };
@@ -427,7 +415,6 @@ persistent actor {
 
     var userProfiles = principalMap.empty<UserProfile>();
 
-    // User only
     public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
             Debug.trap("Unauthorized: Only authenticated users can view profiles");
@@ -435,7 +422,6 @@ persistent actor {
         principalMap.get(userProfiles, caller);
     };
 
-    // User can view own profile, admin can view any profile
     public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
         if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
             Debug.trap("Unauthorized: Can only view your own profile");
@@ -443,7 +429,6 @@ persistent actor {
         principalMap.get(userProfiles, user);
     };
 
-    // User only
     public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
             Debug.trap("Unauthorized: Only authenticated users can save profiles");
@@ -451,12 +436,10 @@ persistent actor {
         userProfiles := principalMap.put(userProfiles, caller, profile);
     };
 
-    // Public query - no auth required
     public query func getCurrentLogo() : async Text {
         logoState.currentLogo;
     };
 
-    // Admin only
     public shared ({ caller }) func uploadLogo(logoData : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can upload logos");
@@ -471,7 +454,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public query ({ caller }) func getLogoHistory() : async [LogoHistory] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view logo history");
@@ -479,7 +461,6 @@ persistent actor {
         logoState.history;
     };
 
-    // Admin only
     public query ({ caller }) func getAdmins() : async [Principal] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view admin list");
@@ -496,7 +477,6 @@ persistent actor {
         List.toArray(adminList);
     };
 
-    // Admin only
     public shared ({ caller }) func addAdmin(newAdmin : Principal) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add new admins");
@@ -504,7 +484,6 @@ persistent actor {
         AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
     };
 
-    // Admin only
     public shared ({ caller }) func removeAdmin(adminToRemove : Principal) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can remove admins");
@@ -515,7 +494,6 @@ persistent actor {
         AccessControl.assignRole(accessControlState, caller, adminToRemove, #user);
     };
 
-    // Admin only
     public shared ({ caller }) func updateReport(id : Text, updatedReport : Report) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update reports");
@@ -530,7 +508,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateLocalCivicBody(id : Text, bodyType : Text, bodyName : Text, representativeName : Text, photoPath : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update local civic body details");
@@ -555,12 +532,10 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getRoadmapFeatures() : async [RoadmapFeature] {
         roadmapFeatures;
     };
 
-    // Admin only
     public shared ({ caller }) func createFeature(sectionId : Text, featureData : RoadmapFeature) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can create features");
@@ -575,7 +550,6 @@ persistent actor {
         roadmapFeatures := Array.append(roadmapFeatures, [feature]);
     };
 
-    // Admin only
     public shared ({ caller }) func updateFeature(featureId : Text, featureData : RoadmapFeature) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update features");
@@ -602,7 +576,6 @@ persistent actor {
         roadmapFeatures := updatedFeatures;
     };
 
-    // Admin only
     public shared ({ caller }) func deleteFeature(featureId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can delete features");
@@ -617,7 +590,6 @@ persistent actor {
         roadmapFeatures := filteredFeatures;
     };
 
-    // Admin only
     public shared ({ caller }) func moveFeature(featureId : Text, newSectionId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can move features");
@@ -644,17 +616,14 @@ persistent actor {
         roadmapFeatures := updatedFeatures;
     };
 
-    // Public query
     public query ({ caller }) func isCallerApproved() : async Bool {
         AccessControl.hasPermission(accessControlState, caller, #admin) or UserApproval.isApproved(approvalState, caller);
     };
 
-    // Public - any authenticated user can request approval
     public shared ({ caller }) func requestApproval() : async () {
         UserApproval.requestApproval(approvalState, caller);
     };
 
-    // Admin only
     public shared ({ caller }) func setApproval(user : Principal, status : UserApproval.ApprovalStatus) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can perform this action");
@@ -662,7 +631,6 @@ persistent actor {
         UserApproval.setApproval(approvalState, user, status);
     };
 
-    // Admin only
     public query ({ caller }) func listApprovals() : async [UserApproval.UserApprovalInfo] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can perform this action");
@@ -670,7 +638,6 @@ persistent actor {
         UserApproval.listApprovals(approvalState);
     };
 
-    // Public - any authenticated user can apply to be a volunteer
     public shared ({ caller }) func applyVolunteer(name : Text, photoPath : Text, contactInfo : Text, address : Text, showFullMobile : Bool) : async Text {
         let id = Int.toText(Time.now());
         let volunteer : Volunteer = {
@@ -691,7 +658,6 @@ persistent actor {
         id;
     };
 
-    // Admin only
     public shared ({ caller }) func approveVolunteer(volunteerId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can approve volunteers");
@@ -712,7 +678,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func rejectVolunteer(volunteerId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can reject volunteers");
@@ -733,7 +698,6 @@ persistent actor {
         };
     };
 
-    // Volunteer can update own privacy, admin can update any
     public shared ({ caller }) func updateVolunteerPrivacy(volunteerId : Text, showFullMobile : Bool) : async () {
         switch (volunteerMap.get(volunteers, volunteerId)) {
             case (null) {
@@ -752,7 +716,6 @@ persistent actor {
         };
     };
 
-    // Approved volunteer only - can edit own profile
     public shared ({ caller }) func submitVolunteerProfileEdit(volunteerId : Text, updates : VolunteerProfileUpdate) : async Text {
         switch (volunteerMap.get(volunteers, volunteerId)) {
             case (null) {
@@ -782,7 +745,6 @@ persistent actor {
         };
     };
 
-    // Volunteer can view own pending edit
     public query ({ caller }) func getMyPendingProfileEdit() : async ?PendingProfileEdit {
         var pendingList = List.nil<PendingProfileEdit>();
         for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
@@ -793,7 +755,6 @@ persistent actor {
         List.last(pendingList);
     };
 
-    // Volunteer can view own edit history
     public query ({ caller }) func getMyProfileEditHistory() : async [PendingProfileEdit] {
         var editList = List.nil<PendingProfileEdit>();
         for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
@@ -804,7 +765,6 @@ persistent actor {
         List.toArray(editList);
     };
 
-    // Admin only
     public query ({ caller }) func getAllPendingProfileEdits() : async [PendingProfileEdit] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view all pending profile edits");
@@ -818,7 +778,6 @@ persistent actor {
         List.toArray(editList);
     };
 
-    // Admin only
     public shared ({ caller }) func approveVolunteerProfileEdit(editId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can approve profile edits");
@@ -858,7 +817,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func rejectVolunteerProfileEdit(editId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can reject profile edits");
@@ -882,7 +840,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getVolunteerDirectory() : async [Volunteer] {
         var volunteerList = List.nil<Volunteer>();
         for ((id, volunteer) in volunteerMap.entries(volunteers)) {
@@ -893,7 +850,6 @@ persistent actor {
         List.toArray(volunteerList);
     };
 
-    // Volunteer can view own profile
     public query ({ caller }) func getMyVolunteerProfile() : async ?Volunteer {
         var volunteerList = List.nil<Volunteer>();
         for ((id, volunteer) in volunteerMap.entries(volunteers)) {
@@ -904,7 +860,6 @@ persistent actor {
         List.last(volunteerList);
     };
 
-    // Admin only
     public query ({ caller }) func getAllVolunteers() : async [Volunteer] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view all volunteers");
@@ -916,12 +871,10 @@ persistent actor {
         List.toArray(volunteerList);
     };
 
-    // Public query - no auth required
     public query func getVolunteerById(volunteerId : Text) : async ?Volunteer {
         volunteerMap.get(volunteers, volunteerId);
     };
 
-    // Admin only - Directory management functions
     public shared ({ caller }) func addState(stateName : Text, cm : ?Representative, isUnionTerritory : Bool) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add states");
@@ -945,7 +898,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func addUnionTerritory(utName : Text, administrator : ?Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add union territories");
@@ -962,7 +914,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func addConstituency(stateName : Text, constituencyName : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add constituencies");
@@ -1017,7 +968,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func addMpToConstituency(stateName : Text, constituencyName : Text, mp : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add MPs");
@@ -1099,7 +1049,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func addMlaToConstituency(stateName : Text, constituencyName : Text, mla : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add MLAs");
@@ -1181,7 +1130,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func addAdministrativeUnit(name : Text, unitType : Text, parentState : ?Text, parentConstituency : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can add administrative units");
@@ -1198,7 +1146,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func setPrimeMinister(pm : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can set the Prime Minister");
@@ -1206,12 +1153,10 @@ persistent actor {
         directory := { directory with primeMinister = ?pm };
     };
 
-    // Public query - no auth required
     public query func getDirectory() : async Directory {
         directory;
     };
 
-    // Public query - no auth required
     public query func getState(stateName : Text) : async ?State {
         var stateList = List.nil<State>();
         for (state in directory.states.vals()) {
@@ -1222,7 +1167,6 @@ persistent actor {
         List.last(stateList);
     };
 
-    // Public query - no auth required
     public query func getUnionTerritory(utName : Text) : async ?State {
         var utList = List.nil<State>();
         for (ut in directory.unionTerritories.vals()) {
@@ -1233,7 +1177,6 @@ persistent actor {
         List.last(utList);
     };
 
-    // Public query - no auth required
     public query func getConstituency(stateName : Text, constituencyName : Text) : async ?Constituency {
         var stateList = List.nil<State>();
         for (state in directory.states.vals()) {
@@ -1255,12 +1198,10 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getAdministrativeUnits() : async [AdministrativeUnit] {
         directory.administrativeUnits;
     };
 
-    // Admin only
     public shared ({ caller }) func updateRepresentative(stateName : Text, constituencyName : Text, repType : Text, representative : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update representatives");
@@ -1366,7 +1307,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateDirectory(newDirectory : Directory) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update the directory");
@@ -1374,7 +1314,6 @@ persistent actor {
         directory := newDirectory;
     };
 
-    // Admin only
     public shared ({ caller }) func deleteConstituency(stateName : Text, constituencyName : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can delete constituencies");
@@ -1448,7 +1387,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func deleteRepresentative(stateName : Text, constituencyName : Text, repType : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can delete representatives");
@@ -1554,7 +1492,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateState(stateName : Text, updatedState : State) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update states");
@@ -1626,7 +1563,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateUnionTerritory(utName : Text, updatedUT : State) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update union territories");
@@ -1698,7 +1634,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateConstituency(stateName : Text, constituencyName : Text, updatedConstituency : Constituency) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update constituencies");
@@ -1772,7 +1707,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateRepresentativeDetails(stateName : Text, constituencyName : Text, repType : Text, repName : Text, updatedRep : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update representatives");
@@ -1905,7 +1839,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateAdministrativeUnit(name : Text, updatedUnit : AdministrativeUnit) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update administrative units");
@@ -1928,7 +1861,6 @@ persistent actor {
         directory := { directory with administrativeUnits = updatedUnits };
     };
 
-    // Admin only
     public shared ({ caller }) func exportDirectory() : async Directory {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can export the directory");
@@ -1936,7 +1868,6 @@ persistent actor {
         directory;
     };
 
-    // Admin only
     public shared ({ caller }) func importDirectory(newDirectory : Directory) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can import the directory");
@@ -1944,7 +1875,6 @@ persistent actor {
         directory := newDirectory;
     };
 
-    // Public query - no auth required
     public query func getReportsWithLocations() : async [(Report, { latitude : Float; longitude : Float })] {
         var reportList = List.nil<(Report, { latitude : Float; longitude : Float })>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -1953,7 +1883,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithPhotos() : async [(Report, Text)] {
         var reportList = List.nil<(Report, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -1962,7 +1891,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithMinisterPhotos() : async [(Report, ?Text, ?Text, ?Text)] {
         var reportList = List.nil<(Report, ?Text, ?Text, ?Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -1971,7 +1899,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportLocation(id : Text, latitude : Float, longitude : Float) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update report locations");
@@ -1990,7 +1917,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportPhoto(id : Text, photoPath : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update report photos");
@@ -2009,7 +1935,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportMinisterPhotos(id : Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update minister photos");
@@ -2030,7 +1955,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportAddress(id : Text, address : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update report addresses");
@@ -2049,7 +1973,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportCoordinates(id : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update report coordinates");
@@ -2068,7 +1991,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getReportsWithLocationsAndAddresses() : async [(Report, { latitude : Float; longitude : Float }, Text, Text)] {
         var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2077,7 +1999,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithAddresses() : async [(Report, Text)] {
         var reportList = List.nil<(Report, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2086,7 +2007,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithLocationsAndAddressesOptimized() : async [(Report, { latitude : Float; longitude : Float }, Text, Text)] {
         var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2095,7 +2015,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithPhotosOptimized() : async [(Report, Text)] {
         var reportList = List.nil<(Report, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2104,7 +2023,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithMinisterPhotosOptimized() : async [(Report, ?Text, ?Text, ?Text)] {
         var reportList = List.nil<(Report, ?Text, ?Text, ?Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2113,7 +2031,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithCustomAddresses() : async [(Report, ?Text, Text)] {
         var reportList = List.nil<(Report, ?Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2122,7 +2039,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithFullLocationData() : async [(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)] {
         var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2131,7 +2047,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportFullLocation(id : Text, latitude : Float, longitude : Float, customAddress : ?Text, address : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update full location data");
@@ -2153,7 +2068,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getReportsWithCompleteLocationData() : async [(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)] {
         var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2162,7 +2076,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Public query - no auth required
     public query func getReportsWithAddressAndCoordinates() : async [(Report, Text, Text)] {
         var reportList = List.nil<(Report, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2171,7 +2084,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportAddressAndCoordinates(id : Text, address : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update address and coordinates");
@@ -2191,7 +2103,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getReportsForAdminTable() : async [(Report, Text, Text, Text)] {
         var reportList = List.nil<(Report, Text, Text, Text)>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2204,7 +2115,6 @@ persistent actor {
         List.toArray(reportList);
     };
 
-    // Admin only
     public shared ({ caller }) func updateReportAdminTable(id : Text, address : Text, coordinates : Text, customAddress : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update admin table data");
@@ -2225,7 +2135,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getPaginatedReports(page : Nat, pageSize : Nat) : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2244,17 +2153,14 @@ persistent actor {
         Array.tabulate(end - start, func(i : Nat) : Report { sorted[len - 1 - (start + i)] });
     };
 
-    // Public query - no auth required
     public query func getTotalReportCount() : async Nat {
         reportMap.size(reports);
     };
 
-    // Public query - no auth required
     public query func getDirectoryWithPhotos() : async Directory {
         directory;
     };
 
-    // Public query - no auth required
     public query func getAllRepresentatives() : async [Representative] {
         var repList = List.nil<Representative>();
         for (state in directory.states.vals()) {
@@ -2285,12 +2191,10 @@ persistent actor {
         List.toArray(repList);
     };
 
-    // Public query - no auth required
     public query func getAdminDirectory() : async Directory {
         directory;
     };
 
-    // Public - any authenticated user can register NGO/NPO
     public shared ({ caller }) func registerNgoNpo(organizationName : Text, logoPath : Text, contactPerson : Text, email : Text, phone : Text, address : Text, website : Text, description : Text, missionStatement : Text, showContactInfo : Bool) : async Text {
         let id = Int.toText(Time.now());
         let ngoNpo : NgoNpo = {
@@ -2316,7 +2220,6 @@ persistent actor {
         id;
     };
 
-    // Admin only
     public shared ({ caller }) func approveNgoNpo(ngoNpoId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can approve NGOs/NPOs");
@@ -2337,7 +2240,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func rejectNgoNpo(ngoNpoId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can reject NGOs/NPOs");
@@ -2358,7 +2260,6 @@ persistent actor {
         };
     };
 
-    // NGO/NPO can update own privacy, admin can update any
     public shared ({ caller }) func updateNgoNpoPrivacy(ngoNpoId : Text, showContactInfo : Bool) : async () {
         switch (ngoNpoMap.get(ngoNpos, ngoNpoId)) {
             case (null) {
@@ -2377,7 +2278,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getNgoNpoDirectory() : async [NgoNpo] {
         var ngoNpoList = List.nil<NgoNpo>();
         for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
@@ -2388,7 +2288,6 @@ persistent actor {
         List.toArray(ngoNpoList);
     };
 
-    // NGO/NPO can view own profile
     public query ({ caller }) func getMyNgoNpoProfile() : async ?NgoNpo {
         var ngoNpoList = List.nil<NgoNpo>();
         for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
@@ -2399,7 +2298,6 @@ persistent actor {
         List.last(ngoNpoList);
     };
 
-    // Admin only
     public query ({ caller }) func getAllNgoNpos() : async [NgoNpo] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view all NGOs/NPOs");
@@ -2411,12 +2309,10 @@ persistent actor {
         List.toArray(ngoNpoList);
     };
 
-    // Public query - no auth required
     public query func getNgoNpoById(ngoNpoId : Text) : async ?NgoNpo {
         ngoNpoMap.get(ngoNpos, ngoNpoId);
     };
 
-    // Public - no auth required for feedback submission
     public shared func submitFeedback(type_ : Text, message : Text, contactInfo : Text) : async Text {
         let id = Int.toText(Time.now());
         let feedback : Feedback = {
@@ -2433,7 +2329,6 @@ persistent actor {
         id;
     };
 
-    // Admin only
     public query ({ caller }) func getAllFeedback() : async [Feedback] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can view feedback");
@@ -2445,7 +2340,6 @@ persistent actor {
         List.toArray(feedbackList);
     };
 
-    // Admin only
     public shared ({ caller }) func updateFeedbackStatus(feedbackId : Text, status : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can update feedback status");
@@ -2464,7 +2358,6 @@ persistent actor {
         };
     };
 
-    // Admin only
     public shared ({ caller }) func respondToFeedback(feedbackId : Text, response : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can respond to feedback");
@@ -2484,12 +2377,10 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getFeedbackById(feedbackId : Text) : async ?Feedback {
         feedbackMap.get(feedbacks, feedbackId);
     };
 
-    // Public query - no auth required
     public query func getFeedbackByType(type_ : Text) : async [Feedback] {
         var feedbackList = List.nil<Feedback>();
         for ((id, feedback) in feedbackMap.entries(feedbacks)) {
@@ -2500,7 +2391,6 @@ persistent actor {
         List.toArray(feedbackList);
     };
 
-    // Public query - no auth required
     public query func getFeedbackByStatus(status : Text) : async [Feedback] {
         var feedbackList = List.nil<Feedback>();
         for ((id, feedback) in feedbackMap.entries(feedbacks)) {
@@ -2511,7 +2401,6 @@ persistent actor {
         List.toArray(feedbackList);
     };
 
-    // Public query - no auth required
     public query func getFeedbackByContactInfo(contactInfo : Text) : async [Feedback] {
         var feedbackList = List.nil<Feedback>();
         for ((id, feedback) in feedbackMap.entries(feedbacks)) {
@@ -2522,7 +2411,6 @@ persistent actor {
         List.toArray(feedbackList);
     };
 
-    // Admin only
     public shared ({ caller }) func deleteFeedback(feedbackId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Debug.trap("Unauthorized: Only admins can delete feedback");
@@ -2537,7 +2425,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getUserRole(caller : Principal) : async Text {
         let role = AccessControl.getUserRole(accessControlState, caller);
         switch (role) {
@@ -2547,7 +2434,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getConstituenciesByState(stateName : Text) : async [Constituency] {
         var stateList = List.nil<State>();
         for (state in directory.states.vals()) {
@@ -2561,7 +2447,6 @@ persistent actor {
         };
     };
 
-    // Public query - no auth required
     public query func getMpByConstituency(constituencyName : Text) : async ?Representative {
         for (state in directory.states.vals()) {
             for (constituency in state.constituencies.vals()) {
@@ -2573,7 +2458,6 @@ persistent actor {
         null;
     };
 
-    // Public query - no auth required
     public query func getMpByAreaOrBlock(areaOrBlock : Text) : async ?Representative {
         for (state in directory.states.vals()) {
             for (constituency in state.constituencies.vals()) {
@@ -2590,7 +2474,6 @@ persistent actor {
         null;
     };
 
-    // Public query - no auth required
     public query func getPaginatedReportsOptimized(page : Nat, pageSize : Nat) : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2609,7 +2492,6 @@ persistent actor {
         Array.tabulate(end - start, func(i : Nat) : Report { sorted[len - 1 - (start + i)] });
     };
 
-    // Public query - no auth required
     public query func getInitialReports() : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2624,7 +2506,6 @@ persistent actor {
         Array.tabulate(count, func(i : Nat) : Report { sorted[len - 1 - i] });
     };
 
-    // Public query - no auth required
     public query func getNextReports(offset : Nat, count : Nat) : async [Report] {
         var reportList = List.nil<Report>();
         for ((id, report) in reportMap.entries(reports)) {
@@ -2639,14 +2520,12 @@ persistent actor {
         Array.tabulate(actualCount, func(i : Nat) : Report { sorted[len - 1 - (offset + i)] });
     };
 
-    // Public - no auth required (allows guest tracking)
     public shared ({ caller }) func trackUniqueVisitor() : async () {
         if (not principalMap.contains(uniqueVisitors, caller)) {
             uniqueVisitors := principalMap.put(uniqueVisitors, caller, true);
         };
     };
 
-    // Public query - no auth required
     public query func getTotalUniqueVisitors() : async Nat {
         principalMap.size(uniqueVisitors);
     };

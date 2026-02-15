@@ -1,51 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Fix homepage top banner (Header) English title/subtitle translation text",
+  "title": "Add lazy loading for all images in the Admin Dashboard",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-8",
-      "text": "Update the English (en) translation value for `header.title` so the fixed homepage header banner title (rendered by `t('header.title')` in `frontend/src/components/Header.tsx`) displays exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
+      "id": "REQ-1",
+      "text": "Implement lazy loading for all images rendered anywhere inside the Admin Dashboard (all tabs), using the existing `LazyImage` component so admin pages do not eagerly download every image at once.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "Retry"
+          "Can you please implement last loading for all the admin dashboard imeges?"
         ]
       },
       "acceptanceCriteria": [
-        "When the selected language is English (`en`) and the user visits the homepage, the large fixed header title text shows exactly: \"Report by clicking Photo & Get GPS Leader image, Certificate, Complaint & Legal Notice\".",
-        "No other user-facing header title text in English shows the old wording (e.g., \"Get Leader-Giotag\" or \"Civic Reporter\") in the fixed header banner."
+        "All `<img>` usages within Admin Dashboard-related components are replaced with `LazyImage` where applicable (e.g., report photos, proof photos, representative photos, logo previews, and any other images shown in admin flows).",
+        "Images only start downloading when they are near/inside the viewport (or immediately when marked as high priority).",
+        "Above-the-fold/critical images (e.g., images visible immediately in an opened modal or a primary preview) use `priority=\"high\"` so they load eagerly when needed.",
+        "While an image is loading, a non-jarring placeholder/skeleton is visible and the layout does not shift significantly."
       ]
     },
     {
-      "id": "REQ-9",
-      "text": "Keep the fixed homepage header banner subtitle text unchanged visually, but update the English (en) translation value for `header.subtitle` so it displays exactly: \"Help improve our India by reporting civic issues\".",
+      "id": "REQ-2",
+      "text": "Apply lazy loading to image-heavy admin surfaces specifically, including reports management (tables/cards, edit previews, and full-size preview modals), directory representative photos (lists/cards and photo modals), and content/logo management previews.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "Retry"
+          "Can you please implement last loading for all the admin dashboard imeges?"
         ]
       },
       "acceptanceCriteria": [
-        "When the selected language is English (`en`), the fixed header subtitle shows exactly: \"Help improve our India by reporting civic issues\".",
-        "The subtitle remains a single-line truncated subtitle in the header (no layout break/regression from current behavior)."
+        "Admin Reports UI: photos shown in lists/cards and any expanded/edit views use lazy loading and show placeholders until loaded.",
+        "Admin Directory UI: representative photos use lazy loading in lists/cards, and any photo modal loads the image eagerly when opened (priority high).",
+        "Admin Content Management UI: logo preview `<img>` elements use lazy loading; the preview modal loads its image eagerly when opened (priority high)."
       ]
     }
   ],
   "constraints": [
-    "Frontend files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and `frontend/src/components/ui` must not be edited.",
-    "Do not change the backend canister architecture (single Motoko actor in `backend/main.mo`)."
+    "Do not edit files under `frontend/src/components/ui` (compose these components instead).",
+    "Do not modify any files in `frontend` marked as immutable by the system context (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`)."
   ],
   "nonGoals": [
-    "Do not redesign the header layout, logo, or mode indicator UI beyond the text changes requested.",
-    "Do not change non-English translations unless explicitly required.",
-    "Do not add new authentication providers or third-party integrations."
+    "Do not change backend canister interfaces or storage formats.",
+    "Do not introduce new authentication/authorization behavior for admins.",
+    "Do not redesign admin workflows beyond what is required to lazy-load images."
   ],
   "imageRequirements": {
     "required": [],
