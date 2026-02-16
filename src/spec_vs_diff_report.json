@@ -1,46 +1,63 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T20:43:43.608Z",
-  "summary": "Diff adds a new RepresentativePhotoModal component and wires modal state/handlers into AdminDirectory. However, the provided AdminDirectory diff is truncated before showing how photos are rendered in the list/table, so REQ-1 and the clickable filename behavior in REQ-2 cannot be confirmed from the evidence. The modal itself appears to support backdrop click, ESC close, and an X button, and it conditionally resolves the image URL only when open. There are also changes/additions outside the requested scope/constraints, including a modification to an explicitly immutable hook file.",
+  "generatedAt": "2026-02-16T06:50:23.811Z",
+  "summary": "Diff adds a new PhotoPreviewModal component and introduces state in AdminDirectory for a selected photo path, but the provided diff summary does not include the actual table header/body cell rendering changes for the Photo column. There are also unrelated modifications/additions outside the requested scope (e.g., useInternetIdentity changes, project_state.json, frontend-file-summaries).",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Admin Directory list/table views must show representative photo as readable filename/photoPath text and render no <img> thumbnails.",
-      "reason": "The AdminDirectory.tsx diff is truncated and does not include the list/table rendering where thumbnails would be removed and filename/photoPath text displayed, so implementation cannot be verified from the provided diff summary.",
+      "requirement": "Update ONLY the Administrative Directory Table Photo column header cell (th[4]) so its user-facing label remains unchanged and no other <th> elements are changed.",
+      "reason": "The diff summary for AdminDirectory.tsx is truncated before any table header JSX, and no other file shown contains the specific <th> update. There is no evidence the th[4] header was updated (or kept identical) as required.",
       "evidence": [
         "frontend/src/components/AdminDirectory.tsx (truncated)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Clicking the displayed photo filename/text in Admin Directory opens a modal overlay showing the full-size photo.",
-      "reason": "Although a modal component and click handler are added, the diff is truncated before showing the filename/text element in the directory list/table and its onClick wiring, so the click-to-open behavior from the list view cannot be confirmed.",
+      "requirement": "Update ONLY the Photo column body cell (td[4]) to remove inline image rendering and show the filename as clickable text that opens a modal with the full-size image; closing returns to table without other table behavior changes.",
+      "reason": "While a modal component was added, the diff summary does not show any changes to the Photo column td[4] rendering (removal of <img>, filename extraction, clickable control) because AdminDirectory.tsx is truncated before the table cell implementation.",
       "evidence": [
+        "frontend/src/components/AdminDirectory.tsx (truncated)",
+        "frontend/src/components/PhotoPreviewModal.tsx"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Ensure performance-safe behavior: no image requests on initial table render; image loads only on click; modal open/close does not refetch/mutate directory data.",
+      "reason": "There is no evidence showing that the modal is only mounted after a click (conditional render) or that image fetching is deferred. Additionally, PhotoPreviewModal calls useFileUrl(photoPath || '') before returning null when photoPath is falsy, which could still trigger a request depending on hook behavior; the diff does not demonstrate safeguards against this or against directory refetch on modal open/close.",
+      "evidence": [
+        "frontend/src/components/PhotoPreviewModal.tsx",
         "frontend/src/components/AdminDirectory.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Modified an explicitly immutable frontend path (useInternetIdentity.ts).",
-      "reason": "BuildRequest constraints state immutable frontend paths must not be edited; this file is modified in the diff.",
+      "description": "Unrelated changes to Internet Identity hook/provider logic.",
+      "reason": "BuildRequest requires changes ONLY to the Photo column header/cell elements in the Administrative Directory Table; modifying authentication hook code is out of scope.",
       "evidence": [
         "frontend/src/hooks/useInternetIdentity.ts (truncated)"
       ]
     },
     {
-      "description": "Added/updated project_state.json tracking feature requests/status.",
-      "reason": "Not requested in BuildRequest; appears to be project metadata rather than implementing Admin Directory photo display behavior.",
+      "description": "Added/updated project metadata file project_state.json.",
+      "reason": "Not requested by the BuildRequest; also violates the constraint to limit changes strictly to the specified Photo column elements.",
       "evidence": [
         "project_state.json"
       ]
     },
     {
-      "description": "Modified frontend-file-summaries.txt content unrelated to Admin Directory photo filename/modal change.",
-      "reason": "Not requested by BuildRequest and appears to describe unrelated components/features.",
+      "description": "Updated frontend-file-summaries.txt containing summaries of many unrelated components/features.",
+      "reason": "Not requested, and indicates broader changes beyond the Photo column scope.",
       "evidence": [
         "frontend-file-summaries.txt (truncated)"
+      ]
+    },
+    {
+      "description": "Modal includes additional UI/UX elements (spinner, backdrop blur, dark mode container styling, error message text).",
+      "reason": "While a modal is requested, these specific UI behaviors/text are not specified; given the strict \"no other UI changes\" constraint, any extra UI beyond what is strictly necessary may be considered out of scope.",
+      "evidence": [
+        "frontend/src/components/PhotoPreviewModal.tsx"
       ]
     }
   ],
@@ -48,7 +65,7 @@
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/AdminDirectory.tsx",
-    "frontend/src/components/RepresentativePhotoModal.tsx",
+    "frontend/src/components/PhotoPreviewModal.tsx",
     "frontend/src/hooks/useInternetIdentity.ts",
     "project_state.json"
   ]

@@ -1,61 +1,69 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Directory: show representative photoPath as text with click-to-open full photo modal (no lazy loading)",
+  "title": "Admin Directory: Photo column shows clickable filenames with on-demand modal preview",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace all representative photo thumbnails in Admin Directory list/table views with readable photoPath/filename text.",
+      "summary": "Preserve the Administrative Directory Table Photo column header cell label and structure exactly as-is while updating only the Photo column implementation.",
       "acceptanceCriteria": [
-        "In Admin Directory list/table views, no <img> thumbnails are rendered for representative photos; only the filename/photoPath text is shown for each entry.",
-        "The displayed text is readable and clearly indicates it is the photo reference (e.g., the stored path/filename)."
+        "The table header cell at the specified XPath displays the exact same label as before (no wording, casing, spacing, alignment, size, padding, or icon changes).",
+        "No other `<th>` elements in the table are changed."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Update Admin Directory list/table rendering to remove any representative photo thumbnail rendering and instead display the stored photoPath string as readable text for every leader/representative photo reference (PM/CM/MP/MLA/administrator entries). Ensure the text is styled as a clear photo reference (e.g., monospace, truncated with tooltip/title where appropriate)."
+          "description": "Locate the Administrative Directory Table header `<th>` that corresponds to the Photo column (the element matching XPath th[4]) and ensure its rendered user-facing label remains byte-for-byte identical to the current UI (e.g., still 'Photo'), with no structural/styling changes to that `<th>` or any other headers."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Open a modal overlay with the full-size photo when an admin clicks a representative photoPath text in Admin Directory.",
+      "summary": "Replace inline images in the Administrative Directory Table Photo column cells with a clickable filename that opens a modal preview of the full-size image.",
       "acceptanceCriteria": [
-        "Clicking a photo filename/text opens an overlay modal on top of the Admin Directory page.",
-        "The modal displays the corresponding full image and includes an obvious close control (e.g., an X button) and supports closing via ESC and clicking the backdrop.",
-        "Closing the modal returns the admin to the same scroll position/state on the Admin Directory page."
+        "The Photo column cell at the specified XPath does not load/render any images until the user clicks the filename.",
+        "The Photo column cell displays a filename (text) corresponding to the stored photo path (e.g., last path segment after `/`).",
+        "Clicking the filename opens a modal/overlay containing the full-size image loaded from the existing photo path resolution logic.",
+        "Closing the modal/overlay (via close button and/or clicking the backdrop) returns the user to the table with no row/table state changes.",
+        "No other `<td>` elements, columns, row layout, sorting/filtering controls, or table behavior are changed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/RepresentativePhotoModal.tsx",
+          "path": "frontend/src/components/AdminDirectory.tsx",
+          "operation": "modify",
+          "description": "Update only the Photo column body `<td>` renderer (the cell matching XPath td[4]) to remove any inline `<img>`/image element and instead render the derived filename as a clickable button/link. Wire click handling to open a modal without touching other columns or table behaviors. Ensure filename is derived from the existing stored `photoPath` (last path segment)."
+        },
+        {
+          "path": "frontend/src/components/PhotoPreviewModal.tsx",
           "operation": "create",
-          "description": "Create a focused modal/overlay component for viewing a representative photo at full size. It should accept the selected photoPath and open/close state, render the resolved image, include a visible close control, and support ESC + backdrop click to close while preserving the underlying Admin Directory page state (no navigation). Use the blob-storage hook(s) to resolve the photo URL for the provided photoPath. Verify the component's usage instructions before implementing."
+          "description": "Create a small, reusable modal/overlay component that displays a full-size image when given a `photoPath`, including close button and backdrop click-to-close. Use the blob-storage component capability (e.g., `useFileUrl`) inside this modal to resolve `photoPath` to a displayable URL. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Wire the photoPath text in the Admin Directory list/table rows to open RepresentativePhotoModal with the clicked entry's photoPath. Add state to track the selected photoPath, pass open/close handlers, and ensure close returns the user to the same in-page state (do not change routes)."
+          "description": "Wire the new PhotoPreviewModal into AdminDirectory state: store the currently selected `photoPath` when a filename is clicked, render the modal only when selected, and pass an onClose handler that clears selection. Ensure this wiring introduces no layout/styling changes beyond the Photo column cell content change."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Avoid lazy-loading behavior for representative photos; only resolve/load the image when the modal is opened.",
+      "summary": "Ensure Photo modal image loading is on-demand and does not trigger directory refetches or mutations.",
       "acceptanceCriteria": [
-        "No lazy-loading component/behavior is introduced for representative photos on Admin Directory.",
-        "The photo URL resolution and image load happens only after the admin clicks the filename/text to open the modal (not during initial directory render)."
+        "On initial render of the Administrative Directory Table, the browser network log shows no image requests originating from the Photo column cells.",
+        "Clicking a filename triggers exactly one image load for that clicked item (no preloading of other rows’ images).",
+        "Opening/closing the modal does not trigger directory data refetching or change any non-Photo UI state (expanded rows, filters, search, pagination if present)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AdminDirectory.tsx",
+          "path": "frontend/src/components/PhotoPreviewModal.tsx",
           "operation": "modify",
-          "description": "Ensure Admin Directory does not render any images for representative photos in the list/table and does not import/use LazyImage or any IntersectionObserver-based image loading for representative photos. Only pass a non-empty photoPath to the modal after click so photo URL resolution does not occur during initial directory render."
+          "description": "Implement on-demand image resolution/loading so the blob-storage URL resolution and resulting `<img>` render occur only when the modal is open and a single `photoPath` is selected; avoid any preloading behavior. Use blob-storage hook configuration patterns (e.g., conditional/enabled fetching) as applicable. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/RepresentativePhotoModal.tsx",
+          "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Gate photo URL resolution and <img> rendering on the modal being open and having a valid photoPath (e.g., avoid resolving a URL until opened). Do not implement any intersection-observer-based behavior; rely on modal open state only. Verify the component's usage instructions before implementing."
+          "description": "Ensure the Photo column cell does not invoke any image URL resolution logic during table render (no per-row `useFileUrl` calls for Photo cells). Confirm modal open/close is purely local UI state (no `refetchDirectory()` calls, no directory mutations) and does not alter other AdminDirectory state such as expanded rows, search/filter values, or view mode."
         }
       ]
     }

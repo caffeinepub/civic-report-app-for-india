@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T20:43:43.612Z",
+  "generatedAt": "2026-02-16T06:50:23.814Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the Admin Directory page so that every leader/representative photo is displayed as text (the image file name or stored photoPath string) instead of rendering any image thumbnail in the list/table view.",
+        "summary": "Update ONLY the Administrative Directory Table Photo column header cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]` so that its user-facing label remains unchanged (e.g., still shows the same \"Photo\" text) and no other table header styling/structure changes occur.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/AdminDirectory.tsx"
@@ -23,28 +23,30 @@
       },
       {
         "id": "REQ-2",
-        "summary": "When an admin clicks the displayed photo filename/text for a leader/representative in Admin Directory, open a modal/window overlay popup that shows the full-size photo.",
+        "summary": "Update ONLY the Administrative Directory Table Photo column body cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[4]` so that it no longer renders an `<img>` (or any image element) inline. Instead, render the photo *filename as text only* (derived from the representative photo path), styled as a clickable link/button. Clicking the filename must open an overlay/modal showing the full-size image.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/RepresentativePhotoModal.tsx",
+          "frontend/src/components/AdminDirectory.tsx",
+          "frontend/src/components/PhotoPreviewModal.tsx",
           "frontend/src/components/AdminDirectory.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/RepresentativePhotoModal.tsx",
+          "frontend/src/components/AdminDirectory.tsx",
+          "frontend/src/components/PhotoPreviewModal.tsx",
           "frontend/src/components/AdminDirectory.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Ensure Admin Directory does not perform lazy-loading behavior for representative photos as part of this change (i.e., do not add intersection-observer-based image lazy-loading); only fetch/resolve the image URL when the modal is opened.",
+        "summary": "Ensure the new Photo modal/overlay behavior is performance-safe: the full-size image request must be initiated only when the user clicks a filename, not during initial table render, and the modal must not trigger any additional directory refetches or mutations.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AdminDirectory.tsx",
-          "frontend/src/components/RepresentativePhotoModal.tsx"
+          "frontend/src/components/PhotoPreviewModal.tsx",
+          "frontend/src/components/AdminDirectory.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/AdminDirectory.tsx",
-          "frontend/src/components/RepresentativePhotoModal.tsx"
+          "frontend/src/components/PhotoPreviewModal.tsx",
+          "frontend/src/components/AdminDirectory.tsx"
         ]
       }
     ]
@@ -63,7 +65,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/AdminDirectory.tsx",
-    "frontend/src/components/RepresentativePhotoModal.tsx",
+    "frontend/src/components/PhotoPreviewModal.tsx",
     "frontend/src/hooks/useInternetIdentity.ts",
     "project_state.json",
     "scratch/component-selection.json",

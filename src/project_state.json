@@ -1,34 +1,36 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Optimize admin Directory performance by changing leader photo display to filename-only with click-to-open full image in a modal overlay (no lazy loading for now).",
+  "summary": "Admin Dashboard Directory: change only the Administrative Directory Table Photo column to display photo filenames (text), clickable to open the full-size image in a modal/overlay, to reduce page lag from loading many images at once; no other UI/table behavior may change.",
   "architectural_notes": [
-    "Admin Directory should avoid rendering/loading leader images inline; render filename text and fetch/display full image only on click via modal overlay."
+    "Only modify Administrative Directory Table 'Photo' column header/cells; no other UI/behavior changes are acceptable.",
+    "Replace inline image loading with filename text to prevent simultaneous loading and improve performance.",
+    "On filename click, display the full-size image in an overlay/modal."
   ],
   "known_issues": [
-    "Live app becomes unresponsive on admin login when opening Admin Directory, likely due to inefficient leader photo loading/rendering."
+    "Directory page lags because all leader photos in the Photo column load simultaneously as the leader count increases."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-admin-directory-page-so-that-every-leader-representative-photo-is-displayed-as-text-the-image-file-name-or-stored-photopath-string-instead-of-rendering-any-image-thumbnail-in-the-list-table-view",
-      "title": "Update the Admin Directory page so that every leader/representative photo is displayed as text (the image file name or stored photoPath string) instead of rendering any image thumbnail in the list/table view.",
+      "id": "feature-update-only-the-administrative-directory-table-photo-column-header-cell-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-4-div-1-div-3-div-2-div-1-div-1-table-1-thead-1-tr-1-th-4-so-that-its-user-facing-label-remains-unchanged-e-g-still-shows-the-same-photo-text-and-no-other-table-header-styling-structure-changes-occur",
+      "title": "Update ONLY the Administrative Directory Table Photo column header cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]` so that its user-facing label remains unchanged (e.g., still shows the same \"Photo\" text) and no other table header styling/structure changes occur.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-when-an-admin-clicks-the-displayed-photo-filename-text-for-a-leader-representative-in-admin-directory-open-a-modal-window-overlay-popup-that-shows-the-full-size-photo",
-      "title": "When an admin clicks the displayed photo filename/text for a leader/representative in Admin Directory, open a modal/window overlay popup that shows the full-size photo.",
+      "id": "feature-update-only-the-administrative-directory-table-photo-column-body-cell-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-4-div-1-div-3-div-2-div-1-div-1-table-1-tbody-1-tr-1-td-4-so-that-it-no-longer-renders-an-img-or-any-image-element-inline-instead-render-the-photo-filename-as-text-only-derived-from-the-representative-photo-path-styled-as-a-clickable-link-button-clicking-the-filename-must-open-an-overlay-modal-showing-the-full-size-image",
+      "title": "Update ONLY the Administrative Directory Table Photo column body cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[4]` so that it no longer renders an `<img>` (or any image element) inline. Instead, render the photo *filename as text only* (derived from the representative photo path), styled as a clickable link/button. Clicking the filename must open an overlay/modal showing the full-size image.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-admin-directory-does-not-perform-lazy-loading-behavior-for-representative-photos-as-part-of-this-change-i-e-do-not-add-intersection-observer-based-image-lazy-loading-only-fetch-resolve-the-image-url-when-the-modal-is-opened",
-      "title": "Ensure Admin Directory does not perform lazy-loading behavior for representative photos as part of this change (i.e., do not add intersection-observer-based image lazy-loading); only fetch/resolve the image URL when the modal is opened.",
+      "id": "feature-ensure-the-new-photo-modal-overlay-behavior-is-performance-safe-the-full-size-image-request-must-be-initiated-only-when-the-user-clicks-a-filename-not-during-initial-table-render-and-the-modal-must-not-trigger-any-additional-directory-refetches-or-mutations",
+      "title": "Ensure the new Photo modal/overlay behavior is performance-safe: the full-size image request must be initiated only when the user clicks a filename, not during initial table render, and the modal must not trigger any additional directory refetches or mutations.",
       "reqIds": [
         "REQ-3"
       ],
@@ -38,12 +40,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Admin Directory: replace leader photo thumbnails with image filename text; clicking filename opens full photo in modal overlay (no lazy loading).",
+      "summary": "Update Administrative Directory Table Photo column to show clickable photo filename (text) that opens full-size image in a modal/overlay; do not change any other UI/table behavior.",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Admin Directory: render leader photo as filename with click-to-open modal (no lazy loading)",
+  "projectName": "Admin Directory: Replace Photo column images with clickable filenames and modal preview (no other UI changes)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
