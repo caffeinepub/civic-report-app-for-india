@@ -1,89 +1,77 @@
 {
   "kind": "build_request",
-  "title": "Admin Directory: Replace Photo column images with clickable filenames and modal preview (no other UI changes)",
-  "priority": "high",
+  "title": "Admin Directory: Replace Photo column images with clickable filename + modal preview",
+  "projectName": "CivicReport Admin",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update ONLY the Administrative Directory Table Photo column header cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]` so that its user-facing label remains unchanged (e.g., still shows the same \"Photo\" text) and no other table header styling/structure changes occur.",
+      "text": "In Admin Dashboard → Directory, update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default. Instead, display the representative’s photo file name/path as plain text in the cell.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-1"
         ],
         "quotes": [
-          "Use the XPath expressions to identify the elements to edit.\nThe user instructions should be applied ONLY to the elements selected in this prompt."
+          "Replace the actual image display in the 'Photo column' with the photo file name (text only).",
+          "Please update only the Photo column behavior in the Administrative Directory Table."
         ]
       },
       "acceptanceCriteria": [
-        "The table header cell at the specified XPath displays the exact same label as before (no wording, casing, spacing, alignment, size, padding, or icon changes).",
-        "No other `<th>` elements in the table are changed."
+        "The Administrative Directory Table Photo column displays text (the stored photoPath / filename) instead of an inline image for every row.",
+        "No network image fetches are triggered by merely rendering the table (i.e., opening the Directory page does not attempt to load all leader photos at once).",
+        "All other columns, controls, layout, styling, sorting/filtering/search behavior, and actions in the Administrative Directory Table remain unchanged."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update ONLY the Administrative Directory Table Photo column body cell at XPath `/html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[4]` so that it no longer renders an `<img>` (or any image element) inline. Instead, render the photo *filename as text only* (derived from the representative photo path), styled as a clickable link/button. Clicking the filename must open an overlay/modal showing the full-size image.",
+      "text": "Make the Photo column text clickable. On click, open an overlay/modal that displays the full-size photo for that row, resolved from the existing stored photo path (e.g., using the existing file URL resolution approach already used in the app, such as the FileStorage hook utilities).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-1"
         ],
         "quotes": [
-          "1. Replace the actual image display in the 'Photo column' with the photo file name (text only).\n2.  Make the photo name clickable.\n3. On click, open the full-size image in an overlay/modal window.\n\nPlease update only the Photo column behavior in the Administrative Directory Table.\n\n Strict warning - Ensure that no other UI elements or functionality in the Administrative Directory table are affected, any UI changes are not acceptable."
+          "Make the photo name clickable.",
+          "On click, open the full-size image in an overlay/modal window."
         ]
       },
       "acceptanceCriteria": [
-        "The Photo column cell at the specified XPath does not load/render any images until the user clicks the filename.",
-        "The Photo column cell displays a filename (text) corresponding to the stored photo path (e.g., last path segment after `/`).",
-        "Clicking the filename opens a modal/overlay containing the full-size image loaded from the existing photo path resolution logic.",
-        "Closing the modal/overlay (via close button and/or clicking the backdrop) returns the user to the table with no row/table state changes.",
-        "No other `<td>` elements, columns, row layout, sorting/filtering controls, or table behavior are changed."
+        "Clicking the photo filename/path in the Photo column opens a modal/overlay showing the full-size image for that row.",
+        "The modal/overlay can be dismissed (e.g., close button and/or clicking outside and/or Escape key), returning the user to the same scroll position in the table.",
+        "The image is only requested/loaded when the modal is opened (not before)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the new Photo modal/overlay behavior is performance-safe: the full-size image request must be initiated only when the user clicks a filename, not during initial table render, and the modal must not trigger any additional directory refetches or mutations.",
+      "text": "Ensure the change is strictly scoped to the Administrative Directory Table Photo column implementation (in the Admin Directory page component) with no other UI changes anywhere in the table.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-1"
         ],
         "quotes": [
-          "Now that the number of leaders has increased, all images attempt to load simultaneously, which is causing noticeable page lag and performance issues."
+          "My Strict warning - Ensure that no other UI elements or functionality in the Administrative Directory table are affected, you just need to work on 'Photo' column, any UI changes are not acceptable."
         ]
       },
       "acceptanceCriteria": [
-        "On initial render of the Administrative Directory Table, the browser network log shows no image requests originating from the Photo column cells.",
-        "Clicking a filename triggers exactly one image load for that clicked item (no preloading of other rows’ images).",
-        "Opening/closing the modal does not trigger directory data refetching or change any non-Photo UI state (expanded rows, filters, search, pagination if present)."
+        "Diff/changes are limited to code paths that render/interact with the Photo column and the new modal/overlay needed for photo preview.",
+        "No other table cell contents, headers, spacing, icons, buttons, or behaviors are changed."
       ]
     }
   ],
   "constraints": [
-    "Apply changes ONLY to the two selected elements identified by the provided XPaths (Photo column header th[4] and Photo column cell td[4]) within the Administrative Directory Table.",
-    "Do not introduce any UI changes to other table columns, headers, rows, spacing, typography, icons, controls, or behavior; any non-Photo-column UI changes are unacceptable.",
-    "Use English for any user-facing text.",
-    "Do not modify files under `frontend/src/components/ui` or other paths listed in `frontend.immutablePaths`.",
-    "Backend is single-actor; no backend changes are required for this request unless strictly necessary."
+    "Do not modify any UI elements or functionality in the Administrative Directory Table other than the Photo column behavior.",
+    "Do not change backend schemas, endpoints, or data shapes; use the existing stored photoPath values and existing file URL resolution mechanisms.",
+    "Do not edit any files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT; compose existing UI components if needed."
   ],
   "nonGoals": [
-    "Adding new table features (sorting, filtering, pagination changes).",
-    "Changing directory data schema or photo storage format.",
-    "Adding image thumbnails, placeholders, or lazy-loading inline images in the Photo column (the Photo column must be text-only until click).",
-    "Changing styling/theme of the Admin Dashboard or the table beyond what is strictly necessary inside the Photo column elements."
+    "Adding pagination/virtualization to the Administrative Directory Table.",
+    "Changing how photos are uploaded, stored, or exported/imported (CSV).",
+    "Changing styling/theme or updating any other Admin Dashboard pages."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

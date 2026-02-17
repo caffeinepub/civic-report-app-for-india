@@ -1,21 +1,21 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T06:50:23.811Z",
-  "summary": "Diff adds a new PhotoPreviewModal component and introduces state in AdminDirectory for a selected photo path, but the provided diff summary does not include the actual table header/body cell rendering changes for the Photo column. There are also unrelated modifications/additions outside the requested scope (e.g., useInternetIdentity changes, project_state.json, frontend-file-summaries).",
+  "generatedAt": "2026-02-17T07:03:44.720Z",
+  "summary": "A new PhotoPreviewModal component was added and AdminDirectory.tsx was updated to import it and add state for the selected photo path. However, the diff summary does not show the actual Photo column cell renderer being changed to text-only and clickable, and there are unrelated file modifications/additions that appear to violate the strict scope constraint.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Update ONLY the Administrative Directory Table Photo column header cell (th[4]) so its user-facing label remains unchanged and no other <th> elements are changed.",
-      "reason": "The diff summary for AdminDirectory.tsx is truncated before any table header JSX, and no other file shown contains the specific <th> update. There is no evidence the th[4] header was updated (or kept identical) as required.",
+      "requirement": "Update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default; display the stored photoPath/filename as plain text in the cell; avoid network image fetches on table render.",
+      "reason": "AdminDirectory.tsx is truncated and the diff summary provides no evidence of the Photo column cell renderer being changed from inline images to plain text, nor evidence that in-table <img>/LazyImage usage was removed to prevent eager image fetching.",
       "evidence": [
         "frontend/src/components/AdminDirectory.tsx (truncated)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Update ONLY the Photo column body cell (td[4]) to remove inline image rendering and show the filename as clickable text that opens a modal with the full-size image; closing returns to table without other table behavior changes.",
-      "reason": "While a modal component was added, the diff summary does not show any changes to the Photo column td[4] rendering (removal of <img>, filename extraction, clickable control) because AdminDirectory.tsx is truncated before the table cell implementation.",
+      "requirement": "Make the Photo column text clickable; on click open a modal/overlay showing the full-size image for that row; image should load only when modal opens.",
+      "reason": "While a PhotoPreviewModal component exists, the diff summary does not show the Photo column text being rendered as a clickable element nor the onClick wiring that sets photoModalPath / opens the modal from the table cell.",
       "evidence": [
         "frontend/src/components/AdminDirectory.tsx (truncated)",
         "frontend/src/components/PhotoPreviewModal.tsx"
@@ -23,41 +23,34 @@
     },
     {
       "id": "REQ-3",
-      "requirement": "Ensure performance-safe behavior: no image requests on initial table render; image loads only on click; modal open/close does not refetch/mutate directory data.",
-      "reason": "There is no evidence showing that the modal is only mounted after a click (conditional render) or that image fetching is deferred. Additionally, PhotoPreviewModal calls useFileUrl(photoPath || '') before returning null when photoPath is falsy, which could still trigger a request depending on hook behavior; the diff does not demonstrate safeguards against this or against directory refetch on modal open/close.",
+      "requirement": "Ensure changes are strictly scoped to the Administrative Directory Table Photo column implementation (and the new modal/overlay) with no other UI changes anywhere in the table.",
+      "reason": "The diff includes modifications to files unrelated to the Admin Directory Photo column/modal, indicating changes may not be strictly scoped.",
       "evidence": [
-        "frontend/src/components/PhotoPreviewModal.tsx",
-        "frontend/src/components/AdminDirectory.tsx (truncated)"
+        "frontend/src/hooks/useInternetIdentity.ts (truncated)",
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Unrelated changes to Internet Identity hook/provider logic.",
-      "reason": "BuildRequest requires changes ONLY to the Photo column header/cell elements in the Administrative Directory Table; modifying authentication hook code is out of scope.",
+      "description": "Changes to Internet Identity hook/provider implementation unrelated to the Admin Directory Photo column/modal.",
+      "reason": "Not requested by the BuildRequest and violates the constraint to not modify other functionality beyond the Photo column behavior.",
       "evidence": [
         "frontend/src/hooks/useInternetIdentity.ts (truncated)"
       ]
     },
     {
-      "description": "Added/updated project metadata file project_state.json.",
-      "reason": "Not requested by the BuildRequest; also violates the constraint to limit changes strictly to the specified Photo column elements.",
+      "description": "Addition/update of project_state.json tracking feature requests/status.",
+      "reason": "Not requested as part of implementing the Photo column behavior change.",
       "evidence": [
         "project_state.json"
       ]
     },
     {
-      "description": "Updated frontend-file-summaries.txt containing summaries of many unrelated components/features.",
-      "reason": "Not requested, and indicates broader changes beyond the Photo column scope.",
+      "description": "Update to frontend-file-summaries.txt describing numerous unrelated component changes.",
+      "reason": "Not requested by the BuildRequest and suggests broader scope changes beyond the Photo column behavior.",
       "evidence": [
         "frontend-file-summaries.txt (truncated)"
-      ]
-    },
-    {
-      "description": "Modal includes additional UI/UX elements (spinner, backdrop blur, dark mode container styling, error message text).",
-      "reason": "While a modal is requested, these specific UI behaviors/text are not specified; given the strict \"no other UI changes\" constraint, any extra UI beyond what is strictly necessary may be considered out of scope.",
-      "evidence": [
-        "frontend/src/components/PhotoPreviewModal.tsx"
       ]
     }
   ],

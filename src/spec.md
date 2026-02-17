@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Improve Administrative Directory table performance by replacing inline Photo column images with clickable filename text that opens a modal preview, without any other UI/table changes.
+**Goal:** Prevent the Admin Directory table from loading all representative photos by default by showing only the photo filename/path in the Photo column, while still allowing on-demand preview in a modal.
 
 **Planned changes:**
-- Keep the Photo column header cell (th[4]) user-facing label exactly the same and avoid any structural/styling changes to that header.
-- Update the Photo column body cell (td[4]) to render the photo filename as text only (derived from the stored photo path), styled as a clickable link/button, with no inline image rendering.
-- On click of the filename, open a modal/overlay that loads and displays the full-size image from the existing photo path logic; allow closing via close control and/or backdrop without affecting table state.
-- Ensure images are requested only when a filename is clicked (no image network requests on initial table render) and that opening/closing the modal does not trigger directory refetches or mutations.
+- Update only the Administrative Directory Table “Photo” column to render the stored `photoPath`/filename as plain text (no `<img>`/LazyImage rendered in table rows).
+- Make the displayed filename/path clickable to open a modal/overlay that loads and shows the full-size image for that row using the existing file URL resolution approach already used in the app.
+- Ensure the modal can be dismissed (e.g., close control/outside click/Escape) and returns the user to the same place in the table; keep all other table columns and behaviors unchanged.
 
-**User-visible outcome:** In the Administrative Directory table, the Photo column shows clickable photo filenames; clicking a filename opens a modal with the full-size image, and images no longer load during initial table render.
+**User-visible outcome:** In Admin Dashboard → Directory, the Photo column shows clickable photo filenames/paths instead of inline thumbnails; clicking one opens a dismissible modal preview that loads the image only when opened.
