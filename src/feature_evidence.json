@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-admin-dashboard-directory-update-only-the-photo-column-rendering-inside-the-administrative-directory-table-so-that-it-no-longer-renders-loads-any-img-tags-or-lazyimage-for-each-row-by-default-instead-display-the-representative-s-photo-file-name-path-as-plain-text-in-the-cell",
-      "featureTitle": "In Admin Dashboard → Directory, update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default. Instead, display the representative’s photo file name/path as plain text in the cell.",
+      "featureId": "feature-in-the-admindirectory-component-s-photo-column-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-4-div-1-div-3-div-2-div-1-div-1-table-1-thead-1-tr-1-th-4-apply-lazy-loading-to-all-leader-images-pm-state-leaders-and-constituency-leaders-that-are-currently-displayed-as-circular-masked-previews-use-the-existing-lazyimage-component-from-frontend-src-components-lazyimage-tsx-to-implement-this-functionality",
+      "featureTitle": "In the AdminDirectory component's photo column (XPath: /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]), apply lazy loading to all leader images (PM, state leaders, and constituency leaders) that are currently displayed as circular masked previews. Use the existing LazyImage component from frontend/src/components/LazyImage.tsx to implement this functionality.",
       "files": [
         "frontend/src/components/AdminDirectory.tsx"
       ],
@@ -22,55 +22,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-the-photo-column-text-clickable-on-click-open-an-overlay-modal-that-displays-the-full-size-photo-for-that-row-resolved-from-the-existing-stored-photo-path-e-g-using-the-existing-file-url-resolution-approach-already-used-in-the-app-such-as-the-filestorage-hook-utilities",
-      "featureTitle": "Make the Photo column text clickable. On click, open an overlay/modal that displays the full-size photo for that row, resolved from the existing stored photo path (e.g., using the existing file URL resolution approach already used in the app, such as the FileStorage hook utilities).",
-      "files": [
-        "frontend/src/components/AdminDirectory.tsx",
-        "frontend/src/components/PhotoPreviewModal.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@1.1.2",
-        "user-approval@1.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-change-is-strictly-scoped-to-the-administrative-directory-table-photo-column-implementation-in-the-admin-directory-page-component-with-no-other-ui-changes-anywhere-in-the-table",
-      "featureTitle": "Ensure the change is strictly scoped to the Administrative Directory Table Photo column implementation (in the Admin Directory page component) with no other UI changes anywhere in the table.",
-      "files": [
-        "frontend/src/components/AdminDirectory.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@1.1.2",
-        "user-approval@1.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

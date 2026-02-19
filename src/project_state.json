@@ -1,37 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Admin Dashboard Directory: change Administrative Directory Table Photo column to display photo filename as clickable text that opens the full-size image in a modal/overlay to reduce lag from loading many images, with strict scope limited to Photo column only.",
+  "summary": "Admin directory application with leader management features",
   "architectural_notes": [
-    "Scope constraint: Update ONLY the Administrative Directory Table 'Photo' column; no other UI elements or table functionality may change.",
-    "Performance goal: Avoid loading all leader photos at once by not rendering images in-table; load full-size image only on user click via modal/overlay."
+    "Admin directory page displays PM, state, and constituency leaders with circular masked photo previews"
   ],
-  "known_issues": [
-    "Administrative Directory Table currently loads/renders all leader photos simultaneously, causing page lag as the leader count increases."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-admin-dashboard-directory-update-only-the-photo-column-rendering-inside-the-administrative-directory-table-so-that-it-no-longer-renders-loads-any-img-tags-or-lazyimage-for-each-row-by-default-instead-display-the-representative-s-photo-file-name-path-as-plain-text-in-the-cell",
-      "title": "In Admin Dashboard → Directory, update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default. Instead, display the representative’s photo file name/path as plain text in the cell.",
+      "id": "feature-in-the-admindirectory-component-s-photo-column-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-4-div-1-div-3-div-2-div-1-div-1-table-1-thead-1-tr-1-th-4-apply-lazy-loading-to-all-leader-images-pm-state-leaders-and-constituency-leaders-that-are-currently-displayed-as-circular-masked-previews-use-the-existing-lazyimage-component-from-frontend-src-components-lazyimage-tsx-to-implement-this-functionality",
+      "title": "In the AdminDirectory component's photo column (XPath: /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]), apply lazy loading to all leader images (PM, state leaders, and constituency leaders) that are currently displayed as circular masked previews. Use the existing LazyImage component from frontend/src/components/LazyImage.tsx to implement this functionality.",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-make-the-photo-column-text-clickable-on-click-open-an-overlay-modal-that-displays-the-full-size-photo-for-that-row-resolved-from-the-existing-stored-photo-path-e-g-using-the-existing-file-url-resolution-approach-already-used-in-the-app-such-as-the-filestorage-hook-utilities",
-      "title": "Make the Photo column text clickable. On click, open an overlay/modal that displays the full-size photo for that row, resolved from the existing stored photo path (e.g., using the existing file URL resolution approach already used in the app, such as the FileStorage hook utilities).",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-change-is-strictly-scoped-to-the-administrative-directory-table-photo-column-implementation-in-the-admin-directory-page-component-with-no-other-ui-changes-anywhere-in-the-table",
-      "title": "Ensure the change is strictly scoped to the Administrative Directory Table Photo column implementation (in the Admin Directory page component) with no other UI changes anywhere in the table.",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }
@@ -39,12 +20,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Administrative Directory Table: replace Photo column images with clickable photo filename text; click opens full-size image in modal/overlay (no other table UI/functionality changes)",
+      "summary": "Apply lazy loading to photo column images in admin directory page",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "CivicReport Admin",
+  "projectName": "Apply lazy loading to photo column in admin directory",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

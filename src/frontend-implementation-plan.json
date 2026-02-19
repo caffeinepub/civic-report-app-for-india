@@ -1,57 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Directory: Photo column filename rendering with modal preview",
+  "title": "Apply lazy loading to photo column in admin directory",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Render Administrative Directory Table Photo column as plain text (photoPath/filename) with no inline images loaded during table render.",
+      "summary": "Apply lazy loading to leader images in AdminDirectory photo column using the existing LazyImage component",
       "acceptanceCriteria": [
-        "The Administrative Directory Table Photo column displays text (the stored photoPath / filename) instead of an inline image for every row.",
-        "No network image fetches are triggered by merely rendering the table (i.e., opening the Directory page does not attempt to load all leader photos at once).",
-        "All other columns, controls, layout, styling, sorting/filtering/search behavior, and actions in the Administrative Directory Table remain unchanged."
+        "All leader images in the photo column use the LazyImage component for lazy loading",
+        "Images maintain their existing circular masked preview appearance",
+        "Images load only when they enter the viewport",
+        "Placeholder or loading state is shown before images are loaded"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/AdminDirectory.tsx",
           "operation": "modify",
-          "description": "Locate the Administrative Directory Table column definition/rendering for “Photo” and replace any <img> / LazyImage usage with plain text derived from the row’s stored photoPath. Ensure the table rendering path does not call file URL resolution (e.g., avoid calling blob-storage useFileUrl per row) so no image requests occur on page/table render. Keep all other table columns and behaviors unchanged."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Make Photo text clickable to open a dismissible modal that loads and displays the full-size image only when opened.",
-      "acceptanceCriteria": [
-        "Clicking the photo filename/path in the Photo column opens a modal/overlay showing the full-size image for that row.",
-        "The modal/overlay can be dismissed (e.g., close button and/or clicking outside and/or Escape key), returning the user to the same scroll position in the table.",
-        "The image is only requested/loaded when the modal is opened (not before)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/PhotoPreviewModal.tsx",
-          "operation": "create",
-          "description": "Create a lightweight modal/overlay component dedicated to previewing a representative photo. Use the blob-storage component hook utilities (e.g., useFileUrl from ../blob-storage/FileStorage) to resolve the stored photoPath into a URL and render an <img> only inside the modal. Ensure URL resolution (and thus image loading) happens only when the modal is open and a path is selected. Support dismissal via close button, overlay click, and Escape key. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/AdminDirectory.tsx",
-          "operation": "modify",
-          "description": "Wire the Photo column text to open the new PhotoPreviewModal with the row’s photoPath on click. Manage modal open/close state in AdminDirectory (reuse/replace the existing photoModalUrl state as needed) and pass the selected photoPath into the modal. Ensure scroll position is not altered (no navigation) and the image is not requested until the modal is opened. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Strictly scope changes to the Photo column rendering/interactions and the new modal, with no other Administrative Directory Table UI/behavior changes.",
-      "acceptanceCriteria": [
-        "Diff/changes are limited to code paths that render/interact with the Photo column and the new modal/overlay needed for photo preview.",
-        "No other table cell contents, headers, spacing, icons, buttons, or behaviors are changed."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AdminDirectory.tsx",
-          "operation": "modify",
-          "description": "Constrain edits to the Photo column renderer and the minimal modal state wiring only (no refactors, no styling/layout changes for other columns/controls). Remove or avoid any Photo-column-only imports/usages that would otherwise trigger per-row image loading, while keeping the rest of the table implementation intact."
+          "description": "Replace direct img tags in the photo column with LazyImage component from frontend/src/components/LazyImage.tsx for all leader images (PM, state leaders, constituency leaders). Maintain the existing circular masking CSS classes and preserve all current visual styling. Verify the LazyImage component's usage instructions before implementing. Ensure the component handles loading states and viewport detection for lazy loading of images."
         }
       ]
     }

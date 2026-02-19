@@ -1,74 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Admin Directory: Replace Photo column images with clickable filename + modal preview",
-  "projectName": "CivicReport Admin",
+  "title": "Apply lazy loading to photo column in admin directory",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In Admin Dashboard → Directory, update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default. Instead, display the representative’s photo file name/path as plain text in the cell.",
+      "text": "In the AdminDirectory component's photo column (XPath: /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]), apply lazy loading to all leader images (PM, state leaders, and constituency leaders) that are currently displayed as circular masked previews. Use the existing LazyImage component from frontend/src/components/LazyImage.tsx to implement this functionality.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-latest"
         ],
         "quotes": [
-          "Replace the actual image display in the 'Photo column' with the photo file name (text only).",
-          "Please update only the Photo column behavior in the Administrative Directory Table."
+          "In this photo column in the admin directory oage, we're currently show the leader's images (PM, state, and constituency leaders) as a circular masked preview, please apply lazy loading for all the images"
         ]
       },
       "acceptanceCriteria": [
-        "The Administrative Directory Table Photo column displays text (the stored photoPath / filename) instead of an inline image for every row.",
-        "No network image fetches are triggered by merely rendering the table (i.e., opening the Directory page does not attempt to load all leader photos at once).",
-        "All other columns, controls, layout, styling, sorting/filtering/search behavior, and actions in the Administrative Directory Table remain unchanged."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Make the Photo column text clickable. On click, open an overlay/modal that displays the full-size photo for that row, resolved from the existing stored photo path (e.g., using the existing file URL resolution approach already used in the app, such as the FileStorage hook utilities).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Make the photo name clickable.",
-          "On click, open the full-size image in an overlay/modal window."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clicking the photo filename/path in the Photo column opens a modal/overlay showing the full-size image for that row.",
-        "The modal/overlay can be dismissed (e.g., close button and/or clicking outside and/or Escape key), returning the user to the same scroll position in the table.",
-        "The image is only requested/loaded when the modal is opened (not before)."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure the change is strictly scoped to the Administrative Directory Table Photo column implementation (in the Admin Directory page component) with no other UI changes anywhere in the table.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "My Strict warning - Ensure that no other UI elements or functionality in the Administrative Directory table are affected, you just need to work on 'Photo' column, any UI changes are not acceptable."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Diff/changes are limited to code paths that render/interact with the Photo column and the new modal/overlay needed for photo preview.",
-        "No other table cell contents, headers, spacing, icons, buttons, or behaviors are changed."
+        "All leader images in the photo column use the LazyImage component for lazy loading",
+        "Images maintain their existing circular masked preview appearance",
+        "Images load only when they enter the viewport",
+        "Placeholder or loading state is shown before images are loaded"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any UI elements or functionality in the Administrative Directory Table other than the Photo column behavior.",
-    "Do not change backend schemas, endpoints, or data shapes; use the existing stored photoPath values and existing file URL resolution mechanisms.",
-    "Do not edit any files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT; compose existing UI components if needed."
+    "Only modify the photo column rendering logic in AdminDirectory.tsx",
+    "Do not modify any UI layout, table structure, or other columns",
+    "Do not modify any other files besides AdminDirectory.tsx",
+    "Preserve all existing visual styling including circular masking",
+    "Do not change the data structure or table architecture"
   ],
   "nonGoals": [
-    "Adding pagination/virtualization to the Administrative Directory Table.",
-    "Changing how photos are uploaded, stored, or exported/imported (CSV).",
-    "Changing styling/theme or updating any other Admin Dashboard pages."
+    "Modifying table layout or structure",
+    "Changing other columns in the admin directory",
+    "Altering the overall UI design",
+    "Modifying any components other than AdminDirectory",
+    "Adding new features beyond lazy loading"
   ],
   "imageRequirements": {
     "required": [],

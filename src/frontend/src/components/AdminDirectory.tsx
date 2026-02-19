@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Building2, MapPin, User, Mail, Twitter, FileText, Plus, Edit2, Trash2, ChevronDown, ChevronRight, Save, X, Upload, Download, Search, Filter, AlertCircle, Calendar, Crown } from 'lucide-react';
 import { useGetDirectory, useAddState, useAddUnionTerritory, useAddConstituency, useAddMpToConstituency, useAddMlaToConstituency, useUpdateRepresentative, useDeleteConstituency, useDeleteRepresentative, useUpdateState, useUpdateUnionTerritory, useUpdateConstituency, useUpdateRepresentativeDetails, useSetPrimeMinister, useImportDirectory, useExportDirectory } from '../hooks/useQueries';
-import { useFileUpload } from '../blob-storage/FileStorage';
+import { useFileUpload, useFileUrl } from '../blob-storage/FileStorage';
 import { Representative, State, Constituency } from '../backend';
 import { toast } from 'sonner';
-import { PhotoPreviewModal } from './PhotoPreviewModal';
+import { LazyImage } from './LazyImage';
 
 type FormType = 'state' | 'lok-sabha' | 'vidhan-sabha' | 'prime-minister';
 type ViewMode = 'lok-sabha' | 'vidhan-sabha' | 'both';
@@ -31,7 +31,7 @@ export function AdminDirectory() {
   const [viewMode, setViewMode] = useState<ViewMode>('both');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStateFilter, setSelectedStateFilter] = useState<string>('all');
-  const [photoModalPath, setPhotoModalPath] = useState<string | null>(null);
+  const [photoModalUrl, setPhotoModalUrl] = useState<string | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -522,18 +522,18 @@ export function AdminDirectory() {
       states: [],
       unionTerritories: [],
       administrativeUnits: [],
-      primeMinister: null
+      primeMinister: null,
     };
-    
+
     const statesMap = new Map<string, any>();
     const utsMap = new Map<string, any>();
-    
+
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i]);
       if (values.length < 9) continue;
-      
+
       const [level, unitName, repName, photoPath, email, twitterHandle, politicalParty, remarks, lastUpdated] = values;
-      
+
       const representative: Representative = {
         name: repName,
         photoPath: photoPath || '',
@@ -541,9 +541,9 @@ export function AdminDirectory() {
         twitterHandle: twitterHandle || '',
         politicalParty: politicalParty || undefined,
         remarks: remarks || '',
-        lastUpdated: BigInt(new Date(lastUpdated).getTime() * 1000000)
+        lastUpdated: BigInt(new Date(lastUpdated).getTime() * 1000000),
       };
-      
+
       if (level === 'PM') {
         newDirectory.primeMinister = representative;
       } else if (level === 'State') {
@@ -552,7 +552,7 @@ export function AdminDirectory() {
             name: unitName,
             cm: representative,
             constituencies: [],
-            isUnionTerritory: false
+            isUnionTerritory: false,
           });
         } else {
           statesMap.get(unitName).cm = representative;
@@ -563,7 +563,7 @@ export function AdminDirectory() {
             name: unitName,
             cm: representative,
             constituencies: [],
-            isUnionTerritory: true
+            isUnionTerritory: true,
           });
         } else {
           utsMap.get(unitName).cm = representative;
@@ -577,10 +577,10 @@ export function AdminDirectory() {
             name: stateName,
             cm: null,
             constituencies: [],
-            isUnionTerritory: stateMap === utsMap
+            isUnionTerritory: stateMap === utsMap,
           });
         }
-        
+
         const state = stateMap.get(stateName);
         let constituency = state.constituencies.find((c: any) => c.name === constituencyName);
         
@@ -588,22 +588,22 @@ export function AdminDirectory() {
           constituency = {
             name: constituencyName,
             mp: null,
-            mlas: []
+            mlas: [],
           };
           state.constituencies.push(constituency);
         }
-        
+
         if (level === 'MP') {
           constituency.mp = representative;
-        } else {
+        } else if (level === 'MLA') {
           constituency.mlas.push(representative);
         }
       }
     }
-    
+
     newDirectory.states = Array.from(statesMap.values());
     newDirectory.unionTerritories = Array.from(utsMap.values());
-    
+
     return newDirectory;
   };
 
@@ -611,11 +611,11 @@ export function AdminDirectory() {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       const nextChar = line[i + 1];
-      
+
       if (char === '"') {
         if (inQuotes && nextChar === '"') {
           current += '"';
@@ -630,8 +630,8 @@ export function AdminDirectory() {
         current += char;
       }
     }
-    
     result.push(current);
+
     return result;
   };
 
@@ -645,12 +645,12 @@ export function AdminDirectory() {
     setExpandedStates(newExpanded);
   };
 
-  const toggleConstituency = (key: string) => {
+  const toggleConstituency = (constituencyKey: string) => {
     const newExpanded = new Set(expandedConstituencies);
-    if (newExpanded.has(key)) {
-      newExpanded.delete(key);
+    if (newExpanded.has(constituencyKey)) {
+      newExpanded.delete(constituencyKey);
     } else {
-      newExpanded.add(key);
+      newExpanded.add(constituencyKey);
     }
     setExpandedConstituencies(newExpanded);
   };
@@ -671,548 +671,588 @@ export function AdminDirectory() {
     const constituencyMatch = state.constituencies.some(c => {
       const cNameMatch = c.name.toLowerCase().includes(query);
       const mpMatch = c.mp?.name.toLowerCase().includes(query);
-      const mlaMatch = c.mlas.some(m => m.name.toLowerCase().includes(query));
+      const mlaMatch = c.mlas.some(mla => mla.name.toLowerCase().includes(query));
       return cNameMatch || mpMatch || mlaMatch;
     });
     
     return stateMatch || cmMatch || constituencyMatch;
   });
 
+  const RepresentativePhoto = ({ photoPath, name }: { photoPath: string; name: string }) => {
+    const { data: photoUrl } = useFileUrl(photoPath);
+    
+    if (!photoUrl) {
+      return (
+        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+          <User className="w-5 h-5 text-gray-400" />
+        </div>
+      );
+    }
+
+    return (
+      <LazyImage
+        src={photoUrl}
+        alt={name}
+        className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+        onClick={() => setPhotoModalUrl(photoUrl)}
+        priority="low"
+      />
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Administrative Directory</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage Prime Minister, State/UT, Lok Sabha (MP), and Vidhan Sabha (MLA) information
-          </p>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveForm('prime-minister')}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 text-sm"
-          >
-            <Crown className="w-4 h-4" />
-            Set PM
-          </button>
-          <button
-            onClick={() => setActiveForm('state')}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add State/UT
-          </button>
-          <button
-            onClick={() => setActiveForm('lok-sabha')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add MP
-          </button>
-          <button
-            onClick={() => setActiveForm('vidhan-sabha')}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add MLA
-          </button>
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
-          >
-            <Download className="w-4 h-4" />
-            {isExporting ? 'Exporting...' : 'Export CSV'}
-          </button>
-          <button
-            onClick={handleImport}
-            disabled={isImporting}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
-          >
-            <Upload className="w-4 h-4" />
-            {isImporting ? 'Importing...' : 'Import CSV'}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-      </div>
-
-      {activeForm && (
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">
-              {activeForm === 'prime-minister' && 'Set Prime Minister'}
-              {activeForm === 'state' && 'Add State/Union Territory'}
-              {activeForm === 'lok-sabha' && 'Add Lok Sabha Member (MP)'}
-              {activeForm === 'vidhan-sabha' && 'Add Vidhan Sabha Member (MLA)'}
-            </h3>
-            <button
-              onClick={() => {
-                setActiveForm(null);
-                setFormData({
-                  name: '',
-                  photoPath: '',
-                  email: '',
-                  twitterHandle: '',
-                  remarks: '',
-                  politicalParty: '',
-                  stateName: '',
-                  constituencyName: '',
-                  isUT: false,
-                });
-                setPhotoFile(null);
-                setPhotoPreview('');
-              }}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <Building2 className="w-8 h-8 text-blue-600" />
+                Administrative Directory
+              </h1>
+              <p className="text-gray-600 mt-1">Manage political representatives and administrative units</p>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                {isExporting ? 'Exporting...' : 'Export CSV'}
+              </button>
+              <button
+                onClick={handleImport}
+                disabled={isImporting}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+              >
+                <Upload className="w-4 h-4" />
+                {isImporting ? 'Importing...' : 'Import CSV'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {activeForm === 'state' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">State/UT Name *</label>
-                  <input
-                    type="text"
-                    value={formData.stateName}
-                    onChange={(e) => setFormData({ ...formData, stateName: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter state or union territory name"
-                    required
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isUT"
-                    checked={formData.isUT}
-                    onChange={(e) => setFormData({ ...formData, isUT: e.target.checked })}
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="isUT" className="text-sm">This is a Union Territory</label>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    {formData.isUT ? 'Administrator Name *' : 'Chief Minister Name *'}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder={formData.isUT ? "Enter administrator's name" : "Enter chief minister's name"}
-                    required
-                  />
-                </div>
-              </>
-            )}
-
-            {(activeForm === 'lok-sabha' || activeForm === 'vidhan-sabha') && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Select State/UT *</label>
-                  <select
-                    value={formData.stateName}
-                    onChange={(e) => setFormData({ ...formData, stateName: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                  >
-                    <option value="">-- Select State/UT --</option>
-                    {allStates.map(state => (
-                      <option key={state.name} value={state.name}>{state.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Constituency Name *</label>
-                  <input
-                    type="text"
-                    value={formData.constituencyName}
-                    onChange={(e) => setFormData({ ...formData, constituencyName: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter constituency name"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    {activeForm === 'lok-sabha' ? 'MP Name *' : 'MLA Name *'}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder={activeForm === 'lok-sabha' ? "Enter MP's name" : "Enter MLA's name"}
-                    required
-                  />
-                </div>
-              </>
-            )}
-
-            {activeForm === 'prime-minister' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Prime Minister Name *</label>
+        {/* Search and Filter */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter Prime Minister's name"
-                  required
+                  placeholder="Search by name, state, or constituency..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Photo *</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              {photoPreview && (
-                <img src={photoPreview} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded-lg" />
-              )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter email address"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Twitter Handle</label>
-              <input
-                type="text"
-                value={formData.twitterHandle}
-                onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="@username"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Political Party</label>
-              <input
-                type="text"
-                value={formData.politicalParty}
-                onChange={(e) => setFormData({ ...formData, politicalParty: e.target.value })}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter political party"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Remarks</label>
-              <textarea
-                value={formData.remarks}
-                onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Additional information"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={isSubmitting || isUploading}
-                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveForm(null);
-                  setFormData({
-                    name: '',
-                    photoPath: '',
-                    email: '',
-                    twitterHandle: '',
-                    remarks: '',
-                    politicalParty: '',
-                    stateName: '',
-                    constituencyName: '',
-                    isUT: false,
-                  });
-                  setPhotoFile(null);
-                  setPhotoPreview('');
-                }}
-                className="px-6 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="bg-card border border-border rounded-lg p-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, state, or constituency..."
-                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <select
-              value={selectedStateFilter}
-              onChange={(e) => setSelectedStateFilter(e.target.value)}
-              className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="all">All States/UTs</option>
-              {allStates.map(state => (
-                <option key={state.name} value={state.name}>{state.name}</option>
-              ))}
-            </select>
             
-            <select
-              value={viewMode}
-              onChange={(e) => setViewMode(e.target.value as ViewMode)}
-              className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="both">Both MP & MLA</option>
-              <option value="lok-sabha">Lok Sabha (MP) Only</option>
-              <option value="vidhan-sabha">Vidhan Sabha (MLA) Only</option>
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={selectedStateFilter}
+                onChange={(e) => setSelectedStateFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All States/UTs</option>
+                {allStates.map(state => (
+                  <option key={state.name} value={state.name}>{state.name}</option>
+                ))}
+              </select>
+              
+              <select
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value as ViewMode)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="both">Both MP & MLA</option>
+                <option value="lok-sabha">Lok Sabha (MP) Only</option>
+                <option value="vidhan-sabha">Vidhan Sabha (MLA) Only</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {directory?.primeMinister && (
-          <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <Crown className="w-5 h-5 text-purple-600" />
-              <h3 className="font-semibold text-purple-900 dark:text-purple-100">Prime Minister of India</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-purple-200 dark:border-purple-800">
-                    <th className="text-left py-2 px-2">Name</th>
-                    <th className="text-left py-2 px-2">Photo</th>
-                    <th className="text-left py-2 px-2">Email</th>
-                    <th className="text-left py-2 px-2">Twitter</th>
-                    <th className="text-left py-2 px-2">Party</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="py-2 px-2">{directory.primeMinister.name}</td>
-                    <td className="py-2 px-2">
-                      <button
-                        onClick={() => setPhotoModalPath(directory.primeMinister?.photoPath || null)}
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-left"
-                      >
-                        {directory.primeMinister.photoPath || 'No photo'}
-                      </button>
-                    </td>
-                    <td className="py-2 px-2">{directory.primeMinister.email || '-'}</td>
-                    <td className="py-2 px-2">{directory.primeMinister.twitterHandle || '-'}</td>
-                    <td className="py-2 px-2">{directory.primeMinister.politicalParty || '-'}</td>
-                  </tr>
-                </tbody>
-              </table>
+        {/* Action Buttons */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setActiveForm('prime-minister')}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              <Crown className="w-4 h-4" />
+              Set Prime Minister
+            </button>
+            <button
+              onClick={() => setActiveForm('state')}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add State/UT
+            </button>
+            <button
+              onClick={() => setActiveForm('lok-sabha')}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add MP (Lok Sabha)
+            </button>
+            <button
+              onClick={() => setActiveForm('vidhan-sabha')}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add MLA (Vidhan Sabha)
+            </button>
+          </div>
+        </div>
+
+        {/* Form Modal */}
+        {activeForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {activeForm === 'prime-minister' && 'Set Prime Minister'}
+                    {activeForm === 'state' && 'Add State/Union Territory'}
+                    {activeForm === 'lok-sabha' && 'Add MP (Lok Sabha)'}
+                    {activeForm === 'vidhan-sabha' && 'Add MLA (Vidhan Sabha)'}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setActiveForm(null);
+                      setFormData({
+                        name: '',
+                        photoPath: '',
+                        email: '',
+                        twitterHandle: '',
+                        remarks: '',
+                        politicalParty: '',
+                        stateName: '',
+                        constituencyName: '',
+                        isUT: false,
+                      });
+                      setPhotoFile(null);
+                      setPhotoPreview('');
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {activeForm === 'state' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          State/UT Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.stateName}
+                          onChange={(e) => setFormData({ ...formData, stateName: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="isUT"
+                          checked={formData.isUT}
+                          onChange={(e) => setFormData({ ...formData, isUT: e.target.checked })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="isUT" className="text-sm font-medium text-gray-700">
+                          This is a Union Territory
+                        </label>
+                      </div>
+                    </>
+                  )}
+
+                  {(activeForm === 'lok-sabha' || activeForm === 'vidhan-sabha') && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Select State/UT *
+                        </label>
+                        <select
+                          value={formData.stateName}
+                          onChange={(e) => setFormData({ ...formData, stateName: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        >
+                          <option value="">Select a state or union territory</option>
+                          {allStates.map(state => (
+                            <option key={state.name} value={state.name}>{state.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Constituency Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.constituencyName}
+                          onChange={(e) => setFormData({ ...formData, constituencyName: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Representative Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Photo *
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {photoPreview && (
+                      <div className="mt-2">
+                        <img src={photoPreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Twitter Handle
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.twitterHandle}
+                      onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
+                      placeholder="@username"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Political Party
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.politicalParty}
+                      onChange={(e) => setFormData({ ...formData, politicalParty: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Remarks
+                    </label>
+                    <textarea
+                      value={formData.remarks}
+                      onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || isUploading}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      <Save className="w-4 h-4" />
+                      {isSubmitting || isUploading ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveForm(null);
+                        setFormData({
+                          name: '',
+                          photoPath: '',
+                          email: '',
+                          twitterHandle: '',
+                          remarks: '',
+                          politicalParty: '',
+                          stateName: '',
+                          constituencyName: '',
+                          isUT: false,
+                        });
+                        setPhotoFile(null);
+                        setPhotoPreview('');
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
 
+        {/* Prime Minister Section */}
+        {directory?.primeMinister && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Crown className="w-6 h-6 text-yellow-600" />
+              <h2 className="text-xl font-bold text-gray-900">Prime Minister of India</h2>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <RepresentativePhoto 
+                photoPath={directory.primeMinister.photoPath} 
+                name={directory.primeMinister.name}
+              />
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{directory.primeMinister.name}</h3>
+                {directory.primeMinister.politicalParty && (
+                  <p className="text-sm text-gray-600">{directory.primeMinister.politicalParty}</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {directory.primeMinister.email && (
+                  <a
+                    href={`mailto:${directory.primeMinister.email}`}
+                    className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                    title="Email"
+                  >
+                    <Mail className="w-5 h-5" />
+                  </a>
+                )}
+                {directory.primeMinister.twitterHandle && (
+                  <a
+                    href={`https://twitter.com/${directory.primeMinister.twitterHandle.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                    title="Twitter"
+                  >
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* States and Union Territories */}
         <div className="space-y-4">
-          {filteredStates.map(state => (
-            <div key={state.name} className="border border-border rounded-lg overflow-hidden">
+          {filteredStates.map((state) => (
+            <div key={state.name} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              {/* State Header */}
               <div
-                className="flex items-center justify-between p-4 bg-muted cursor-pointer hover:bg-muted/80 transition-colors"
+                className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => toggleState(state.name)}
               >
                 <div className="flex items-center gap-3">
                   {expandedStates.has(state.name) ? (
-                    <ChevronDown className="w-5 h-5" />
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
                   ) : (
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-5 h-5 text-gray-600" />
                   )}
-                  <Building2 className="w-5 h-5 text-primary" />
+                  <Building2 className="w-5 h-5 text-blue-600" />
                   <div>
-                    <h3 className="font-semibold">{state.name}</h3>
-                    {state.cm && (
-                      <p className="text-sm text-muted-foreground">
-                        {state.isUnionTerritory ? 'Administrator' : 'Chief Minister'}: {state.cm.name}
-                      </p>
-                    )}
+                    <h3 className="font-semibold text-gray-900">{state.name}</h3>
+                    <p className="text-sm text-gray-600">
+                      {state.isUnionTerritory ? 'Union Territory' : 'State'} • {state.constituencies.length} constituencies
+                    </p>
                   </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {state.constituencies.length} constituencies
-                </div>
+                
+                {state.cm && (
+                  <div className="flex items-center gap-2">
+                    <RepresentativePhoto 
+                      photoPath={state.cm.photoPath} 
+                      name={state.cm.name}
+                    />
+                    <div className="hidden md:block">
+                      <p className="text-sm font-medium text-gray-900">{state.cm.name}</p>
+                      <p className="text-xs text-gray-600">{state.isUnionTerritory ? 'Administrator' : 'Chief Minister'}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* State Content */}
               {expandedStates.has(state.name) && (
                 <div className="p-4 space-y-4">
-                  {state.cm && (
-                    <div className="mb-4">
-                      <h4 className="font-medium mb-2 text-sm">
-                        {state.isUnionTerritory ? 'Administrator' : 'Chief Minister'}
-                      </h4>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-border">
-                              <th className="text-left py-2 px-2">Name</th>
-                              <th className="text-left py-2 px-2">Photo</th>
-                              <th className="text-left py-2 px-2">Email</th>
-                              <th className="text-left py-2 px-2">Twitter</th>
-                              <th className="text-left py-2 px-2">Party</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="py-2 px-2">{state.cm.name}</td>
-                              <td className="py-2 px-2">
-                                <button
-                                  onClick={() => setPhotoModalPath(state.cm?.photoPath || null)}
-                                  className="text-blue-600 hover:text-blue-800 hover:underline text-left"
-                                >
-                                  {state.cm.photoPath || 'No photo'}
-                                </button>
-                              </td>
-                              <td className="py-2 px-2">{state.cm.email || '-'}</td>
-                              <td className="py-2 px-2">{state.cm.twitterHandle || '-'}</td>
-                              <td className="py-2 px-2">{state.cm.politicalParty || '-'}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {state.constituencies.map(constituency => {
+                  {/* Constituencies */}
+                  {state.constituencies.map((constituency) => {
                     const constituencyKey = `${state.name}-${constituency.name}`;
                     const showMP = viewMode === 'both' || viewMode === 'lok-sabha';
                     const showMLA = viewMode === 'both' || viewMode === 'vidhan-sabha';
                     
                     return (
-                      <div key={constituencyKey} className="border border-border rounded-lg overflow-hidden">
+                      <div key={constituencyKey} className="border border-gray-200 rounded-lg overflow-hidden">
+                        {/* Constituency Header */}
                         <div
-                          className="flex items-center justify-between p-3 bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors"
+                          className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                           onClick={() => toggleConstituency(constituencyKey)}
                         >
                           <div className="flex items-center gap-2">
                             {expandedConstituencies.has(constituencyKey) ? (
-                              <ChevronDown className="w-4 h-4" />
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
                             ) : (
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4 text-gray-600" />
                             )}
-                            <MapPin className="w-4 h-4 text-blue-600" />
-                            <span className="font-medium text-sm">{constituency.name}</span>
+                            <MapPin className="w-4 h-4 text-indigo-600" />
+                            <span className="font-medium text-gray-900">{constituency.name}</span>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {constituency.mp ? '1 MP' : 'No MP'} • {constituency.mlas.length} MLA(s)
+                          
+                          <div className="flex items-center gap-2">
+                            {constituency.mp && showMP && (
+                              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded">MP</span>
+                            )}
+                            {constituency.mlas.length > 0 && showMLA && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">
+                                {constituency.mlas.length} MLA{constituency.mlas.length > 1 ? 's' : ''}
+                              </span>
+                            )}
                           </div>
                         </div>
 
+                        {/* Constituency Content */}
                         {expandedConstituencies.has(constituencyKey) && (
                           <div className="p-3 space-y-3">
+                            {/* MP Section */}
                             {showMP && constituency.mp && (
-                              <div>
-                                <h5 className="font-medium mb-2 text-xs text-blue-600">Lok Sabha (MP)</h5>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="border-b border-border">
-                                        <th className="text-left py-2 px-2">Name</th>
-                                        <th className="text-left py-2 px-2">Photo</th>
-                                        <th className="text-left py-2 px-2">Email</th>
-                                        <th className="text-left py-2 px-2">Twitter</th>
-                                        <th className="text-left py-2 px-2">Party</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <tr>
-                                        <td className="py-2 px-2">{constituency.mp.name}</td>
-                                        <td className="py-2 px-2">
-                                          <button
-                                            onClick={() => setPhotoModalPath(constituency.mp?.photoPath || null)}
-                                            className="text-blue-600 hover:text-blue-800 hover:underline text-left"
-                                          >
-                                            {constituency.mp.photoPath || 'No photo'}
-                                          </button>
-                                        </td>
-                                        <td className="py-2 px-2">{constituency.mp.email || '-'}</td>
-                                        <td className="py-2 px-2">{constituency.mp.twitterHandle || '-'}</td>
-                                        <td className="py-2 px-2">{constituency.mp.politicalParty || '-'}</td>
-                                      </tr>
-                                    </tbody>
-                                  </table>
+                              <div className="border-l-4 border-indigo-500 pl-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <RepresentativePhoto 
+                                      photoPath={constituency.mp.photoPath} 
+                                      name={constituency.mp.name}
+                                    />
+                                    <div>
+                                      <p className="font-medium text-gray-900">{constituency.mp.name}</p>
+                                      <p className="text-sm text-gray-600">Member of Parliament (Lok Sabha)</p>
+                                      {constituency.mp.politicalParty && (
+                                        <p className="text-xs text-gray-500">{constituency.mp.politicalParty}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    {constituency.mp.email && (
+                                      <a
+                                        href={`mailto:${constituency.mp.email}`}
+                                        className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                        title="Email"
+                                      >
+                                        <Mail className="w-4 h-4" />
+                                      </a>
+                                    )}
+                                    {constituency.mp.twitterHandle && (
+                                      <a
+                                        href={`https://twitter.com/${constituency.mp.twitterHandle.replace('@', '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                        title="Twitter"
+                                      >
+                                        <Twitter className="w-4 h-4" />
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             )}
 
+                            {/* MLAs Section */}
                             {showMLA && constituency.mlas.length > 0 && (
-                              <div>
-                                <h5 className="font-medium mb-2 text-xs text-green-600">Vidhan Sabha (MLA)</h5>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="border-b border-border">
-                                        <th className="text-left py-2 px-2">Name</th>
-                                        <th className="text-left py-2 px-2">Photo</th>
-                                        <th className="text-left py-2 px-2">Email</th>
-                                        <th className="text-left py-2 px-2">Twitter</th>
-                                        <th className="text-left py-2 px-2">Party</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {constituency.mlas.map((mla, idx) => (
-                                        <tr key={idx}>
-                                          <td className="py-2 px-2">{mla.name}</td>
-                                          <td className="py-2 px-2">
-                                            <button
-                                              onClick={() => setPhotoModalPath(mla.photoPath || null)}
-                                              className="text-blue-600 hover:text-blue-800 hover:underline text-left"
-                                            >
-                                              {mla.photoPath || 'No photo'}
-                                            </button>
-                                          </td>
-                                          <td className="py-2 px-2">{mla.email || '-'}</td>
-                                          <td className="py-2 px-2">{mla.twitterHandle || '-'}</td>
-                                          <td className="py-2 px-2">{mla.politicalParty || '-'}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
+                              <div className="space-y-2">
+                                {constituency.mlas.map((mla, index) => (
+                                  <div key={index} className="border-l-4 border-purple-500 pl-3">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <RepresentativePhoto 
+                                          photoPath={mla.photoPath} 
+                                          name={mla.name}
+                                        />
+                                        <div>
+                                          <p className="font-medium text-gray-900">{mla.name}</p>
+                                          <p className="text-sm text-gray-600">Member of Legislative Assembly (Vidhan Sabha)</p>
+                                          {mla.politicalParty && (
+                                            <p className="text-xs text-gray-500">{mla.politicalParty}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-1">
+                                        {mla.email && (
+                                          <a
+                                            href={`mailto:${mla.email}`}
+                                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                            title="Email"
+                                          >
+                                            <Mail className="w-4 h-4" />
+                                          </a>
+                                        )}
+                                        {mla.twitterHandle && (
+                                          <a
+                                            href={`https://twitter.com/${mla.twitterHandle.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                            title="Twitter"
+                                          >
+                                            <Twitter className="w-4 h-4" />
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -1226,18 +1266,22 @@ export function AdminDirectory() {
           ))}
         </div>
 
-        {filteredStates.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No results found. Try adjusting your search or filters.</p>
+        {/* Photo Modal */}
+        {photoModalUrl && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50"
+            onClick={() => setPhotoModalUrl(null)}
+          >
+            <div className="max-w-4xl max-h-[90vh] overflow-auto">
+              <img
+                src={photoModalUrl}
+                alt="Representative"
+                className="w-full h-auto rounded-lg"
+              />
+            </div>
           </div>
         )}
       </div>
-
-      <PhotoPreviewModal
-        photoPath={photoModalPath}
-        onClose={() => setPhotoModalPath(null)}
-      />
     </div>
   );
 }

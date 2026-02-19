@@ -1,42 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T07:03:44.723Z",
+  "generatedAt": "2026-02-19T19:29:35.381Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In Admin Dashboard → Directory, update ONLY the “Photo” column rendering inside the Administrative Directory Table so that it no longer renders/loads any <img> tags (or LazyImage) for each row by default. Instead, display the representative’s photo file name/path as plain text in the cell.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AdminDirectory.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/AdminDirectory.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Make the Photo column text clickable. On click, open an overlay/modal that displays the full-size photo for that row, resolved from the existing stored photo path (e.g., using the existing file URL resolution approach already used in the app, such as the FileStorage hook utilities).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/PhotoPreviewModal.tsx",
-          "frontend/src/components/AdminDirectory.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/PhotoPreviewModal.tsx",
-          "frontend/src/components/AdminDirectory.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure the change is strictly scoped to the Administrative Directory Table Photo column implementation (in the Admin Directory page component) with no other UI changes anywhere in the table.",
+        "summary": "In the AdminDirectory component's photo column (XPath: /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[4]/div[1]/div[3]/div[2]/div[1]/div[1]/table[1]/thead[1]/tr[1]/th[4]), apply lazy loading to all leader images (PM, state leaders, and constituency leaders) that are currently displayed as circular masked previews. Use the existing LazyImage component from frontend/src/components/LazyImage.tsx to implement this functionality.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/AdminDirectory.tsx"
@@ -61,7 +37,6 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/AdminDirectory.tsx",
-    "frontend/src/components/PhotoPreviewModal.tsx",
     "frontend/src/config.ts",
     "frontend/src/hooks/useInternetIdentity.ts",
     "project_state.json",
