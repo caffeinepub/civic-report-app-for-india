@@ -1,0 +1,363 @@
+type Volunteer = 
+ record {
+   address: text;
+   applicationDate: int;
+   approvalTimestamp: opt int;
+   approved: bool;
+   contactInfo: text;
+   id: text;
+   impactScore: int;
+   name: text;
+   photoPath: text;
+   "principal": principal;
+   rejectionNote: opt text;
+   showFullMobile: bool;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = record {name: text;};
+type UserApprovalInfo = 
+ record {
+   "principal": principal;
+   status: ApprovalStatus;
+ };
+type State = 
+ record {
+   cm: opt Representative;
+   constituencies: vec Constituency;
+   isUnionTerritory: bool;
+   name: text;
+ };
+type RoadmapFeature = 
+ record {
+   description: text;
+   icon: text;
+   id: text;
+   progress: nat;
+   sectionId: text;
+   timestamp: int;
+   title: text;
+ };
+type Representative = 
+ record {
+   email: text;
+   lastUpdated: int;
+   name: text;
+   photoPath: text;
+   politicalParty: opt text;
+   remarks: text;
+   twitterHandle: text;
+ };
+type Report = 
+ record {
+   address: text;
+   cmData: opt Representative;
+   cmName: opt text;
+   cmPhotoPath: opt text;
+   completionNotes: opt text;
+   coordinates: text;
+   customAddress: opt text;
+   id: text;
+   issueType: text;
+   localCivicBody: opt LocalCivicBody;
+   location: record {
+               latitude: float64;
+               longitude: float64;
+             };
+   mlaMpDesignation: text;
+   mlaMpName: opt text;
+   mlaMpPhotoPath: opt text;
+   notes: opt text;
+   photoPath: text;
+   pmData: opt Representative;
+   pmName: opt text;
+   pmPhotoPath: opt text;
+   proofPhotoPath: opt text;
+   reporterName: opt text;
+   resolvedByVolunteer: bool;
+   state: text;
+   status: text;
+   submittedByVolunteer: bool;
+   timestamp: int;
+   username: opt text;
+ };
+type NgoNpo = 
+ record {
+   address: text;
+   approvalTimestamp: opt int;
+   approved: bool;
+   contactPerson: text;
+   description: text;
+   email: text;
+   id: text;
+   impactScore: int;
+   logoPath: text;
+   missionStatement: text;
+   organizationName: text;
+   phone: text;
+   "principal": principal;
+   registrationDate: int;
+   rejectionNote: opt text;
+   showContactInfo: bool;
+   website: text;
+ };
+type LogoHistory = 
+ record {
+   admin: principal;
+   logoData: text;
+   timestamp: int;
+ };
+type LocalCivicBody = 
+ record {
+   bodyName: text;
+   bodyType: text;
+   photoPath: opt text;
+   representativeName: text;
+ };
+type FileReference = 
+ record {
+   hash: text;
+   path: text;
+ };
+type Directory = 
+ record {
+   administrativeUnits: vec AdministrativeUnit;
+   primeMinister: opt Representative;
+   states: vec State;
+   unionTerritories: vec State;
+ };
+type Constituency = 
+ record {
+   mlas: vec Representative;
+   mp: opt Representative;
+   name: text;
+ };
+type ApprovalStatus = 
+ variant {
+   approved;
+   pending;
+   rejected;
+ };
+type AdministrativeUnit = 
+ record {
+   name: text;
+   parentConstituency: opt text;
+   parentState: opt text;
+   unitType: text;
+ };
+service : {
+  addAdmin: (newAdmin: principal) -> ();
+  addAdministrativeUnit: (name: text, unitType: text, parentState: opt text,
+   parentConstituency: opt text) -> ();
+  addConstituency: (stateName: text, constituencyName: text) -> ();
+  addMlaToConstituency: (stateName: text, constituencyName: text, mla:
+   Representative) -> ();
+  addMpToConstituency: (stateName: text, constituencyName: text, mp:
+   Representative) -> ();
+  addState: (stateName: text, cm: opt Representative, isUnionTerritory:
+   bool) -> ();
+  addUnionTerritory: (utName: text, administrator: opt Representative) -> ();
+  applyVolunteer: (name: text, photoPath: text, contactInfo: text, address:
+   text, showFullMobile: bool) -> (text);
+  approveNgoNpo: (ngoNpoId: text) -> ();
+  approveVolunteer: (volunteerId: text) -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  createFeature: (sectionId: text, featureData: RoadmapFeature) -> ();
+  deleteConstituency: (stateName: text, constituencyName: text) -> ();
+  deleteFeature: (featureId: text) -> ();
+  deleteReport: (id: text) -> ();
+  deleteRepresentative: (stateName: text, constituencyName: text, repType:
+   text) -> ();
+  dropFileReference: (path: text) -> ();
+  exportDirectory: () -> (Directory);
+  getAdminDirectory: () -> (Directory) query;
+  getAdministrativeUnits: () -> (vec AdministrativeUnit) query;
+  getAdmins: () -> (vec principal) query;
+  getAllNgoNpos: () -> (vec NgoNpo) query;
+  getAllReports: () -> (vec Report) query;
+  getAllRepresentatives: () -> (vec Representative) query;
+  getAllVolunteers: () -> (vec Volunteer) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getConstituency: (stateName: text, constituencyName: text) ->
+   (opt Constituency) query;
+  getCurrentLogo: () -> (text) query;
+  getDirectory: () -> (Directory) query;
+  getDirectoryWithPhotos: () -> (Directory) query;
+  getFileReference: (path: text) -> (FileReference) query;
+  getLogoHistory: () -> (vec LogoHistory) query;
+  getMyNgoNpoProfile: () -> (opt NgoNpo) query;
+  getMyVolunteerProfile: () -> (opt Volunteer) query;
+  getNgoNpoById: (ngoNpoId: text) -> (opt NgoNpo) query;
+  getNgoNpoDirectory: () -> (vec NgoNpo) query;
+  getPaginatedReports: (page: nat, pageSize: nat) -> (vec Report) query;
+  getRecentReports: (count: nat) -> (vec Report) query;
+  getReport: (id: text) -> (opt Report) query;
+  getReportsByState: (state: text) -> (vec Report) query;
+  getReportsForAdminTable: () -> (vec record {
+                                        Report;
+                                        text;
+                                        text;
+                                        text;
+                                      }) query;
+  getReportsWithAddressAndCoordinates: () ->
+   (vec record {
+          Report;
+          text;
+          text;
+        }) query;
+  getReportsWithAddresses: () -> (vec record {
+                                        Report;
+                                        text;
+                                      }) query;
+  getReportsWithCompleteLocationData: () ->
+   (vec
+     record {
+       Report;
+       record {
+         latitude: float64;
+         longitude: float64;
+       };
+       opt text;
+       text;
+       text;
+     }) query;
+  getReportsWithCustomAddresses: () ->
+   (vec record {
+          Report;
+          opt text;
+          text;
+        }) query;
+  getReportsWithFullLocationData: () ->
+   (vec
+     record {
+       Report;
+       record {
+         latitude: float64;
+         longitude: float64;
+       };
+       opt text;
+       text;
+       text;
+     }) query;
+  getReportsWithLocations: () ->
+   (vec record {
+          Report;
+          record {
+            latitude: float64;
+            longitude: float64;
+          };
+        }) query;
+  getReportsWithLocationsAndAddresses: () ->
+   (vec
+     record {
+       Report;
+       record {
+         latitude: float64;
+         longitude: float64;
+       };
+       text;
+       text;
+     }) query;
+  getReportsWithLocationsAndAddressesOptimized: () ->
+   (vec
+     record {
+       Report;
+       record {
+         latitude: float64;
+         longitude: float64;
+       };
+       text;
+       text;
+     }) query;
+  getReportsWithMinisterPhotos: () ->
+   (vec record {
+          Report;
+          opt text;
+          opt text;
+          opt text;
+        }) query;
+  getReportsWithMinisterPhotosOptimized: () ->
+   (vec record {
+          Report;
+          opt text;
+          opt text;
+          opt text;
+        }) query;
+  getReportsWithPhotos: () -> (vec record {
+                                     Report;
+                                     text;
+                                   }) query;
+  getReportsWithPhotosOptimized: () -> (vec record {
+                                              Report;
+                                              text;
+                                            }) query;
+  getRoadmapFeatures: () -> (vec RoadmapFeature) query;
+  getState: (stateName: text) -> (opt State) query;
+  getTotalReportCount: () -> (nat) query;
+  getUnionTerritory: (utName: text) -> (opt State) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  getVolunteerById: (volunteerId: text) -> (opt Volunteer) query;
+  getVolunteerDirectory: () -> (vec Volunteer) query;
+  importDirectory: (newDirectory: Directory) -> ();
+  initializeAccessControl: () -> ();
+  isCallerAdmin: () -> (bool) query;
+  isCallerApproved: () -> (bool) query;
+  listApprovals: () -> (vec UserApprovalInfo) query;
+  listFileReferences: () -> (vec FileReference) query;
+  moveFeature: (featureId: text, newSectionId: text) -> ();
+  registerFileReference: (path: text, hash: text) -> ();
+  registerNgoNpo: (organizationName: text, logoPath: text, contactPerson:
+   text, email: text, phone: text, address: text, website: text, description:
+   text, missionStatement: text, showContactInfo: bool) -> (text);
+  rejectNgoNpo: (ngoNpoId: text, rejectionNote: text) -> ();
+  rejectVolunteer: (volunteerId: text, rejectionNote: text) -> ();
+  removeAdmin: (adminToRemove: principal) -> ();
+  requestApproval: () -> ();
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  setApproval: (user: principal, status: ApprovalStatus) -> ();
+  setPrimeMinister: (pm: Representative) -> ();
+  submitReport: (photoPath: text, latitude: float64, longitude: float64,
+   username: opt text, notes: opt text, issueType: text, mlaMpName: opt text,
+   mlaMpPhotoPath: opt text, pmPhotoPath: opt text, cmPhotoPath: opt text,
+   pmName: opt text, cmName: opt text, customAddress: opt text, state: 
+   text, mlaMpDesignation: text, isVolunteer: bool, pmData:
+   opt Representative, cmData: opt Representative, address: text,
+   coordinates: text, localCivicBody: opt LocalCivicBody) -> (text);
+  updateAdministrativeUnit: (name: text, updatedUnit: AdministrativeUnit) ->
+   ();
+  updateConstituency: (stateName: text, constituencyName: text,
+   updatedConstituency: Constituency) -> ();
+  updateDirectory: (newDirectory: Directory) -> ();
+  updateFeature: (featureId: text, featureData: RoadmapFeature) -> ();
+  updateNgoNpoPrivacy: (ngoNpoId: text, showContactInfo: bool) -> ();
+  updateReport: (id: text, updatedReport: Report) -> ();
+  updateReportAddress: (id: text, address: text) -> ();
+  updateReportAddressAndCoordinates: (id: text, address: text, coordinates:
+   text) -> ();
+  updateReportAdminTable: (id: text, address: text, coordinates: text,
+   customAddress: opt text) -> ();
+  updateReportCoordinates: (id: text, coordinates: text) -> ();
+  updateReportFullLocation: (id: text, latitude: float64, longitude: 
+   float64, customAddress: opt text, address: text, coordinates: text) -> ();
+  updateReportLocation: (id: text, latitude: float64, longitude: float64) ->
+   ();
+  updateReportMinisterPhotos: (id: text, mlaMpPhotoPath: opt text,
+   pmPhotoPath: opt text, cmPhotoPath: opt text) -> ();
+  updateReportPhoto: (id: text, photoPath: text) -> ();
+  updateReportStatus: (id: text, newStatus: text, proofPhotoPath: text,
+   reporterName: text, completionNotes: opt text, isVolunteer: bool) ->
+   (bool);
+  updateRepresentative: (stateName: text, constituencyName: text, repType:
+   text, representative: Representative) -> ();
+  updateRepresentativeDetails: (stateName: text, constituencyName: text,
+   repType: text, repName: text, updatedRep: Representative) -> ();
+  updateState: (stateName: text, updatedState: State) -> ();
+  updateUnionTerritory: (utName: text, updatedUT: State) -> ();
+  updateVolunteerPrivacy: (volunteerId: text, showFullMobile: bool) -> ();
+  uploadLogo: (logoData: text) -> ();
+}
