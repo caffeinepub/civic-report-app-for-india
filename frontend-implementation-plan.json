@@ -1,0 +1,23 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Update report form title text to single-spaced exact wording",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Change the existing report form title string to the exact provided English text with single spaces only, without altering any other UI/layout/styling.",
+      "acceptanceCriteria": [
+        "On the report form, the title text is exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
+        "There is only a single space between all words, including between \"GPS\" and \"leader\".",
+        "No other visual/UI/layout/styling changes occur on the report form page (only the title string changes)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ReportForm.tsx",
+          "operation": "modify",
+          "description": "Locate the existing report form title field (the same title previously defined in this UI) and update only its displayed string to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" using normal single spaces; do not change any other logic, layout, styling, or surrounding copy."
+        }
+      ]
+    }
+  ]
+}

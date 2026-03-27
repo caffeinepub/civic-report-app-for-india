@@ -1,0 +1,46 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-07T14:16:56.085Z",
+  "summary": "REQ-2 requests a single, exact text change to the report form title only, with no other UI/layout/styling or unrelated code changes, and with constraints forbidding edits to certain immutable frontend paths. The diff summary does not show the actual title string change in ReportForm (truncated before the title), but it does show unrelated additions/changes, including a modification to an explicitly immutable file and a new tracking/metadata file, plus a file that describes many other feature changes.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Update the existing report form title text to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (single spaces only) and do not alter any other UI/layout/styling.",
+      "reason": "The provided diff content for ReportForm.tsx is truncated and does not include the title render/constant, so there is no direct evidence in the shown code that the title text was updated to the exact required string (including single spacing).",
+      "evidence": [
+        "frontend/src/components/ReportForm.tsx (truncated; does not show title string)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Modified an immutable frontend path: frontend/src/hooks/useInternetIdentity.ts.",
+      "reason": "BuildRequest constraints explicitly state this file must not be edited.",
+      "evidence": [
+        "frontend/src/hooks/useInternetIdentity.ts (modified)"
+      ]
+    },
+    {
+      "description": "Added project_state.json metadata file.",
+      "reason": "Not requested by the BuildRequest; scope is limited to changing the existing report form title string only.",
+      "evidence": [
+        "project_state.json (added)"
+      ]
+    },
+    {
+      "description": "Introduced/recorded numerous unrelated UI/feature changes across the frontend (maps overlays, admin table behavior, report cards/CTAs including Legal Notice, certificate generator changes, roadmap show-more, new hooks, visitor tracking, menu unique visitors, volunteer registration/dashboard changes, etc.).",
+      "reason": "Non-goals explicitly prohibit changing anything besides the specified report form title string; additionally, this violates the instruction to keep changes scoped to the existing report form title field only and to not refactor/restyle or add behaviors.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.6,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/ReportForm.tsx",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "project_state.json"
+  ]
+}

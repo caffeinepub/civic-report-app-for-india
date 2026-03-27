@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "New project",
+  "architectural_notes": [
+    "Text-only change requested: update report form title copy without any UI/layout modifications.",
+    "Apply the title text update to the same existing report form title field; new text should be exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (single space, no double-spacing), with no other UI/layout/styling changes."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-the-report-form-title-text-from-report-by-clicking-photo-leader-geo-tag-image-certificate-complaint-legal-notice-to-exactly-report-by-clicking-photo-gps-leader-image-certificate-complaint-legal-notice-including-capitalization-and-spacing-without-making-any-other-ui-layout-styling-changes",
+      "title": "Update the report form title text from \"Report by clicking Photo &  Leader geo-tag image, Certificate, Complaint & Legal Notice\" to exactly \"Report by clicking Photo & GPS  leader image, Certificate, Complaint & Legal Notice\" (including capitalization and spacing), without making any other UI/layout/styling changes.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-report-form-title-text-the-same-title-field-previously-defined-in-the-report-form-ui-to-exactly-report-by-clicking-photo-gps-leader-image-certificate-complaint-legal-notice-english-ensure-the-updated-title-uses-normal-single-spaces-no-double-spacing-and-do-not-alter-any-other-ui-layout-styling",
+      "title": "Update the existing report form title text (the same title field previously defined in the report form UI) to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (English). Ensure the updated title uses normal single spaces (no double spacing) and do not alter any other UI/layout/styling.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Update report form title text to 'Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice' without altering any UI",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Update report form title text (GPS leader image wording)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

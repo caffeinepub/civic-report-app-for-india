@@ -393,2158 +393,1356 @@ export function ReportForm() {
   useEffect(() => {
     if (directory?.primeMinister) {
       setPmName(directory.primeMinister.name);
-      setPmPhoto(pmPhotoUrl || null);
-    } else {
-      // If no PM in directory, show "Not Available"
-      setPmName('Not Available');
-      setPmPhoto(null);
+      setPmPhoto(directory.primeMinister.photoPath);
     }
-  }, [directory?.primeMinister, pmPhotoUrl]);
+  }, [directory?.primeMinister]);
 
   useEffect(() => {
     if (cmFromDirectory) {
       setCmName(cmFromDirectory.name);
-      setCmPhoto(cmPhotoUrl || null);
-    } else if (locationData.state) {
-      // If state detected but no CM in directory, show "Not Available"
+      setCmPhoto(cmFromDirectory.photoPath);
+    } else {
       setCmName('Not Available');
       setCmPhoto(null);
     }
-  }, [cmFromDirectory, cmPhotoUrl, locationData.state]);
+  }, [cmFromDirectory]);
 
-  // ENHANCED: Update MP data from directory based on improved auto-fetch or show manual selector
+  // Update MP data from directory when auto-fetched
   useEffect(() => {
-    if (mpFromDirectory) {
-      console.log('Setting MP from auto-fetch:', mpFromDirectory.name);
-      setMpData(mpFromDirectory); // Store complete MP data
+    if (mpFromDirectory && !mpAutoFetched) {
       setMpName(mpFromDirectory.name);
-      setMpPhoto(mpPhotoUrl || null);
-      setShowMpSection(true);
-      setShowManualConstituencySelector(false);
-      setSelectedConstituency('');
+      setMpPhoto(mpFromDirectory.photoPath);
+      setMpData(mpFromDirectory);
       setMpAutoFetched(true);
-      // Don't automatically hide dropdown - keep it visible if it was shown
-    } else if (locationData.state && constituenciesByState && constituenciesByState.length > 0) {
-      // No MP found automatically - show manual constituency selector with backend data
-      console.log('No MP auto-match found, showing manual selector with', constituenciesByState.length, 'constituencies');
+      setShowMpSection(true);
+    } else if (!mpFromDirectory && !mpAutoFetched) {
+      // No MP found via auto-fetch, show manual selector
       setShowMpSection(true);
       setShowManualConstituencySelector(true);
-      setMpData(null);
-      setMpName('Not Available');
-      setMpPhoto(null);
-      setMpAutoFetched(false);
-      setShowMpDropdown(false);
-    } else if (locationData.state && constituenciesByState && constituenciesByState.length === 0) {
-      // State detected but no constituencies available
-      console.log('State detected but no constituencies available');
-      setShowMpSection(false);
-      setShowManualConstituencySelector(false);
-      setMpData(null);
-      setMpName('Not Available');
-      setMpPhoto(null);
-      setMpAutoFetched(false);
-      setShowMpDropdown(false);
-    } else {
-      // No state detected yet or still loading
-      setShowMpSection(false);
-      setShowManualConstituencySelector(false);
-      setMpData(null);
-      setMpName('Not Available');
-      setMpPhoto(null);
-      setMpAutoFetched(false);
-      setShowMpDropdown(false);
     }
-  }, [mpFromDirectory, mpPhotoUrl, locationData.state, constituenciesByState]);
+  }, [mpFromDirectory, mpAutoFetched]);
 
-  // ENHANCED: Update MLA data from directory based on auto-fetch or show manual selector
+  // Update MLA data from directory when auto-fetched
   useEffect(() => {
-    if (mlaFromDirectory) {
-      console.log('Setting MLA from auto-fetch:', mlaFromDirectory.name);
+    if (mlaFromDirectory && !mlaAutoFetched) {
       setMlaName(mlaFromDirectory.name);
-      setMlaPhoto(null); // Reset custom photo
-      setMlaPhotoPreview(mlaPhotoUrl || null);
-      setMlaAutoFetched(true);
-      setShowMlaDropdown(false); // Hide dropdown when auto-fetched
-      setSelectedMlaConstituency(''); // Reset manual selection
-      setShowManualMlaSelector(false); // Hide manual selector when auto-fetched
-    } else if (locationData.state && vidhanSabhaConstituenciesByState && vidhanSabhaConstituenciesByState.length > 0) {
-      // No MLA found automatically - show manual constituency selector with backend data
-      console.log('No MLA auto-match found, showing manual selector with', vidhanSabhaConstituenciesByState.length, 'Vidhan Sabha constituencies');
-      setShowManualMlaSelector(true);
-      setMlaName('');
-      setMlaPhoto(null);
       setMlaPhotoPreview(null);
-      setMlaAutoFetched(false);
-      setShowMlaDropdown(false);
-    } else {
-      // No state detected yet or still loading or no constituencies available
-      if (mlaAutoFetched) {
-        // Only reset if previously auto-fetched
-        setMlaName('');
-        setMlaPhoto(null);
-        setMlaPhotoPreview(null);
-        setMlaAutoFetched(false);
-        setShowMlaDropdown(false);
-        setShowManualMlaSelector(false);
-      }
+      setMlaPhoto(null);
+      setMlaAutoFetched(true);
     }
-  }, [mlaFromDirectory, mlaPhotoUrl, locationData.state, vidhanSabhaConstituenciesByState]);
+  }, [mlaFromDirectory, mlaAutoFetched]);
 
-  // FIX: Handle manual constituency selection - Update mpData with complete Representative object
+  // Fetch location on mount and when locationRefreshKey changes
   useEffect(() => {
-    if (selectedConstituency && constituenciesByState && constituenciesByState.length > 0) {
-      const constituency = constituenciesByState.find(c => c.name === selectedConstituency);
-      if (constituency?.mp) {
-        console.log('Manual constituency selected:', selectedConstituency, 'MP:', constituency.mp.name);
-        // CRITICAL FIX: Store the complete MP data object including photoPath
-        setMpData(constituency.mp);
-        setMpName(constituency.mp.name);
-        setMpPhoto(constituency.mp.photoPath || null);
-        setMpAutoFetched(false);
-        // Don't hide dropdown - keep it visible for re-selection
-      } else {
-        setMpData(null);
-        setMpName('Not Available');
-        setMpPhoto(null);
-        setMpAutoFetched(false);
-      }
+    if (shouldFetchLocation && geolocation.latitude && geolocation.longitude) {
+      fetchLocationData(geolocation.latitude, geolocation.longitude);
+      setShouldFetchLocation(false);
     }
-  }, [selectedConstituency, constituenciesByState]);
+  }, [geolocation.latitude, geolocation.longitude, shouldFetchLocation, locationRefreshKey]);
 
-  // Handle manual MLA constituency selection
-  useEffect(() => {
-    if (selectedMlaConstituency && vidhanSabhaConstituenciesByState && vidhanSabhaConstituenciesByState.length > 0) {
-      const constituency = vidhanSabhaConstituenciesByState.find(c => c.name === selectedMlaConstituency);
-      if (constituency?.mlas && constituency.mlas.length > 0) {
-        const mla = constituency.mlas[0]; // Take the first MLA
-        console.log('Manual MLA constituency selected:', selectedMlaConstituency, 'MLA:', mla.name);
-        setMlaName(mla.name);
-        // Get the photo URL from the selected MLA
-        const mlaPhotoPath = mla.photoPath;
-        if (mlaPhotoPath) {
-          setMlaPhotoPreview(mlaPhotoPath);
-        } else {
-          setMlaPhotoPreview(null);
-        }
-        setMlaPhoto(null); // Reset custom photo
-        setMlaAutoFetched(false);
-        // Don't hide dropdown - keep it visible for re-selection
-      } else {
-        setMlaName('');
-        setMlaPhotoPreview(null);
-        setMlaPhoto(null);
-        setMlaAutoFetched(false);
-      }
-    }
-  }, [selectedMlaConstituency, vidhanSabhaConstituenciesByState]);
-
-  // Listen for location refresh trigger from context
-  useEffect(() => {
-    // Only trigger refresh when on homepage
-    if (routerState.location.pathname === '/' && locationRefreshKey > 0) {
-      console.log('Location refresh triggered from navigation - refreshing location');
-      handleRefreshLocation();
-    }
-  }, [locationRefreshKey, routerState.location.pathname]);
-
-  // Create issue categories with translations and distinct icons
-  const issueCategories: IssueCategoryOption[] = [
-    { value: 'pothole', label: t('issue.pothole'), icon: <span className="text-2xl">🕳️</span>, description: t('issue.pothole.desc') },
-    { value: 'garbage', label: t('issue.garbage'), icon: <span className="text-2xl">🗑️</span>, description: t('issue.garbage.desc') },
-    { value: 'streetlight', label: t('issue.streetlight'), icon: <span className="text-2xl">💡</span>, description: t('issue.streetlight.desc') },
-    { value: 'waterlogging', label: t('issue.waterlogging'), icon: <Droplets className="h-8 w-8 text-blue-500" />, description: t('issue.waterlogging.desc') },
-    { value: 'flood', label: t('issue.flood'), icon: <Waves className="h-8 w-8 text-blue-600" />, description: t('issue.flood.desc') },
-    { value: 'illegal_dumping', label: t('issue.illegal_dumping'), icon: <span className="text-2xl">🚯</span>, description: t('issue.illegal_dumping.desc') },
-    { value: 'illegal_parking', label: t('issue.illegal_parking'), icon: <span className="text-2xl">🚗</span>, description: t('issue.illegal_parking.desc') },
-    { value: 'other', label: t('issue.other'), icon: <span className="text-2xl">❓</span>, description: t('issue.other.desc') }
-  ];
-
-  const fetchLocationData = async (latitude: number, longitude: number): Promise<LocationData> => {
+  const fetchLocationData = async (lat: number, lng: number) => {
+    setIsLoadingLocation(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
       );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch location data');
-      }
-      
       const data = await response.json();
-      return data.address || {};
+      
+      if (data.address) {
+        setLocationData(data.address);
+      }
     } catch (error) {
-      console.error('Error fetching location data:', error);
-      return {};
+      console.error('Error fetching location:', error);
+    } finally {
+      setIsLoadingLocation(false);
     }
   };
 
-  // Generate auto-filled notes based on issue category and location
-  const generateAutoFilledNotes = (category: IssueCategory, customType: string, locationData: LocationData, customAddress: string): string => {
-    const issueType = category === 'other' ? customType : issueCategories.find(cat => cat.value === category)?.label || category;
+  const handleRefreshLocation = () => {
+    setShouldFetchLocation(true);
+    setMpAutoFetched(false);
+    setMlaAutoFetched(false);
+    setShowManualConstituencySelector(false);
+    setShowManualMlaSelector(false);
+    setSelectedConstituency('');
+    setSelectedMlaConstituency('');
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMlaPhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setMlaPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMlaPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePmPhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setPmCustomPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPmCustomPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCmPhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCmCustomPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCmCustomPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMpPhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setMpCustomPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMpCustomPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCivicBodyPhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCivicBodyPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCivicBodyPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleManualConstituencySelect = (constituencyName: string) => {
+    setSelectedConstituency(constituencyName);
     
-    let locationDesc = '';
-    if (customAddress.trim()) {
-      locationDesc = customAddress.trim();
-    } else {
-      const addressParts: string[] = [];
-      
-      if (locationData.road) addressParts.push(locationData.road);
-      if (locationData.neighbourhood) addressParts.push(locationData.neighbourhood);
-      else if (locationData.suburb) addressParts.push(locationData.suburb);
-      else if (locationData.village) addressParts.push(locationData.village);
-      
-      if (locationData.city) addressParts.push(locationData.city);
-      else if (locationData.town) addressParts.push(locationData.town);
-      
-      if (locationData.state) addressParts.push(locationData.state);
-      
-      locationDesc = addressParts.length > 0 ? addressParts.join(', ') : 'current location';
-    }
-
-    let description = '';
-    switch (category) {
-      case 'pothole':
-        description = `Reporting a pothole issue at ${locationDesc}. This road damage needs immediate attention for public safety and smooth traffic flow.`;
-        break;
-      case 'garbage':
-        description = `Roadside garbage accumulation reported at ${locationDesc}. This waste disposal issue affects community hygiene and environmental cleanliness.`;
-        break;
-      case 'streetlight':
-        description = `Broken streetlight reported at ${locationDesc}. Non-functioning lighting poses safety risks and needs urgent repair for public security.`;
-        break;
-      case 'waterlogging':
-        description = `Water accumulation issue reported at ${locationDesc}. This waterlogging affects traffic movement and poses health risks to residents.`;
-        break;
-      case 'flood':
-        description = `Flooding reported at ${locationDesc}. This water accumulation in public areas requires immediate drainage and safety measures.`;
-        break;
-      case 'illegal_dumping':
-        description = `Illegal waste dumping reported at ${locationDesc}. Unauthorized disposal affects environmental health and community cleanliness.`;
-        break;
-      case 'illegal_parking':
-        description = `Illegal parking reported at ${locationDesc}. Vehicles in restricted areas obstruct traffic flow and emergency access.`;
-        break;
-      case 'other':
-        if (customType.trim()) {
-          description = `${customType} reported at ${locationDesc}. This civic issue requires attention from local authorities for community improvement.`;
-        } else {
-          description = `Civic issue reported at ${locationDesc}. This matter needs attention from relevant authorities for resolution.`;
+    // Find the MP for this constituency
+    if (directory && locationData.state) {
+      const state = directory.states.find(s => s.name === locationData.state);
+      if (state) {
+        const constituency = state.constituencies.find(c => c.name === constituencyName);
+        if (constituency?.mp) {
+          // FIX: Store the complete MP data object
+          setMpData(constituency.mp);
+          setMpName(constituency.mp.name);
+          setMpPhoto(constituency.mp.photoPath);
+          setShowManualConstituencySelector(false);
         }
-        break;
-      default:
-        description = `Civic issue reported at ${locationDesc}. This matter requires attention from local authorities for community improvement.`;
+      }
     }
-
-    if (description.length > 200) {
-      description = description.substring(0, 197) + '...';
-    }
-
-    return description;
   };
 
-  // Load Leaflet for map modal
-  useEffect(() => {
-    const loadLeaflet = async () => {
+  const handleManualMlaSelect = (constituencyName: string) => {
+    setSelectedMlaConstituency(constituencyName);
+    
+    // Find the MLA for this constituency
+    if (directory && locationData.state) {
+      const state = directory.states.find(s => s.name === locationData.state);
+      if (state) {
+        const constituency = state.constituencies.find(c => c.name === constituencyName);
+        if (constituency?.mlas && constituency.mlas.length > 0) {
+          const mla = constituency.mlas[0];
+          setMlaName(mla.name);
+          setMlaPhotoPreview(null);
+          setMlaPhoto(null);
+          setShowManualMlaSelector(false);
+        }
+      }
+    }
+  };
+
+  const loadLeaflet = () => {
+    return new Promise<void>((resolve, reject) => {
       if (window.L) {
-        setIsMapLoaded(true);
+        resolve();
         return;
       }
 
-      try {
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        cssLink.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-        cssLink.crossOrigin = '';
-        document.head.appendChild(cssLink);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
 
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-        script.crossOrigin = '';
-        
-        await new Promise<void>((resolve) => {
-          script.onload = () => resolve();
-          document.head.appendChild(script);
-        });
-
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {
         setIsMapLoaded(true);
-      } catch (error) {
-        console.error('Error loading Leaflet:', error);
-      }
-    };
-
-    loadLeaflet();
-  }, []);
-
-  // Initialize map modal when opened
-  useEffect(() => {
-    if (showLocationModal && isMapLoaded && mapModalRef.current && !mapInstance) {
-      const currentLat = selectedLocation?.lat || geolocation.latitude || 20.5937;
-      const currentLng = selectedLocation?.lng || geolocation.longitude || 78.9629;
-      
-      const map = window.L.map(mapModalRef.current, {
-        center: [currentLat, currentLng],
-        zoom: 13,
-        zoomControl: true,
-        preferCanvas: true
-      });
-
-      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(map);
-
-      map.on('click', async (e: any) => {
-        const { lat, lng } = e.latlng;
-        console.log('Map clicked - setting custom location:', lat, lng);
-        setSelectedLocation({ lat, lng });
-        setHasCustomLocation(true);
-        
-        map.eachLayer((layer: any) => {
-          if (layer instanceof window.L.Marker) {
-            map.removeLayer(layer);
-          }
-        });
-        
-        const marker = window.L.marker([lat, lng], {
-          icon: window.L.divIcon({
-            html: `
-              <div style="
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                background: #ef4444;
-                border: 3px solid white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-                font-size: 16px;
-              ">
-                📍
-              </div>
-            `,
-            className: 'custom-location-marker',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-          })
-        }).addTo(map);
-
-        setIsLoadingSelectedLocation(true);
-        try {
-          const newLocationData = await fetchLocationData(lat, lng);
-          console.log('Fetched location data for custom location:', newLocationData);
-          setLocationData(newLocationData);
-          
-          const addressParts: string[] = [];
-          
-          if (newLocationData.house_number && newLocationData.road) {
-            addressParts.push(`${newLocationData.house_number} ${newLocationData.road}`);
-          } else if (newLocationData.road) {
-            addressParts.push(newLocationData.road);
-          }
-          
-          if (newLocationData.neighbourhood) {
-            addressParts.push(newLocationData.neighbourhood);
-          } else if (newLocationData.suburb) {
-            addressParts.push(newLocationData.suburb);
-          } else if (newLocationData.village) {
-            addressParts.push(newLocationData.village);
-          }
-          
-          if (newLocationData.city) {
-            addressParts.push(newLocationData.city);
-          } else if (newLocationData.town) {
-            addressParts.push(newLocationData.town);
-          } else if (newLocationData.city_district) {
-            addressParts.push(newLocationData.city_district);
-          }
-          
-          if (newLocationData.county && !addressParts.includes(newLocationData.county)) {
-            addressParts.push(newLocationData.county);
-          } else if (newLocationData.state_district && !addressParts.includes(newLocationData.state_district)) {
-            addressParts.push(newLocationData.state_district);
-          }
-          
-          if (newLocationData.state) {
-            addressParts.push(newLocationData.state);
-          }
-
-          if (addressParts.length > 0) {
-            const newAddress = addressParts.join(', ');
-            console.log('Setting custom address from map selection:', newAddress);
-            setCustomAddress(newAddress);
-          }
-          
-        } catch (error) {
-          console.error('Error fetching location data for selected point:', error);
-        } finally {
-          setIsLoadingSelectedLocation(false);
-        }
-      });
-
-      if (geolocation.latitude && geolocation.longitude && !hasCustomLocation) {
-        window.L.marker([geolocation.latitude, geolocation.longitude], {
-          icon: window.L.divIcon({
-            html: `
-              <div style="
-                width: 25px;
-                height: 25px;
-                border-radius: 50%;
-                background: #3b82f6;
-                border: 2px solid white;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 12px;
-              ">
-                📱
-              </div>
-            `,
-            className: 'current-location-marker',
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          })
-        }).addTo(map);
-      }
-
-      setMapInstance(map);
-    }
-  }, [showLocationModal, isMapLoaded, mapModalRef.current, mapInstance, geolocation.latitude, geolocation.longitude, selectedLocation, hasCustomLocation]);
-
-  // Cleanup map when modal closes
-  useEffect(() => {
-    if (!showLocationModal && mapInstance) {
-      mapInstance.remove();
-      setMapInstance(null);
-    }
-  }, [showLocationModal, mapInstance]);
-
-  // Optimized location and leaders loading
-  useEffect(() => {
-    const loadLocationAndLeaders = async () => {
-      if (shouldFetchLocation && geolocation.latitude && geolocation.longitude && !hasCustomLocation) {
-        setIsLoadingLocation(true);
-        
-        try {
-          const locationDataResult = await fetchLocationData(geolocation.latitude, geolocation.longitude);
-          
-          console.log('Loaded location data from geolocation:', locationDataResult);
-          setLocationData(locationDataResult);
-        } catch (error) {
-          console.error('Error loading location:', error);
-        } finally {
-          setIsLoadingLocation(false);
-          setShouldFetchLocation(false);
-        }
-      }
-    };
-
-    loadLocationAndLeaders();
-  }, [geolocation.latitude, geolocation.longitude, shouldFetchLocation, hasCustomLocation]);
-
-  // Auto-fill notes when location data or issue category changes
-  useEffect(() => {
-    if (locationData && Object.keys(locationData).length > 0) {
-      const autoFilledText = generateAutoFilledNotes(issueCategory, customIssueType, locationData, customAddress);
-      setNotes(autoFilledText);
-    }
-  }, [locationData, issueCategory, customIssueType, customAddress]);
-
-  const handleRefreshLocation = () => {
-    console.log('Refreshing location - resetting custom location state');
-    setShouldFetchLocation(true);
-    setCustomAddress('');
-    setSelectedLocation(null);
-    setHasCustomLocation(false);
-    setSelectedConstituency('');
-    setSelectedMlaConstituency('');
-    setMpData(null); // Reset MP data on location refresh
-  };
-
-  const handleConfirmLocationSelection = async () => {
-    if (!selectedLocation) return;
-    
-    console.log('Confirming custom location selection:', selectedLocation);
-    console.log('Current location data:', locationData);
-    console.log('Current custom address:', customAddress);
-    
-    setHasCustomLocation(true);
-    setShowLocationModal(false);
-    setShouldFetchLocation(false);
-  };
-
-  const formatLocationDisplay = () => {
-    if (isLoadingLocation) {
-      return t('form.location.loading');
-    }
-
-    if (customAddress.trim()) {
-      return customAddress;
-    }
-
-    const addressParts: string[] = [];
-    
-    if (locationData.house_number && locationData.road) {
-      addressParts.push(`${locationData.house_number} ${locationData.road}`);
-    } else if (locationData.road) {
-      addressParts.push(locationData.road);
-    }
-    
-    if (locationData.neighbourhood) {
-      addressParts.push(locationData.neighbourhood);
-    } else if (locationData.suburb) {
-      addressParts.push(locationData.suburb);
-    } else if (locationData.village) {
-      addressParts.push(locationData.village);
-    }
-    
-    if (locationData.city) {
-      addressParts.push(locationData.city);
-    } else if (locationData.town) {
-      addressParts.push(locationData.town);
-    } else if (locationData.city_district) {
-      addressParts.push(locationData.city_district);
-    }
-    
-    if (locationData.county && !addressParts.includes(locationData.county)) {
-      addressParts.push(locationData.county);
-    } else if (locationData.state_district && !addressParts.includes(locationData.state_district)) {
-      addressParts.push(locationData.state_district);
-    }
-    
-    if (locationData.state) {
-      addressParts.push(locationData.state);
-    }
-
-    if (addressParts.length > 0) {
-      return addressParts.join(', ');
-    }
-
-    const lat = selectedLocation?.lat || geolocation.latitude;
-    const lng = selectedLocation?.lng || geolocation.longitude;
-    
-    if (lat && lng) {
-      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
-
-    return 'Location not available';
-  };
-
-  const getCurrentCoordinates = () => {
-    if (hasCustomLocation && selectedLocation) {
-      console.log('Using custom-selected coordinates:', selectedLocation);
-      return { lat: selectedLocation.lat, lng: selectedLocation.lng };
-    }
-    
-    const lat = geolocation.latitude;
-    const lng = geolocation.longitude;
-    console.log('Using geolocation coordinates:', { lat, lng });
-    return { lat, lng };
-  };
-
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleMlaPhotoSelect = (file: File) => {
-    setMlaPhoto(file);
-    const url = URL.createObjectURL(file);
-    setMlaPhotoPreview(url);
-    setMlaAutoFetched(false); // Mark as manually uploaded
-  };
-
-  const handleMlaPhotoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleMlaPhotoSelect(file);
-    }
-  };
-
-  const handlePmPhotoUpload = (file: File) => {
-    console.log('PM photo uploaded:', file.name);
-    setPmCustomPhoto(file);
-    const previewUrl = URL.createObjectURL(file);
-    setPmCustomPhotoPreview(previewUrl);
-  };
-
-  const handleCmPhotoUpload = (file: File) => {
-    console.log('CM photo uploaded:', file.name);
-    setCmCustomPhoto(file);
-    const previewUrl = URL.createObjectURL(file);
-    setCmCustomPhotoPreview(previewUrl);
-  };
-
-  const handleMpPhotoUpload = (file: File) => {
-    console.log('MP photo uploaded:', file.name);
-    setMpCustomPhoto(file);
-    const previewUrl = URL.createObjectURL(file);
-    setMpCustomPhotoPreview(previewUrl);
-  };
-
-  const handlePmFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handlePmPhotoUpload(file);
-    }
-  };
-
-  const handleCmFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleCmPhotoUpload(file);
-    }
-  };
-
-  const handleMpFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleMpPhotoUpload(file);
-    }
-  };
-
-  const handleCivicBodyPhotoSelect = (file: File) => {
-    setCivicBodyPhoto(file);
-    const url = URL.createObjectURL(file);
-    setCivicBodyPhotoPreview(url);
-  };
-
-  const handleCivicBodyPhotoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleCivicBodyPhotoSelect(file);
-    }
-  };
-
-  const getIssueTypeForSubmission = (): string => {
-    if (issueCategory === 'other') {
-      return customIssueType.trim() || 'Other';
-    }
-    const categoryOption = issueCategories.find(cat => cat.value === issueCategory);
-    return categoryOption?.label || 'Unknown';
-  };
-
-  const optimizedUploadFile = async (file: File, path: string): Promise<string> => {
-    try {
-      let fileToUpload = file;
-      if (file.size > 1024 * 1024 && file.type.startsWith('image/')) {
-        fileToUpload = await compressImage(file, 0.8, 1920, 1080);
-      }
-      
-      const result = await uploadFile(path, fileToUpload);
-      return result.path;
-    } catch (error) {
-      console.error(`Failed to upload file to ${path}:`, error);
-      throw error;
-    }
-  };
-
-  const compressImage = async (file: File, quality: number = 0.8, maxWidth: number = 1920, maxHeight: number = 1080): Promise<File> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = document.createElement('img');
-      
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width *= ratio;
-          height *= ratio;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        ctx?.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: file.type,
-              lastModified: Date.now()
-            });
-            resolve(compressedFile);
-          } else {
-            resolve(file);
-          }
-        }, file.type, quality);
+        resolve();
       };
-      
-      img.src = URL.createObjectURL(file);
+      script.onerror = reject;
+      document.head.appendChild(script);
     });
+  };
+
+  const openLocationModal = async () => {
+    setShowLocationModal(true);
+    
+    if (!isMapLoaded) {
+      await loadLeaflet();
+    }
+
+    setTimeout(() => {
+      if (mapModalRef.current && window.L && !mapInstance) {
+        const lat = geolocation.latitude || 20.5937;
+        const lng = geolocation.longitude || 78.9629;
+        
+        const map = window.L.map(mapModalRef.current).setView([lat, lng], 13);
+        
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker = window.L.marker([lat, lng], { draggable: true }).addTo(map);
+        
+        marker.on('dragend', function(e: any) {
+          const position = e.target.getLatLng();
+          setSelectedLocation({ lat: position.lat, lng: position.lng });
+        });
+
+        map.on('click', function(e: any) {
+          const { lat, lng } = e.latlng;
+          marker.setLatLng([lat, lng]);
+          setSelectedLocation({ lat, lng });
+        });
+
+        setMapInstance(map);
+        setSelectedLocation({ lat, lng });
+      }
+    }, 100);
+  };
+
+  const handleLocationConfirm = async () => {
+    if (selectedLocation) {
+      setIsLoadingSelectedLocation(true);
+      await fetchLocationData(selectedLocation.lat, selectedLocation.lng);
+      setHasCustomLocation(true);
+      setIsLoadingSelectedLocation(false);
+      setShowLocationModal(false);
+      setMpAutoFetched(false);
+      setMlaAutoFetched(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    setIsSubmittingReport(true);
-    
     if (!selectedFile) {
-      alert('Please select a photo to upload');
-      setIsSubmittingReport(false);
+      alert('Please select an issue photo');
       return;
     }
 
-    const coordinates = getCurrentCoordinates();
-    if (!coordinates.lat || !coordinates.lng) {
-      alert('Location is required. Please enable location services or select a location on the map.');
-      setIsSubmittingReport(false);
+    if (!geolocation.latitude || !geolocation.longitude) {
+      alert('Location not available. Please enable location services.');
       return;
     }
 
-    if (issueCategory === 'other' && !customIssueType.trim()) {
-      alert('Please specify the custom issue type when "Other" is selected.');
-      setIsSubmittingReport(false);
-      return;
-    }
-
-    const hasMlaName = mlaName.trim().length > 0;
-    const hasMlaPhoto = mlaPhoto !== null || mlaPhotoPreview !== null;
-    
-    if (hasMlaName && !hasMlaPhoto) {
-      alert('Please upload a photo for the MLA or remove the name.');
-      setIsSubmittingReport(false);
-      return;
-    }
-    
-    if (hasMlaPhoto && !hasMlaName) {
-      alert('Please provide the MLA name or remove the photo.');
-      setIsSubmittingReport(false);
-      return;
-    }
+    setIsSubmittingReport(true);
 
     try {
+      // Upload issue photo
       const timestamp = Date.now();
-      
-      const uploadTasks: Array<Promise<string | null>> = [];
-      
-      const fileName = `${issueCategory}-${timestamp}-${selectedFile.name}`;
-      const filePath = `reports/${fileName}`;
-      uploadTasks.push(optimizedUploadFile(selectedFile, filePath));
-      
-      const optionalUploads: Array<Promise<string | null>> = [];
-      
-      // Handle MLA photo upload - only if custom photo was uploaded
-      if (mlaPhoto && hasMlaName) {
-        const mlaFileName = `mla-${timestamp}-${mlaPhoto.name}`;
-        const mlaFilePath = `reports/mla/${mlaFileName}`;
-        optionalUploads.push(optimizedUploadFile(mlaPhoto, mlaFilePath));
-      } else if (mlaAutoFetched && mlaFromDirectory?.photoPath) {
-        // Use auto-fetched photo path
-        optionalUploads.push(Promise.resolve(mlaFromDirectory.photoPath));
-      } else if (selectedMlaConstituency && vidhanSabhaConstituenciesByState) {
-        // Use manually selected MLA photo path
-        const constituency = vidhanSabhaConstituenciesByState.find(c => c.name === selectedMlaConstituency);
-        if (constituency?.mlas && constituency.mlas.length > 0) {
-          optionalUploads.push(Promise.resolve(constituency.mlas[0].photoPath));
-        } else {
-          optionalUploads.push(Promise.resolve(null));
-        }
-      } else {
-        optionalUploads.push(Promise.resolve(null));
+      const issuePhotoPath = `reports/${timestamp}_issue.jpg`;
+      await uploadFile(issuePhotoPath, selectedFile);
+
+      // Upload MLA photo if provided
+      let mlaPhotoPath: string | null = null;
+      if (mlaPhoto) {
+        const mlaPhotoPathTemp = `reports/${timestamp}_mla.jpg`;
+        await uploadFile(mlaPhotoPathTemp, mlaPhoto);
+        mlaPhotoPath = mlaPhotoPathTemp;
+      } else if (mlaFromDirectory?.photoPath) {
+        mlaPhotoPath = mlaFromDirectory.photoPath;
       }
 
+      // Upload PM custom photo if provided
+      let pmPhotoPath: string | null = null;
       if (pmCustomPhoto) {
-        const pmFileName = `pm-custom-${timestamp}-${pmCustomPhoto.name}`;
-        const pmFilePath = `leaders/pm/${pmFileName}`;
-        console.log('Uploading PM custom photo to:', pmFilePath);
-        optionalUploads.push(optimizedUploadFile(pmCustomPhoto, pmFilePath));
-      } else {
-        optionalUploads.push(Promise.resolve(null));
+        const pmPhotoPathTemp = `reports/${timestamp}_pm.jpg`;
+        await uploadFile(pmPhotoPathTemp, pmCustomPhoto);
+        pmPhotoPath = pmPhotoPathTemp;
+      } else if (directory?.primeMinister?.photoPath) {
+        pmPhotoPath = directory.primeMinister.photoPath;
       }
 
+      // Upload CM custom photo if provided
+      let cmPhotoPath: string | null = null;
       if (cmCustomPhoto) {
-        const cmFileName = `cm-custom-${timestamp}-${cmCustomPhoto.name}`;
-        const cmFilePath = `leaders/cm/${cmFileName}`;
-        console.log('Uploading CM custom photo to:', cmFilePath);
-        optionalUploads.push(optimizedUploadFile(cmCustomPhoto, cmFilePath));
-      } else {
-        optionalUploads.push(Promise.resolve(null));
+        const cmPhotoPathTemp = `reports/${timestamp}_cm.jpg`;
+        await uploadFile(cmPhotoPathTemp, cmCustomPhoto);
+        cmPhotoPath = cmPhotoPathTemp;
+      } else if (cmFromDirectory?.photoPath) {
+        cmPhotoPath = cmFromDirectory.photoPath;
       }
 
+      // Upload MP custom photo if provided
+      let mpPhotoPath: string | null = null;
       if (mpCustomPhoto) {
-        const mpFileName = `mp-custom-${timestamp}-${mpCustomPhoto.name}`;
-        const mpFilePath = `leaders/mp/${mpFileName}`;
-        console.log('Uploading MP custom photo to:', mpFilePath);
-        optionalUploads.push(optimizedUploadFile(mpCustomPhoto, mpFilePath));
-      } else {
-        optionalUploads.push(Promise.resolve(null));
+        const mpPhotoPathTemp = `reports/${timestamp}_mp.jpg`;
+        await uploadFile(mpPhotoPathTemp, mpCustomPhoto);
+        mpPhotoPath = mpPhotoPathTemp;
+      } else if (mpFromDirectory?.photoPath) {
+        mpPhotoPath = mpFromDirectory.photoPath;
       }
 
+      // Upload civic body photo if provided
+      let civicBodyPhotoPath: string | undefined = undefined;
       if (civicBodyPhoto) {
-        const civicBodyFileName = `civic-body-${timestamp}-${civicBodyPhoto.name}`;
-        const civicBodyFilePath = `reports/civic-body/${civicBodyFileName}`;
-        console.log('Uploading civic body photo to:', civicBodyFilePath);
-        optionalUploads.push(optimizedUploadFile(civicBodyPhoto, civicBodyFilePath));
-      } else {
-        optionalUploads.push(Promise.resolve(null));
+        const civicBodyPhotoPathTemp = `reports/${timestamp}_civic.jpg`;
+        await uploadFile(civicBodyPhotoPathTemp, civicBodyPhoto);
+        civicBodyPhotoPath = civicBodyPhotoPathTemp;
       }
 
-      const [mainPhotoPath] = await Promise.all([uploadTasks[0]]);
-      const [mlaPhotoPath, pmPhotoPath, cmPhotoPath, mpPhotoPath, civicBodyPhotoPath] = await Promise.all(optionalUploads);
+      // Build address string
+      const addressParts = [
+        locationData.house_number,
+        locationData.road,
+        locationData.neighbourhood,
+        locationData.suburb,
+        locationData.village,
+        locationData.city,
+        locationData.state_district,
+        locationData.state,
+        locationData.postcode
+      ].filter(Boolean);
       
-      const issueType = getIssueTypeForSubmission();
-      
-      const addressToSubmit = customAddress.trim() || null;
-      const stateToSubmit = locationData.state || 'Unknown';
-      const finalCoordinates = getCurrentCoordinates();
-      
-      let pmDataToSubmit: Representative | null = null;
-      let cmDataToSubmit: Representative | null = null;
-      let mpDataToSubmit: Representative | null = null;
-      
-      if (directory?.primeMinister) {
-        pmDataToSubmit = {
-          ...directory.primeMinister,
-          photoPath: pmPhotoPath || directory.primeMinister.photoPath,
-          name: (pmName !== directory.primeMinister.name && pmName !== 'Not Available') ? pmName : directory.primeMinister.name
-        };
-      } else if (pmName !== 'Not Available' || pmPhotoPath) {
-        pmDataToSubmit = {
-          name: pmName !== 'Not Available' ? pmName : 'Prime Minister',
-          photoPath: pmPhotoPath || '',
-          email: '',
-          twitterHandle: '',
-          remarks: '',
-          lastUpdated: BigInt(Date.now() * 1000000),
-          politicalParty: undefined
-        };
-      }
-      
-      if (cmFromDirectory) {
-        cmDataToSubmit = {
-          ...cmFromDirectory,
-          photoPath: cmPhotoPath || cmFromDirectory.photoPath,
-          name: (cmName !== cmFromDirectory.name && cmName !== 'Not Available') ? cmName : cmFromDirectory.name
-        };
-      } else if (cmName !== 'Not Available' || cmPhotoPath) {
-        cmDataToSubmit = {
-          name: cmName !== 'Not Available' ? cmName : 'Chief Minister',
-          photoPath: cmPhotoPath || '',
-          email: '',
-          twitterHandle: '',
-          remarks: '',
-          lastUpdated: BigInt(Date.now() * 1000000),
-          politicalParty: undefined
-        };
-      }
-      
-      // FIX: Use the stored mpData object which contains the complete Representative data
-      if (mpData) {
-        // Use the stored MP data (from auto-fetch or manual selection)
-        mpDataToSubmit = {
-          ...mpData,
-          photoPath: mpPhotoPath || mpData.photoPath, // Use custom photo if uploaded, otherwise use directory photo
-          name: (mpName !== mpData.name && mpName !== 'Not Available') ? mpName : mpData.name
-        };
-        console.log('Using stored mpData for submission:', mpDataToSubmit);
-      } else if (showMpSection && (mpName !== 'Not Available' || mpPhotoPath)) {
-        // Fallback: create MP data from current state
-        mpDataToSubmit = {
-          name: mpName !== 'Not Available' ? mpName : 'Member of Parliament',
-          photoPath: mpPhotoPath || '',
-          email: '',
-          twitterHandle: '',
-          remarks: '',
-          lastUpdated: BigInt(Date.now() * 1000000),
-          politicalParty: undefined
-        };
-        console.log('Using fallback MP data for submission:', mpDataToSubmit);
-      }
-      
-      const pmNameToSubmit = pmDataToSubmit ? pmDataToSubmit.name : null;
-      const cmNameToSubmit = cmDataToSubmit ? cmDataToSubmit.name : null;
-      
-      let localCivicBodyData: LocalCivicBody | null = null;
-      if (civicBodyType && civicBodyName.trim() && civicBodyRepName.trim()) {
-        localCivicBodyData = {
-          bodyType: civicBodyType,
-          bodyName: civicBodyName.trim(),
-          representativeName: civicBodyRepName.trim(),
-          photoPath: civicBodyPhotoPath || undefined
-        };
-      }
-      
-      console.log('=== SUBMISSION DATA DEBUG ===');
-      console.log('Final coordinates to submit:', finalCoordinates);
-      console.log('Has custom location:', hasCustomLocation);
-      console.log('Selected location:', selectedLocation);
-      console.log('Custom address to submit:', addressToSubmit);
-      console.log('PM data to submit:', pmDataToSubmit);
-      console.log('CM data to submit:', cmDataToSubmit);
-      console.log('MP data to submit (FIXED):', mpDataToSubmit);
-      console.log('MP selected via manual constituency:', selectedConstituency);
-      console.log('Stored mpData object:', mpData);
-      console.log('PM photo path to submit:', pmPhotoPath);
-      console.log('CM photo path to submit:', cmPhotoPath);
-      console.log('MP photo path to submit:', mpPhotoPath);
-      console.log('PM name to submit (legacy):', pmNameToSubmit);
-      console.log('CM name to submit (legacy):', cmNameToSubmit);
-      console.log('State to submit:', stateToSubmit);
-      console.log('MLA name to submit:', hasMlaName ? mlaName.trim() : null);
-      console.log('MLA photo path to submit:', mlaPhotoPath);
-      console.log('MLA auto-fetched:', mlaAutoFetched);
-      console.log('MLA selected via manual constituency:', selectedMlaConstituency);
-      console.log('MLA designation to submit: MLA');
-      console.log('Username to submit:', username.trim() || null);
-      console.log('Is approved volunteer:', isApprovedVolunteer);
-      console.log('Local Civic Body data:', localCivicBodyData);
-      console.log('================================');
-      
+      const fullAddress = customAddress || addressParts.join(', ');
+
+      // Prepare PM data
+      const pmDataToSubmit: Representative | null = directory?.primeMinister ? {
+        name: pmName,
+        photoPath: pmPhotoPath || directory.primeMinister.photoPath,
+        email: directory.primeMinister.email,
+        twitterHandle: directory.primeMinister.twitterHandle,
+        remarks: directory.primeMinister.remarks,
+        lastUpdated: directory.primeMinister.lastUpdated,
+        politicalParty: directory.primeMinister.politicalParty
+      } : null;
+
+      // Prepare CM data
+      const cmDataToSubmit: Representative | null = cmFromDirectory ? {
+        name: cmName,
+        photoPath: cmPhotoPath || cmFromDirectory.photoPath,
+        email: cmFromDirectory.email,
+        twitterHandle: cmFromDirectory.twitterHandle,
+        remarks: cmFromDirectory.remarks,
+        lastUpdated: cmFromDirectory.lastUpdated,
+        politicalParty: cmFromDirectory.politicalParty
+      } : null;
+
+      // Prepare MP data - FIX: Use the stored mpData object
+      const mpDataToSubmit: Representative | null = mpData ? {
+        name: mpName,
+        photoPath: mpPhotoPath || mpData.photoPath,
+        email: mpData.email,
+        twitterHandle: mpData.twitterHandle,
+        remarks: mpData.remarks,
+        lastUpdated: mpData.lastUpdated,
+        politicalParty: mpData.politicalParty
+      } : null;
+
+      // Prepare local civic body data
+      const localCivicBodyData: LocalCivicBody | null = civicBodyType && civicBodyName && civicBodyRepName ? {
+        bodyType: civicBodyType,
+        bodyName: civicBodyName,
+        representativeName: civicBodyRepName,
+        photoPath: civicBodyPhotoPath
+      } : null;
+
+      const finalIssueType = issueCategory === 'other' ? customIssueType : issueCategory;
+
       submitReport({
-        photoPath: mainPhotoPath!,
-        latitude: finalCoordinates.lat!,
-        longitude: finalCoordinates.lng!,
-        username: username.trim() || null,
-        notes: notes.trim() || null,
-        issueType,
-        mlaMpName: hasMlaName ? mlaName.trim() : null,
+        photoPath: issuePhotoPath,
+        latitude: selectedLocation?.lat || geolocation.latitude,
+        longitude: selectedLocation?.lng || geolocation.longitude,
+        username: username === 'Anonymous User' ? null : username,
+        notes: notes || null,
+        issueType: finalIssueType,
+        mlaMpName: mlaName || null,
         mlaMpPhotoPath: mlaPhotoPath,
-        pmPhotoPath,
-        cmPhotoPath,
-        pmName: pmNameToSubmit,
-        cmName: cmNameToSubmit,
-        customAddress: addressToSubmit,
-        state: stateToSubmit,
-        mlaMpDesignation: 'MLA',
+        pmPhotoPath: pmPhotoPath,
+        cmPhotoPath: cmPhotoPath,
+        pmName: pmName,
+        cmName: cmName,
+        customAddress: customAddress || null,
+        state: locationData.state || 'Unknown',
+        mlaMpDesignation: mlaConstituencyName || 'MLA',
         pmData: pmDataToSubmit,
         cmData: cmDataToSubmit,
         mpData: mpDataToSubmit,
-        address: addressToSubmit,
+        address: fullAddress,
         localCivicBody: localCivicBodyData
       }, {
         onSuccess: (reportId) => {
-          console.log('=== SUBMISSION SUCCESS ===');
-          console.log('Report submitted successfully with ID:', reportId);
-          console.log('Final coordinates saved:', finalCoordinates);
-          console.log('Custom address saved:', addressToSubmit);
-          console.log('PM data saved:', pmDataToSubmit);
-          console.log('CM data saved:', cmDataToSubmit);
-          console.log('MP data saved (FIXED):', mpDataToSubmit);
-          console.log('MLA name saved:', hasMlaName ? mlaName.trim() : null);
-          console.log('MLA photo path saved:', mlaPhotoPath);
-          console.log('MLA designation saved: MLA');
-          console.log('Username saved:', username.trim() || null);
-          console.log('Local Civic Body saved:', localCivicBodyData);
-          console.log('==========================');
-          
-          setSelectedFile(null);
-          setPreviewUrl(null);
-          setIssueCategory('pothole');
-          setCustomIssueType('');
-          if (isApprovedVolunteer && volunteerProfile?.name) {
-            setUsername(volunteerProfile.name);
-          } else {
-            setUsername('Anonymous User');
-          }
-          setNotes('');
-          setMlaName('');
-          setMlaPhoto(null);
-          setMlaPhotoPreview(null);
-          setMlaAutoFetched(false);
-          setShowMlaDropdown(false);
-          setSelectedMlaConstituency('');
-          setShowManualMlaSelector(false);
-          setCustomAddress('');
-          setPmCustomPhoto(null);
-          setPmCustomPhotoPreview(null);
-          setCmCustomPhoto(null);
-          setCmCustomPhotoPreview(null);
-          setMpCustomPhoto(null);
-          setMpCustomPhotoPreview(null);
-          setSelectedLocation(null);
-          setHasCustomLocation(false);
-          setCivicBodyType('');
-          setCivicBodyName('');
-          setCivicBodyRepName('');
-          setCivicBodyPhoto(null);
-          setCivicBodyPhotoPreview(null);
-          setSelectedConstituency('');
-          setMpData(null); // Reset MP data
-          
-          setPmName(directory?.primeMinister?.name || 'Not Available');
-          setCmName('Not Available');
-          setMpName('Not Available');
-          setPmEditingName(false);
-          setCmEditingName(false);
-          setMpEditingName(false);
-          setShowMpSection(false);
-          setShowManualConstituencySelector(false);
-          setMpAutoFetched(false);
-          setShowMpDropdown(false);
-          
-          if (fileInputRef.current) fileInputRef.current.value = '';
-          if (cameraInputRef.current) cameraInputRef.current.value = '';
-          if (mlaFileInputRef.current) mlaFileInputRef.current.value = '';
-          if (pmFileInputRef.current) pmFileInputRef.current.value = '';
-          if (cmFileInputRef.current) cmFileInputRef.current.value = '';
-          if (mpFileInputRef.current) mpFileInputRef.current.value = '';
-          if (civicBodyFileInputRef.current) civicBodyFileInputRef.current.value = '';
-          
-          setShouldFetchLocation(true);
-          
-          setIsSubmittingReport(false);
-          
-          navigate({ 
-            to: '/report/$reportId',
-            params: { reportId },
-            search: { 
-              submitted: 'true'
-            }
-          });
-          
-          setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }, 100);
+          alert('Report submitted successfully!');
+          navigate({ to: '/dashboard' });
         },
         onError: (error) => {
           console.error('Error submitting report:', error);
-          setIsSubmittingReport(false);
           alert('Failed to submit report. Please try again.');
         }
       });
-      
     } catch (error) {
-      console.error('Error submitting report:', error);
+      console.error('Error uploading files:', error);
+      alert('Failed to upload files. Please try again.');
+    } finally {
       setIsSubmittingReport(false);
-      alert('Failed to submit report. Please try again.');
     }
   };
 
-  const isLoading = isSubmittingReport || isUploading || isSubmitting;
-
-  const getRepresentativeLabel = () => {
-    if (!civicBodyType) return 'Representative Name';
-    const selectedType = civicBodyTypes.find(type => type.value === civicBodyType);
-    return selectedType?.representativeLabel || 'Representative Name';
-  };
-
-  const getCivicBodyNameLabel = () => {
-    if (!civicBodyType) return 'Civic Body Name';
-    const selectedType = civicBodyTypes.find(type => type.value === civicBodyType);
-    if (selectedType?.value === 'Gram Panchayat') return 'Gram Panchayat Name';
-    if (selectedType?.value === 'Municipal Corporation') return 'Municipal Corporation Name';
-    if (selectedType?.value === 'Municipality') return 'Municipality Name';
-    if (selectedType?.value === 'Nagar Panchayat') return 'Nagar Panchayat Name';
-    if (selectedType?.value === 'Zilla Parishad') return 'Zilla Parishad Name';
-    if (selectedType?.value === 'Panchayat Samiti') return 'Panchayat Samiti Name';
-    return 'Civic Body Name';
-  };
-
-  // Fetch MP photo URL when manual constituency is selected
-  const selectedMpPhotoPath = React.useMemo(() => {
-    if (selectedConstituency && constituenciesByState && constituenciesByState.length > 0) {
-      const constituency = constituenciesByState.find(c => c.name === selectedConstituency);
-      return constituency?.mp?.photoPath || '';
+  const issueCategories: IssueCategoryOption[] = [
+    {
+      value: 'pothole',
+      label: 'Pothole',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Road damage or pothole'
+    },
+    {
+      value: 'garbage',
+      label: 'Garbage',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Waste management issue'
+    },
+    {
+      value: 'streetlight',
+      label: 'Street Light',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Non-functional street light'
+    },
+    {
+      value: 'waterlogging',
+      label: 'Waterlogging',
+      icon: <Droplets className="w-5 h-5" />,
+      description: 'Water accumulation'
+    },
+    {
+      value: 'flood',
+      label: 'Flood',
+      icon: <Waves className="w-5 h-5" />,
+      description: 'Flooding situation'
+    },
+    {
+      value: 'illegal_dumping',
+      label: 'Illegal Dumping',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Unauthorized waste disposal'
+    },
+    {
+      value: 'illegal_parking',
+      label: 'Illegal Parking',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Unauthorized vehicle parking'
+    },
+    {
+      value: 'other',
+      label: 'Other',
+      icon: <AlertTriangle className="w-5 h-5" />,
+      description: 'Other civic issue'
     }
-    return '';
-  }, [selectedConstituency, constituenciesByState]);
+  ];
 
-  const { data: selectedMpPhotoUrl } = useFileUrl(selectedMpPhotoPath);
-
-  // Update MP photo when selected constituency photo URL is loaded
-  useEffect(() => {
-    if (selectedConstituency && selectedMpPhotoUrl) {
-      setMpPhoto(selectedMpPhotoUrl);
-    }
-  }, [selectedConstituency, selectedMpPhotoUrl]);
-
-  // Fetch MLA photo URL when manual constituency is selected
-  const selectedMlaPhotoPath = React.useMemo(() => {
-    if (selectedMlaConstituency && vidhanSabhaConstituenciesByState && vidhanSabhaConstituenciesByState.length > 0) {
-      const constituency = vidhanSabhaConstituenciesByState.find(c => c.name === selectedMlaConstituency);
-      if (constituency?.mlas && constituency.mlas.length > 0) {
-        return constituency.mlas[0].photoPath || '';
-      }
-    }
-    return '';
-  }, [selectedMlaConstituency, vidhanSabhaConstituenciesByState]);
-
-  const { data: selectedMlaPhotoUrl } = useFileUrl(selectedMlaPhotoPath);
-
-  // Update MLA photo when selected constituency photo URL is loaded
-  useEffect(() => {
-    if (selectedMlaConstituency && selectedMlaPhotoUrl) {
-      setMlaPhotoPreview(selectedMlaPhotoUrl);
-    }
-  }, [selectedMlaConstituency, selectedMlaPhotoUrl]);
+  const displayAddress = customAddress || [
+    locationData.house_number,
+    locationData.road,
+    locationData.neighbourhood,
+    locationData.suburb,
+    locationData.village,
+    locationData.city,
+    locationData.state_district,
+    locationData.state,
+    locationData.postcode
+  ].filter(Boolean).join(', ');
 
   return (
-    <>
-      <div className="mobile-form-container">
-        <div className="form-header">
-          <h2 className="form-title">Report by clicking Photo & Get Leader-Giotag, Certificate, Complaint & Legal Notice</h2>
-          <p className="form-subtitle">Help improve our India by reporting civic issues</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="mobile-form">
-          {/* Section 1: Issue Category Selection */}
-          <div className="form-section">
-            <div className="section-header">
-              <h3 className="section-title">{t('form.issueType.title')}</h3>
-              <p className="section-description">{t('form.issueType.description')}</p>
-            </div>
-            
-            <div className="category-grid">
-              {issueCategories.map((category) => (
-                <button
-                  key={category.value}
-                  type="button"
-                  onClick={() => setIssueCategory(category.value)}
-                  className={`category-card ${
-                    issueCategory === category.value ? 'category-selected' : 'category-default'
-                  }`}
-                  disabled={isLoading}
-                >
-                  <div className="category-emoji">{category.icon}</div>
-                  <div className="category-label">{category.label}</div>
-                </button>
-              ))}
-            </div>
-            
-            {issueCategories.find(cat => cat.value === issueCategory) && (
-              <div className="category-description">
-                {issueCategories.find(cat => cat.value === issueCategory)?.description}
-              </div>
-            )}
-
-            {issueCategory === 'other' && (
-              <div className="custom-issue-input">
-                <label className="input-label">
-                  {t('form.customIssue.label')}
-                </label>
-                <input
-                  type="text"
-                  value={customIssueType}
-                  onChange={(e) => setCustomIssueType(e.target.value)}
-                  placeholder={t('form.customIssue.placeholder')}
-                  className="text-input"
-                  maxLength={100}
-                  required
-                  disabled={isLoading}
-                />
-                <div className="character-count">
-                  {customIssueType.length}/100 {t('common.characters')}
-                </div>
-              </div>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Report Civic Issue
+            </h1>
+            <p className="text-gray-600 text-sm md:text-base">
+              Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice
+            </p>
           </div>
 
-          {/* Section 2: Photo Upload */}
-          <div className="form-section">
-            <div className="section-header">
-              <h3 className="section-title">{t('form.photo.title')}</h3>
-              <p className="section-description">{t('form.photo.description')}</p>
-            </div>
-            
-            <div className="input-group">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Issue Photo Section */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Issue Photo *
+              </label>
+              
               {previewUrl ? (
-                <div className="issue-photo-preview">
+                <div className="relative">
                   <img
                     src={previewUrl}
-                    alt="Issue Preview"
-                    className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200"
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-lg"
                   />
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedFile(null);
                       setPreviewUrl(null);
-                      if (fileInputRef.current) fileInputRef.current.value = '';
-                      if (cameraInputRef.current) cameraInputRef.current.value = '';
                     }}
-                    className="remove-issue-photo-btn"
-                    disabled={isLoading}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                   >
-                    {t('upload.removePhoto')}
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               ) : (
-                <div className="issue-upload-options-horizontal">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="issue-upload-option-horizontal"
-                    disabled={isLoading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
                   >
-                    <Camera className="h-6 w-6 text-blue-500 mb-2" />
-                    <span className="text-sm font-medium">{t('upload.takePhoto')}</span>
+                    <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                    <span className="text-sm font-medium text-gray-700">Upload Photo</span>
                   </button>
                   
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="issue-upload-option-horizontal"
-                    disabled={isLoading}
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
                   >
-                    <Upload className="h-6 w-6 text-green-500 mb-2" />
-                    <span className="text-sm font-medium">{t('upload.uploadPhoto')}</span>
+                    <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                    <span className="text-sm font-medium text-gray-700">Take Photo</span>
                   </button>
                 </div>
               )}
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
               
               <input
                 ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
-                onChange={handleFileInputChange}
+                onChange={handleCameraCapture}
                 className="hidden"
-                disabled={isLoading}
-              />
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-                disabled={isLoading}
               />
             </div>
-          </div>
 
-          {/* Section 3: Unified Location and Leaders Section */}
-          <div className="form-section">
-            <div className="section-header">
-              <h3 className="section-title">
-                {t('form.location.title')}
-              </h3>
-              <p className="section-description">
-                {t('form.location.description')}
-              </p>
-            </div>
-
-            <div className="current-location-section">
-              <div className="current-location-header">
-                <h4 className="current-location-title">
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                  <span>{t('form.location.current')}</span>
-                </h4>
-              </div>
-
-              <div className="current-location-actions-compact">
-                <button
-                  type="button"
-                  onClick={() => setShowLocationModal(true)}
-                  disabled={isLoading || !isMapLoaded}
-                  className="location-action-button-compact location-action-button-compact-primary"
-                  title="Select location on map"
-                >
-                  <Edit3 className="h-3 w-3" />
-                  <span>Select on Map</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRefreshLocation}
-                  disabled={isLoadingLocation || isLoading}
-                  className="location-action-button-compact location-action-button-compact-secondary"
-                >
-                  <RefreshCw className={`h-3 w-3 ${isLoadingLocation ? 'animate-spin' : ''}`} />
-                  <span>{t('form.location.refresh')}</span>
-                </button>
-              </div>
-
-              <div className="current-location-status">
-                {geolocation.loading && !selectedLocation && (
-                  <div className="location-status-item location-status-loading">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{t('form.location.loading')}</span>
-                  </div>
-                )}
-                
-                {geolocation.error && !selectedLocation && (
-                  <div className="location-status-item location-status-error">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>{t('form.location.error')}</span>
-                  </div>
-                )}
-                
-                {(getCurrentCoordinates().lat && getCurrentCoordinates().lng) && (
-                  <div className="location-status-item location-status-success">
-                    <CheckCircle className="h-4 w-4" />
-                    <div className="location-coordinates">
-                      <span className="coordinates-label">
-                        {hasCustomLocation && selectedLocation ? '📍 Custom location:' : t('form.location.success')}
-                      </span>
-                      <span className="coordinates-value">
-                        {getCurrentCoordinates().lat?.toFixed(6)}, {getCurrentCoordinates().lng?.toFixed(6)}
+            {/* Issue Category */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Issue Category *
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {issueCategories.map((category) => (
+                  <button
+                    key={category.value}
+                    type="button"
+                    onClick={() => setIssueCategory(category.value)}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      issueCategory === category.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center space-y-2">
+                      {category.icon}
+                      <span className="text-sm font-medium text-gray-900">
+                        {category.label}
                       </span>
                     </div>
-                  </div>
-                )}
+                  </button>
+                ))}
               </div>
+              
+              {issueCategory === 'other' && (
+                <input
+                  type="text"
+                  value={customIssueType}
+                  onChange={(e) => setCustomIssueType(e.target.value)}
+                  placeholder="Specify issue type"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              )}
+            </div>
 
-              {(getCurrentCoordinates().lat && getCurrentCoordinates().lng) && (
-                <div className="current-location-address">
-                  <div className="address-label">
-                    <span>{t('form.location.address')}</span>
+            {/* Location Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-lg font-semibold text-gray-900">
+                  Location
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRefreshLocation}
+                    disabled={isLoadingLocation}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isLoadingLocation ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openLocationModal}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Pick on Map
+                  </button>
+                </div>
+              </div>
+              
+              {isLoadingLocation ? (
+                <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-600">Loading location...</span>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      {isEditingAddress ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={customAddress}
+                            onChange={(e) => setCustomAddress(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows={3}
+                            placeholder="Enter custom address"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsEditingAddress(false)}
+                              className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                            >
+                              <Check className="w-4 h-4" />
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomAddress('');
+                                setIsEditingAddress(false);
+                              }}
+                              className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm text-gray-700 flex-1">
+                            {displayAddress || 'Location not available'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingAddress(true)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex-shrink-0"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            Edit
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="address-content">
-                    {isEditingAddress ? (
-                      <input
-                        type="text"
-                        value={customAddress}
-                        onChange={(e) => {
-                          console.log('Address being edited:', e.target.value);
-                          setCustomAddress(e.target.value);
-                        }}
-                        className="address-edit-input"
-                        onBlur={() => setIsEditingAddress(false)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            setIsEditingAddress(false);
-                          }
-                        }}
-                        autoFocus
-                        placeholder={formatLocationDisplay()}
-                        disabled={isLoading}
-                      />
-                    ) : (
-                      <div className="address-display">
-                        <span className="address-text">
-                          {formatLocationDisplay()}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!customAddress.trim()) {
-                              const currentDisplay = formatLocationDisplay();
-                              console.log('Setting custom address from current display:', currentDisplay);
-                              setCustomAddress(currentDisplay);
-                            }
-                            setIsEditingAddress(true);
-                          }}
-                          className="address-edit-button"
-                          disabled={isLoading}
-                          title="Edit address"
-                        >
-                          <Edit3 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  {hasCustomLocation && (
+                    <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
+                      <CheckCircle className="w-3 h-3" />
+                      Custom location selected
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {(getCurrentCoordinates().lat && getCurrentCoordinates().lng && !isLoadingLocation && !isLoadingDirectory) && (
-              <div className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Prime Minister Section */}
-                  <div className="leader-card">
-                    <div className="leader-header">
-                      <User className="h-5 w-5 text-blue-600" />
-                      <h5 className="text-base font-semibold text-gray-900">{t('common.primeMinister')}</h5>
-                    </div>
+            {/* Username */}
+            <div className="space-y-2">
+              <label className="block text-lg font-semibold text-gray-900">
+                Your Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your name"
+                  disabled={isApprovedVolunteer}
+                />
+              </div>
+              {isApprovedVolunteer && (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <Award className="w-4 h-4" />
+                  <span>Verified Volunteer</span>
+                </div>
+              )}
+            </div>
 
-                    <div className="leader-photo-container">
-                      <div className="relative">
-                        {pmCustomPhotoPreview ? (
-                          <img
-                            src={pmCustomPhotoPreview}
-                            alt="Prime Minister"
-                            className="leader-photo"
-                          />
-                        ) : pmPhoto ? (
-                          <img
-                            src={pmPhoto}
-                            alt="Prime Minister"
-                            className="leader-photo"
-                          />
-                        ) : (
-                          <div className="leader-photo-placeholder">
-                            <User className="h-8 w-8 text-gray-400" />
-                            <span className="text-gray-500 text-xs">Not Available</span>
-                          </div>
-                        )}
-                        
-                        <button
-                          type="button"
-                          onClick={() => pmFileInputRef.current?.click()}
-                          className="absolute -top-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-full shadow-md transition-colors"
-                          disabled={isLoading}
-                          title="Upload custom photo"
-                        >
-                          <ImageIcon className="h-3 w-3" />
-                        </button>
-                        
-                        {pmCustomPhotoPreview && (
-                          <div className="custom-photo-badge">
-                            <span className="text-xs font-medium">Custom</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="block text-lg font-semibold text-gray-900">
+                Additional Notes
+              </label>
+              <div className="relative">
+                <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                  placeholder="Describe the issue in detail..."
+                />
+              </div>
+            </div>
 
-                    <div className="leader-name-section">
-                      {pmEditingName ? (
-                        <div className="name-edit-container">
-                          <input
-                            type="text"
-                            value={pmName}
-                            onChange={(e) => {
-                              console.log('PM name being edited:', e.target.value);
-                              setPmName(e.target.value);
-                            }}
-                            className="name-edit-input"
-                            onBlur={() => setPmEditingName(false)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                setPmEditingName(false);
-                              }
-                            }}
-                            autoFocus
-                            disabled={isLoading}
-                          />
-                        </div>
-                      ) : (
-                        <div className="name-display-container">
-                          <h6 className="leader-name text-sm">{pmName}</h6>
-                          <button
-                            type="button"
-                            onClick={() => setPmEditingName(true)}
-                            className="name-edit-button"
-                            disabled={isLoading}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <input
-                      ref={pmFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePmFileInputChange}
-                      className="hidden"
-                      disabled={isLoading}
+            {/* Prime Minister Section */}
+            <div className="space-y-4 p-6 bg-gradient-to-r from-orange-50 to-white rounded-lg border border-orange-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Prime Minister</h3>
+                {pmEditingName && (
+                  <button
+                    type="button"
+                    onClick={() => setPmEditingName(false)}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    Done
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {pmCustomPhotoPreview || pmPhotoUrl ? (
+                    <img
+                      src={pmCustomPhotoPreview || pmPhotoUrl || ''}
+                      alt="PM"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-orange-300"
                     />
-                  </div>
-
-                  {/* Chief Minister Section */}
-                  <div className="leader-card">
-                    <div className="leader-header">
-                      <User className="h-5 w-5 text-green-600" />
-                      <h5 className="text-base font-semibold text-gray-900">{t('common.chiefMinister')}</h5>
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center border-2 border-orange-300">
+                      <User className="w-10 h-10 text-orange-400" />
                     </div>
-
-                    <div className="leader-photo-container">
-                      <div className="relative">
-                        {cmCustomPhotoPreview ? (
-                          <img
-                            src={cmCustomPhotoPreview}
-                            alt="Chief Minister"
-                            className="leader-photo"
-                          />
-                        ) : cmPhoto ? (
-                          <img
-                            src={cmPhoto}
-                            alt="Chief Minister"
-                            className="leader-photo"
-                          />
-                        ) : (
-                          <div className="leader-photo-placeholder">
-                            <User className="h-8 w-8 text-gray-400" />
-                            <span className="text-gray-500 text-xs">Not Available</span>
-                          </div>
-                        )}
-                        
-                        <button
-                          type="button"
-                          onClick={() => cmFileInputRef.current?.click()}
-                          className="absolute -top-1 -right-1 bg-green-500 hover:bg-green-600 text-white p-1 rounded-full shadow-md transition-colors"
-                          disabled={isLoading}
-                          title="Upload custom photo"
-                        >
-                          <ImageIcon className="h-3 w-3" />
-                        </button>
-                        
-                        {cmCustomPhotoPreview && (
-                          <div className="custom-photo-badge">
-                            <span className="text-xs font-medium">Custom</span>
-                          </div>
-                        )}
-                      </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => pmFileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 bg-orange-500 text-white p-1.5 rounded-full hover:bg-orange-600 transition-colors"
+                  >
+                    <Camera className="w-3 h-3" />
+                  </button>
+                  <input
+                    ref={pmFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePmPhotoSelect}
+                    className="hidden"
+                  />
+                </div>
+                
+                <div className="flex-1">
+                  {pmEditingName ? (
+                    <input
+                      type="text"
+                      value={pmName}
+                      onChange={(e) => setPmName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="PM Name"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">{pmName}</p>
+                      <button
+                        type="button"
+                        onClick={() => setPmEditingName(true)}
+                        className="text-orange-600 hover:text-orange-700"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
                     </div>
+                  )}
+                  <p className="text-sm text-gray-600">Prime Minister of India</p>
+                </div>
+              </div>
+            </div>
 
-                    <div className="leader-name-section">
-                      {cmEditingName ? (
-                        <div className="name-edit-container">
-                          <input
-                            type="text"
-                            value={cmName}
-                            onChange={(e) => {
-                              console.log('CM name being edited:', e.target.value);
-                              setCmName(e.target.value);
-                            }}
-                            className="name-edit-input"
-                            onBlur={() => setCmEditingName(false)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                setCmEditingName(false);
-                              }
-                            }}
-                            autoFocus
-                            disabled={isLoading}
-                          />
-                        </div>
-                      ) : (
-                        <div className="name-display-container">
-                          <h6 className="leader-name text-sm">{cmName}</h6>
-                          <button
-                            type="button"
-                            onClick={() => setCmEditingName(true)}
-                            className="name-edit-button"
-                            disabled={isLoading}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* State label for CM - KEPT */}
-                    {locationData.state && cmName !== 'Not Available' && (
-                      <div className="mt-2 px-2 py-1 bg-green-50/50 backdrop-blur-sm border border-green-200/50 rounded-md">
-                        <p className="text-xs text-green-700 font-medium">State: {locationData.state}</p>
+            {/* Chief Minister Section */}
+            {locationData.state && (
+              <div className="space-y-4 p-6 bg-gradient-to-r from-green-50 to-white rounded-lg border border-green-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">Chief Minister</h3>
+                  {cmEditingName && (
+                    <button
+                      type="button"
+                      onClick={() => setCmEditingName(false)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Done
+                    </button>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    {cmCustomPhotoPreview || cmPhotoUrl ? (
+                      <img
+                        src={cmCustomPhotoPreview || cmPhotoUrl || ''}
+                        alt="CM"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-green-300"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center border-2 border-green-300">
+                        <User className="w-10 h-10 text-green-400" />
                       </div>
                     )}
-
+                    <button
+                      type="button"
+                      onClick={() => cmFileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 bg-green-500 text-white p-1.5 rounded-full hover:bg-green-600 transition-colors"
+                    >
+                      <Camera className="w-3 h-3" />
+                    </button>
                     <input
                       ref={cmFileInputRef}
                       type="file"
                       accept="image/*"
-                      onChange={handleCmFileInputChange}
+                      onChange={handleCmPhotoSelect}
                       className="hidden"
-                      disabled={isLoading}
                     />
                   </div>
-
-                  {/* MP Section - Shows manual constituency selector when auto-fetch fails OR contextual button when auto-fetched */}
-                  {showMpSection && (
-                    <div className="leader-card">
-                      <div className="leader-header">
-                        <User className="h-5 w-5 text-purple-600" />
-                        <h5 className="text-base font-semibold text-gray-900">Member of Parliament (MP)</h5>
+                  
+                  <div className="flex-1">
+                    {cmEditingName ? (
+                      <input
+                        type="text"
+                        value={cmName}
+                        onChange={(e) => setCmName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="CM Name"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900">{cmName}</p>
+                        <button
+                          type="button"
+                          onClick={() => setCmEditingName(true)}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
                       </div>
+                    )}
+                    <p className="text-sm text-gray-600">Chief Minister of {locationData.state}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                      {/* Contextual button remains visible even after manual selection */}
-                      {(mpAutoFetched || selectedConstituency) && (
-                        <div className="mb-3">
-                          <button
-                            type="button"
-                            onClick={() => setShowMpDropdown(!showMpDropdown)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                            disabled={isLoading}
-                          >
-                            <span>MP incorrect? Select from list</span>
-                            <ChevronDown className={`h-3 w-3 transition-transform ${showMpDropdown ? 'rotate-180' : ''}`} />
-                          </button>
-                        </div>
-                      )}
+            {/* MP Section */}
+            {showMpSection && locationData.state && (
+              <div className="space-y-4 p-6 bg-gradient-to-r from-blue-50 to-white rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">Member of Parliament (MP)</h3>
+                  {mpEditingName && (
+                    <button
+                      type="button"
+                      onClick={() => setMpEditingName(false)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Done
+                    </button>
+                  )}
+                </div>
 
-                      {/* Show dropdown when manual selector is needed OR when user clicks the contextual button */}
-                      {(showManualConstituencySelector || showMpDropdown) && (
-                        <div className="mb-4 space-y-2">
-                          <label className="input-label text-sm font-medium text-gray-700">
-                            Select Lok Sabha Constituency
-                          </label>
+                {showManualConstituencySelector ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Select your Lok Sabha constituency to auto-fill MP details:
+                    </p>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowMpDropdown(!showMpDropdown)}
+                        className="w-full px-4 py-3 text-left border border-gray-300 rounded-lg hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex items-center justify-between"
+                      >
+                        <span className={selectedConstituency ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedConstituency || 'Select Lok Sabha Constituency'}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showMpDropdown ? 'transform rotate-180' : ''}`} />
+                      </button>
+                      
+                      {showMpDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                           {isLoadingConstituencies ? (
-                            <div className="flex items-center justify-center py-3">
-                              <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
-                              <span className="ml-2 text-sm text-gray-600">Loading constituencies...</span>
+                            <div className="p-4 text-center text-gray-500">
+                              <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                              Loading constituencies...
                             </div>
                           ) : constituenciesByState && constituenciesByState.length > 0 ? (
-                            <>
-                              <select
-                                value={selectedConstituency}
-                                onChange={(e) => {
-                                  setSelectedConstituency(e.target.value);
-                                  // Don't hide dropdown - keep it visible for re-selection
+                            constituenciesByState.map((constituency) => (
+                              <button
+                                key={constituency.name}
+                                type="button"
+                                onClick={() => {
+                                  handleManualConstituencySelect(constituency.name);
+                                  setShowMpDropdown(false);
                                 }}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                disabled={isLoading}
+                                className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
                               >
-                                <option value="">Choose a constituency...</option>
-                                {constituenciesByState.map((constituency) => (
-                                  <option key={constituency.name} value={constituency.name}>
-                                    {constituency.name} {constituency.mp ? `- ${constituency.mp.name}` : ''}
-                                  </option>
-                                ))}
-                              </select>
-                              {showManualConstituencySelector && !mpAutoFetched && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                  No MP found automatically. Please select your constituency manually.
-                                </p>
-                              )}
-                            </>
+                                <div className="font-medium text-gray-900">{constituency.name}</div>
+                                {constituency.mp && (
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    MP: {constituency.mp.name}
+                                  </div>
+                                )}
+                              </button>
+                            ))
                           ) : (
-                            <p className="text-xs text-red-500 mt-1">
-                              No MPs available for this state.
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="leader-photo-container">
-                        <div className="relative">
-                          {mpCustomPhotoPreview ? (
-                            <img
-                              src={mpCustomPhotoPreview}
-                              alt="Member of Parliament"
-                              className="leader-photo"
-                            />
-                          ) : mpPhoto ? (
-                            <img
-                              src={mpPhoto}
-                              alt="Member of Parliament"
-                              className="leader-photo"
-                            />
-                          ) : (
-                            <div className="leader-photo-placeholder">
-                              <User className="h-8 w-8 text-gray-400" />
-                              <span className="text-gray-500 text-xs">Not Available</span>
-                            </div>
-                          )}
-                          
-                          <button
-                            type="button"
-                            onClick={() => mpFileInputRef.current?.click()}
-                            className="absolute -top-1 -right-1 bg-purple-500 hover:bg-purple-600 text-white p-1 rounded-full shadow-md transition-colors"
-                            disabled={isLoading}
-                            title="Upload custom photo"
-                          >
-                            <ImageIcon className="h-3 w-3" />
-                          </button>
-                          
-                          {mpCustomPhotoPreview && (
-                            <div className="custom-photo-badge">
-                              <span className="text-xs font-medium">Custom</span>
+                            <div className="p-4 text-center text-gray-500">
+                              No constituencies found for {locationData.state}
                             </div>
                           )}
                         </div>
-                      </div>
-
-                      <div className="leader-name-section">
-                        {mpEditingName ? (
-                          <div className="name-edit-container">
-                            <input
-                              type="text"
-                              value={mpName}
-                              onChange={(e) => {
-                                console.log('MP name being edited:', e.target.value);
-                                setMpName(e.target.value);
-                              }}
-                              className="name-edit-input"
-                              onBlur={() => setMpEditingName(false)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  setMpEditingName(false);
-                                }
-                              }}
-                              autoFocus
-                              disabled={isLoading}
-                            />
-                          </div>
-                        ) : (
-                          <div className="name-display-container">
-                            <h6 className="leader-name text-sm">{mpName}</h6>
-                            <button
-                              type="button"
-                              onClick={() => setMpEditingName(true)}
-                              className="name-edit-button"
-                              disabled={isLoading}
-                            >
-                              <Edit3 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Constituency label for MP - STATE REMOVED */}
-                      {mpConstituencyName && mpName !== 'Not Available' && (
-                        <div className="mt-2">
-                          <div className="px-2 py-1 bg-purple-50/50 backdrop-blur-sm border border-purple-200/50 rounded-md">
-                            <p className="text-xs text-purple-700 font-medium">Constituency: {mpConstituencyName}</p>
-                          </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      {mpCustomPhotoPreview || mpPhotoUrl ? (
+                        <img
+                          src={mpCustomPhotoPreview || mpPhotoUrl || ''}
+                          alt="MP"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-blue-300"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center border-2 border-blue-300">
+                          <User className="w-10 h-10 text-blue-400" />
                         </div>
                       )}
-
+                      <button
+                        type="button"
+                        onClick={() => mpFileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors"
+                      >
+                        <Camera className="w-3 h-3" />
+                      </button>
                       <input
                         ref={mpFileInputRef}
                         type="file"
                         accept="image/*"
-                        onChange={handleMpFileInputChange}
+                        onChange={handleMpPhotoSelect}
                         className="hidden"
-                        disabled={isLoading}
                       />
                     </div>
-                  )}
-                </div>
+                    
+                    <div className="flex-1">
+                      {mpEditingName ? (
+                        <input
+                          type="text"
+                          value={mpName}
+                          onChange={(e) => setMpName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="MP Name"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-gray-900">{mpName}</p>
+                          <button
+                            type="button"
+                            onClick={() => setMpEditingName(true)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-600">
+                        {mpConstituencyName ? `MP - ${mpConstituencyName}` : 'Member of Parliament'}
+                      </p>
+                      {mpAutoFetched && (
+                        <div className="flex items-center gap-1 text-xs text-blue-600 mt-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Auto-detected from location
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* MLA Information Section - Now with dynamic layout based on auto-fetch status */}
-            <div className="mt-6">
-              <div className="leader-card">
-                <div className="leader-header">
-                  <UserCheck className="h-5 w-5 text-blue-600" />
-                  <h5 className="text-base font-semibold text-gray-900">
+            {/* MLA Section */}
+            {locationData.state && (
+              <div className="space-y-4 p-6 bg-gradient-to-r from-purple-50 to-white rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     Member of Legislative Assembly (MLA)
-                  </h5>
-                </div>
-
-                {/* Contextual button for MLA - mirrors MP flow */}
-                {(mlaAutoFetched || selectedMlaConstituency) && (
-                  <div className="mb-3">
+                  </h3>
+                  {mlaEditingName && (
                     <button
                       type="button"
-                      onClick={() => setShowMlaDropdown(!showMlaDropdown)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                      disabled={isLoading}
+                      onClick={() => setMlaEditingName(false)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
                     >
-                      <span>MLA incorrect? Select from list</span>
-                      <ChevronDown className={`h-3 w-3 transition-transform ${showMlaDropdown ? 'rotate-180' : ''}`} />
+                      Done
                     </button>
-                  </div>
-                )}
-
-                {/* Show dropdown when manual selector is needed OR when user clicks the contextual button */}
-                {(showManualMlaSelector || showMlaDropdown) && (
-                  <div className="mb-4 space-y-2">
-                    <label className="input-label text-sm font-medium text-gray-700">
-                      Select Vidhan Sabha Constituency
-                    </label>
-                    {isLoadingVidhanSabhaConstituencies ? (
-                      <div className="flex items-center justify-center py-3">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                        <span className="ml-2 text-sm text-gray-600">Loading constituencies...</span>
-                      </div>
-                    ) : vidhanSabhaConstituenciesByState && vidhanSabhaConstituenciesByState.length > 0 ? (
-                      <>
-                        <select
-                          value={selectedMlaConstituency}
-                          onChange={(e) => {
-                            setSelectedMlaConstituency(e.target.value);
-                            // Don't hide dropdown - keep it visible for re-selection
-                          }}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          disabled={isLoading}
-                        >
-                          <option value="">Choose a constituency...</option>
-                          {vidhanSabhaConstituenciesByState.map((constituency) => (
-                            <option key={constituency.name} value={constituency.name}>
-                              {constituency.name} {constituency.mlas && constituency.mlas.length > 0 ? `- ${constituency.mlas[0].name}` : ''}
-                            </option>
-                          ))}
-                        </select>
-                        {showManualMlaSelector && !mlaAutoFetched && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            No MLA found automatically. Please select your constituency manually.
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="text-xs text-red-500 mt-1">
-                        No MLAs available for this state.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* MLA Photo and Name Display */}
-                <div className="leader-photo-container">
-                  <div className="relative">
-                    {mlaPhotoPreview ? (
-                      <img
-                        src={mlaPhotoPreview}
-                        alt="MLA"
-                        className="leader-photo"
-                      />
-                    ) : (
-                      <div className="leader-photo-placeholder">
-                        <User className="h-8 w-8 text-gray-400" />
-                        <span className="text-gray-500 text-xs">Not Available</span>
-                      </div>
-                    )}
-                    
-                    <button
-                      type="button"
-                      onClick={() => mlaFileInputRef.current?.click()}
-                      className="absolute -top-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-full shadow-md transition-colors"
-                      disabled={isLoading}
-                      title="Upload custom photo"
-                    >
-                      <ImageIcon className="h-3 w-3" />
-                    </button>
-                    
-                    {mlaPhoto && (
-                      <div className="custom-photo-badge">
-                        <span className="text-xs font-medium">Custom</span>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                <div className="leader-name-section">
-                  {mlaEditingName ? (
-                    <div className="name-edit-container">
-                      <input
-                        type="text"
-                        value={mlaName}
-                        onChange={(e) => {
-                          setMlaName(e.target.value);
-                          setMlaAutoFetched(false);
-                        }}
-                        className="name-edit-input"
-                        onBlur={() => setMlaEditingName(false)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            setMlaEditingName(false);
-                          }
-                        }}
-                        autoFocus
-                        disabled={isLoading}
-                      />
-                    </div>
-                  ) : (
-                    <div className="name-display-container">
-                      <h6 className="leader-name text-sm">{mlaName || 'Not Available'}</h6>
+                {showManualMlaSelector ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Select your Vidhan Sabha constituency to auto-fill MLA details:
+                    </p>
+                    <div className="relative">
                       <button
                         type="button"
-                        onClick={() => setMlaEditingName(true)}
-                        className="name-edit-button"
-                        disabled={isLoading}
+                        onClick={() => setShowMlaDropdown(!showMlaDropdown)}
+                        className="w-full px-4 py-3 text-left border border-gray-300 rounded-lg hover:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent flex items-center justify-between"
                       >
-                        <Edit3 className="h-3 w-3" />
+                        <span className={selectedMlaConstituency ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedMlaConstituency || 'Select Vidhan Sabha Constituency'}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showMlaDropdown ? 'transform rotate-180' : ''}`} />
                       </button>
+                      
+                      {showMlaDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {isLoadingVidhanSabhaConstituencies ? (
+                            <div className="p-4 text-center text-gray-500">
+                              <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                              Loading constituencies...
+                            </div>
+                          ) : vidhanSabhaConstituenciesByState && vidhanSabhaConstituenciesByState.length > 0 ? (
+                            vidhanSabhaConstituenciesByState.map((constituency) => (
+                              <button
+                                key={constituency.name}
+                                type="button"
+                                onClick={() => {
+                                  handleManualMlaSelect(constituency.name);
+                                  setShowMlaDropdown(false);
+                                }}
+                                className="w-full px-4 py-3 text-left hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="font-medium text-gray-900">{constituency.name}</div>
+                                {constituency.mlas && constituency.mlas.length > 0 && (
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    MLA: {constituency.mlas[0].name}
+                                  </div>
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="p-4 text-center text-gray-500">
+                              No Vidhan Sabha constituencies found for {locationData.state}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => setShowManualMlaSelector(false)}
+                      className="text-sm text-purple-600 hover:text-purple-700"
+                    >
+                      Or enter manually
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        {mlaPhotoPreview || mlaPhotoUrl ? (
+                          <img
+                            src={mlaPhotoPreview || mlaPhotoUrl || ''}
+                            alt="MLA"
+                            className="w-20 h-20 rounded-full object-cover border-2 border-purple-300"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center border-2 border-purple-300">
+                            <User className="w-10 h-10 text-purple-400" />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => mlaFileInputRef.current?.click()}
+                          className="absolute bottom-0 right-0 bg-purple-500 text-white p-1.5 rounded-full hover:bg-purple-600 transition-colors"
+                        >
+                          <Camera className="w-3 h-3" />
+                        </button>
+                        <input
+                          ref={mlaFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleMlaPhotoSelect}
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      <div className="flex-1">
+                        {mlaEditingName ? (
+                          <input
+                            type="text"
+                            value={mlaName}
+                            onChange={(e) => setMlaName(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="MLA Name"
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{mlaName || 'Not Available'}</p>
+                            <button
+                              type="button"
+                              onClick={() => setMlaEditingName(true)}
+                              className="text-purple-600 hover:text-purple-700"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        <p className="text-sm text-gray-600">
+                          {mlaConstituencyName ? `MLA - ${mlaConstituencyName}` : 'Member of Legislative Assembly'}
+                        </p>
+                        {mlaAutoFetched && (
+                          <div className="flex items-center gap-1 text-xs text-purple-600 mt-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Auto-detected from location
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {!mlaAutoFetched && (
+                      <button
+                        type="button"
+                        onClick={() => setShowManualMlaSelector(true)}
+                        className="text-sm text-purple-600 hover:text-purple-700"
+                      >
+                        Select from Vidhan Sabha constituencies
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Local Civic Body Section */}
+            <div className="space-y-4 p-6 bg-gradient-to-r from-yellow-50 to-white rounded-lg border border-yellow-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-yellow-600" />
+                Local Civic Body (Optional)
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Civic Body Type
+                  </label>
+                  <select
+                    value={civicBodyType}
+                    onChange={(e) => setCivicBodyType(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  >
+                    <option value="">Select Civic Body Type</option>
+                    {civicBodyTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Constituency label for MLA - STATE REMOVED */}
-                {mlaConstituencyName && mlaName && (
-                  <div className="mt-2">
-                    <div className="px-2 py-1 bg-blue-50/50 backdrop-blur-sm border border-blue-200/50 rounded-md">
-                      <p className="text-xs text-blue-700 font-medium">Constituency: {mlaConstituencyName}</p>
+                {civicBodyType && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Civic Body Name
+                      </label>
+                      <input
+                        type="text"
+                        value={civicBodyName}
+                        onChange={(e) => setCivicBodyName(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                        placeholder={`Enter ${civicBodyType} name`}
+                      />
                     </div>
-                  </div>
-                )}
 
-                <input
-                  ref={mlaFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleMlaPhotoInputChange}
-                  className="hidden"
-                  disabled={isLoading}
-                />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {civicBodyTypes.find(t => t.value === civicBodyType)?.representativeLabel || 'Representative Name'}
+                      </label>
+                      <input
+                        type="text"
+                        value={civicBodyRepName}
+                        onChange={(e) => setCivicBodyRepName(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                        placeholder="Enter representative name"
+                      />
+                    </div>
 
-                {!mlaAutoFetched && !selectedMlaConstituency && !mlaName && !showManualMlaSelector && (
-                  <p className="text-xs text-gray-600 mt-2">
-                    MLA information is optional. You can manually enter the name and upload a photo, or select from the list above.
-                  </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Representative Photo (Optional)
+                      </label>
+                      <div className="flex items-center gap-4">
+                        {civicBodyPhotoPreview ? (
+                          <div className="relative">
+                            <img
+                              src={civicBodyPhotoPreview}
+                              alt="Civic Body Representative"
+                              className="w-20 h-20 rounded-full object-cover border-2 border-yellow-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCivicBodyPhoto(null);
+                                setCivicBodyPhotoPreview(null);
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => civicBodyFileInputRef.current?.click()}
+                            className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all"
+                          >
+                            <ImageIcon className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm text-gray-600">Upload Photo</span>
+                          </button>
+                        )}
+                        <input
+                          ref={civicBodyFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCivicBodyPhotoSelect}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* Local Civic Bodies Section */}
-            <div className="leader-card mt-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Building2 className="h-5 w-5 text-purple-600" />
-                <h4 className="text-base font-semibold text-gray-900">
-                  Local Civic Bodies (Optional)
-                </h4>
-              </div>
-              
-              <p className="text-xs text-gray-600 mb-4">
-                Include your local civic body representative information.
-              </p>
-
-              <div className="input-group mb-4">
-                <label className="input-label text-sm">
-                  Civic Body Type
-                </label>
-                <select
-                  value={civicBodyType}
-                  onChange={(e) => {
-                    setCivicBodyType(e.target.value);
-                    setCivicBodyName('');
-                    setCivicBodyRepName('');
-                    setCivicBodyPhoto(null);
-                    setCivicBodyPhotoPreview(null);
-                  }}
-                  className="text-input text-sm"
-                  disabled={isLoading}
-                >
-                  <option value="">Select Civic Body Type</option>
-                  {civicBodyTypes.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {civicBodyType && (
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting || isUploading || isSubmittingReport || !selectedFile}
+              className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {(isSubmitting || isUploading || isSubmittingReport) ? (
                 <>
-                  <div className="input-group mb-4">
-                    <label className="input-label text-sm">
-                      {getCivicBodyNameLabel()}
-                    </label>
-                    <input
-                      type="text"
-                      value={civicBodyName}
-                      onChange={(e) => setCivicBodyName(e.target.value)}
-                      placeholder={`Enter ${getCivicBodyNameLabel().toLowerCase()}`}
-                      className="text-input text-sm"
-                      maxLength={100}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="input-group mb-4">
-                    <label className="input-label text-sm">
-                      {getRepresentativeLabel()}
-                    </label>
-                    <input
-                      type="text"
-                      value={civicBodyRepName}
-                      onChange={(e) => setCivicBodyRepName(e.target.value)}
-                      placeholder={`Enter ${getRepresentativeLabel().toLowerCase()}`}
-                      className="text-input text-sm"
-                      maxLength={100}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <label className="input-label text-sm">
-                      Official Photo (Optional)
-                    </label>
-                    
-                    {civicBodyPhotoPreview ? (
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={civicBodyPhotoPreview}
-                          alt="Civic Body Representative"
-                          className="w-20 h-20 object-cover rounded-lg border-2 border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCivicBodyPhoto(null);
-                            setCivicBodyPhotoPreview(null);
-                            if (civicBodyFileInputRef.current) civicBodyFileInputRef.current.value = '';
-                          }}
-                          className="text-xs text-red-600 hover:text-red-700 font-medium"
-                          disabled={isLoading}
-                        >
-                          Remove Photo
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center w-full">
-                        <button
-                          type="button"
-                          onClick={() => civicBodyFileInputRef.current?.click()}
-                          className="flex flex-col items-center justify-center w-full py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors"
-                          disabled={isLoading}
-                        >
-                          <ImageIcon className="h-6 w-6 text-purple-500 mb-1" />
-                          <span className="text-xs font-medium text-gray-600">Upload Photo</span>
-                        </button>
-                      </div>
-                    )}
-                    
-                    <input
-                      ref={civicBodyFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCivicBodyPhotoInputChange}
-                      className="hidden"
-                      disabled={isLoading}
-                    />
-                  </div>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Submitting Report...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  Submit Report
                 </>
               )}
-            </div>
-          </div>
-
-          {/* Section 4: Additional Details */}
-          <div className="form-section">
-            <div className="section-header">
-              <h3 className="section-title">{t('form.additionalInfo.title')}</h3>
-              <p className="section-description">{t('form.additionalInfo.description')}</p>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">
-                <User className="h-5 w-5 inline mr-2" />
-                Username{!isApprovedVolunteer && ' (Optional)'}
-                {isApprovedVolunteer && (
-                  <div className="inline-flex items-center ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    <Award className="h-3 w-3 mr-1" />
-                    Verified Volunteer
-                  </div>
-                )}
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={isApprovedVolunteer ? volunteerProfile?.name || 'Volunteer Name' : t('form.username.placeholder')}
-                className={`text-input ${isApprovedVolunteer ? 'bg-blue-50 border-blue-200' : ''}`}
-                maxLength={50}
-                disabled={isLoading || isApprovedVolunteer}
-                readOnly={isApprovedVolunteer}
-              />
-              {isApprovedVolunteer && (
-                <p className="text-xs text-blue-600 mt-1 flex items-center">
-                  <Award className="h-3 w-3 mr-1" />
-                  Your volunteer name is automatically filled and cannot be edited
-                </p>
-              )}
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">
-                <MessageSquare className="h-5 w-5 inline mr-2" />
-                {t('form.notes.label')}
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t('form.notes.placeholder')}
-                rows={4}
-                className="textarea-input"
-                maxLength={200}
-                disabled={isLoading}
-              />
-              <div className="character-count">
-                {notes.length}/200 {t('common.characters')}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                This field is auto-filled based on your issue type and location. You can edit or replace this text as needed.
-              </p>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading || !selectedFile || !getCurrentCoordinates().lat || !getCurrentCoordinates().lng || (issueCategory === 'other' && !customIssueType.trim())}
-            className="submit-button"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                <span>{t('form.submitting')}</span>
-              </>
-            ) : (
-              <span>{t('form.submit')}</span>
-            )}
-          </button>
-
-          {/* Form Disclaimer */}
-          <div className="form-disclaimer">
-            <div className="form-disclaimer-content">
-              <AlertTriangle className="form-disclaimer-icon" />
-              <div className="form-disclaimer-text">
-                <strong>{t('form.disclaimer.title')}</strong> {t('form.disclaimer.text')}
-              </div>
-            </div>
-          </div>
-        </form>
+            </button>
+          </form>
+        </div>
       </div>
 
-      {/* Clean Location Selection Modal */}
+      {/* Location Modal */}
       {showLocationModal && (
-        <div className="location-modal-overlay">
-          <div className="location-modal-content">
-            <div className="location-modal-header">
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-6 w-6 text-blue-600" />
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Select Location</h3>
-              </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Select Location on Map</h3>
               <button
                 onClick={() => setShowLocationModal(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
-                disabled={isLoading}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <X className="h-6 w-6" />
+                <X className="w-6 h-6" />
               </button>
             </div>
-
-            <div className="location-modal-instructions">
-              <p className="text-sm text-gray-600">
-                Tap anywhere on the map to select a custom location for your report. The coordinates and address will be automatically updated.
-              </p>
-              {selectedLocation && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-700 font-medium">
-                    📍 Location selected: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                  </p>
-                  {isLoadingSelectedLocation && (
-                    <p className="text-xs text-green-600 mt-1">Loading address...</p>
-                  )}
-                </div>
-              )}
+            
+            <div className="flex-1 relative">
+              <div ref={mapModalRef} className="w-full h-full min-h-[400px]" />
             </div>
-
-            <div className="location-modal-map">
-              <div 
-                ref={mapModalRef}
-                className="w-full h-full rounded-lg"
-                style={{ minHeight: '300px' }}
-              />
-              {!isMapLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-                  <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Loading map...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="location-modal-actions">
+            
+            <div className="p-4 border-t border-gray-200 flex gap-3">
               <button
                 onClick={() => setShowLocationModal(false)}
-                className="location-modal-button-secondary"
-                disabled={isLoading}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirmLocationSelection}
-                disabled={!selectedLocation || isLoadingSelectedLocation || isLoading}
-                className="location-modal-button-primary"
+                onClick={handleLocationConfirm}
+                disabled={isLoadingSelectedLocation}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                <Check className="h-4 w-4" />
-                <span>
-                  {isLoadingSelectedLocation ? 'Loading...' : 'Use This Location'}
-                </span>
+                {isLoadingSelectedLocation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Confirm Location
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

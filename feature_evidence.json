@@ -1,0 +1,29 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-update-the-existing-report-form-title-text-the-same-title-field-previously-defined-in-the-report-form-ui-to-exactly-report-by-clicking-photo-gps-leader-image-certificate-complaint-legal-notice-english-ensure-the-updated-title-uses-normal-single-spaces-no-double-spacing-and-do-not-alter-any-other-ui-layout-styling",
+      "featureTitle": "Update the existing report form title text (the same title field previously defined in the report form UI) to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (English). Ensure the updated title uses normal single spaces (no double spacing) and do not alter any other UI/layout/styling.",
+      "files": [
+        "frontend/src/components/ReportForm.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@1.1.2",
+        "user-approval@1.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-07T14:16:56.087Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 1,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-2",
+        "summary": "Update the existing report form title text (the same title field previously defined in the report form UI) to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (English). Ensure the updated title uses normal single spaces (no double spacing) and do not alter any other UI/layout/styling.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ReportForm.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ReportForm.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "build-template/Dockerfile",
+    "build-template/LICENSE",
+    "build-template/README.md",
+    "build-template/deploy.sh",
+    "build-template/icp.yaml",
+    "build-template/src/backend/canister.yaml",
+    "build-template/src/frontend/canister.yaml",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/ReportForm.tsx",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "build_request",
+  "title": "Update report form title text (single spacing)",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "text": "Update the existing report form title text (the same title field previously defined in the report form UI) to exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\" (English). Ensure the updated title uses normal single spaces (no double spacing) and do not alter any other UI/layout/styling.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "1. Yes same title field that was previously defined.\n2. I don't want double spaced, single space is fine."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the report form, the title text is exactly: \"Report by clicking Photo & GPS leader image, Certificate, Complaint & Legal Notice\".",
+        "There is only a single space between all words, including between \"GPS\" and \"leader\".",
+        "No other visual/UI/layout/styling changes occur on the report form page (only the title string changes)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
+    "Keep changes scoped to the existing report form title field only; do not refactor or restyle the form.",
+    "Use English for any user-facing text changed/added in this build request."
+  ],
+  "nonGoals": [
+    "Do not change any other copy besides the specified report form title string.",
+    "Do not change backend logic, schemas, or report submission behavior.",
+    "Do not add new UI elements, change spacing/margins, or adjust typography beyond the title text content."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
