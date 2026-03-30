@@ -498,7 +498,7 @@ A civic reporting application that allows users in India to report various civic
 - Remove the introductory text "Report civic issues and help improve your community" for a cleaner interface
 - Clean, streamlined main page interface without redundant title text or introductory text
 - Increased font sizes for all interface elements, labels, and buttons to enhance readability and visual impact
-- Upper section title updated to "Report by clicking Photo & Get Leader-Giotag, Certificate, Complaint & Legal Notice" to highlight the comprehensive features available
+- Upper section title updated to "Report by clicking Photo & Get GPS‑tagged leader image, Certificate, Complaint & Legal Notice" to highlight the comprehensive features available
 - New title is styled to fit well on all devices and remains visually appealing with appropriate font sizing and responsive design
 
 ### Recent Reports Section
@@ -774,7 +774,7 @@ A civic reporting application that allows users in India to report various civic
 - MP section in report card is styled and positioned consistently with other leader sections (PM, CM, Local Civic Body)
 - All relevant MP data including name, photo, and constituency are displayed for both auto-filled and manually selected entries
 - Report card call-to-action button behavior based on status:
-  - For reports with "Open" status: Display "Certificate," "Share," "Legal Notice," and "Leader-Giotag" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus a small edit/update icon placed next to the status indicator for status updates
+  - For reports with "Open" status: Display "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus a small edit/update icon placed next to the status indicator for status updates
   - For reports with "Resolved" status: Hide all call-to-action buttons and status update icon, making resolved report cards view-only for all users
 - Resolved report cards become purely informational displays without any interactive buttons or icons
 - All call-to-action buttons on open report cards are redesigned with:
@@ -789,7 +789,7 @@ A civic reporting application that allows users in India to report various civic
 - All CTA button icons are uniform in size across all devices, especially in mobile view, for a consistent appearance across all action buttons
 - The "Certificate" button includes a download icon (without download text) matching the style of other buttons, ensuring all CTA buttons have one icon and text for visual consistency
 - Every CTA button displays both an icon and text, with consistent alignment and sizing, for a clean, professional, and mobile-friendly appearance
-- "Legal Notice" and "Leader-Giotag" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
+- "Legal Notice" and "GPS‑tagged leader image" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
 - Small edit/update icon is positioned next to the status indicator on each open report card, allowing users to update status without requiring a full button
 - The edit/update icon is visually consistent with other UI elements and clearly indicates its function for status updates
 - When users click the edit/update icon, they can change the status to "Resolved" only without any authentication requirements
@@ -1351,7 +1351,7 @@ A civic reporting application that allows users in India to report various civic
 - When a user selects any language, the entire app interface—including all forms, report sections, support messages, navigation, admin interface, roadmap page, and volunteer program interface—displays in the chosen language with no English text remaining, except where appropriate (e.g., proper nouns)
 - Report card UI logic for status-based button visibility:
   - Frontend logic to conditionally display call-to-action buttons based on report status
-  - For "Open" status reports: show "Certificate," "Share," "Legal Notice," and "Leader-Giotag" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
+  - For "Open" status reports: show "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
   - For "Resolved" status reports: hide all call-to-action buttons and status update icon, making cards view-only
   - Real-time UI updates when report status changes to immediately reflect button visibility changes
   - Consistent button hiding logic across all report card instances (homepage, dashboard, individual report pages)
@@ -1395,7 +1395,7 @@ A civic reporting application that allows users in India to report various civic
 - Simple gray circular placeholder matching the logo's dimensions displayed as default on initial page load to eliminate jarring transitions
 - Optimized loading of the admin-uploaded logo to appear as quickly as possible when users land on the app, minimizing visual distraction and ensuring a smooth, professional experience
 - Clean main page without redundant title text or introductory text, with increased font sizes for all interface elements
-- Upper section title "Report by clicking Photo & Get Leader-Giotag, Certificate, Complaint & Legal Notice" styled to fit well on all devices with appropriate responsive design and visual appeal
+- Upper section title "Report by clicking Photo & Get GPS‑tagged leader image, Certificate, Complaint & Legal Notice" styled to fit well on all devices with appropriate responsive design and visual appeal
 - Recent Reports section on homepage displaying the five most recent report cards ordered chronologically by submission date and time with newest reports first, with real-time updates when new reports are submitted without requiring page refresh
 - Recent Reports section features improved, mobile-friendly UI design that matches the dashboard and map view for consistent visual appeal across the application
 - Enhanced responsive layout with optimized spacing, typography, and visual hierarchy for mobile devices
@@ -1541,7 +1541,7 @@ A civic reporting application that allows users in India to report various civic
 - Badge is shown for all users (not just the volunteer who submitted the report), ensuring volunteer recognition is persistent and public
 - The layout remains compact and visually balanced, ensuring the addition of volunteer badge icons does not make the cards excessively long or cluttered
 - Status-based call-to-action button visibility:
-  - For "Open" status reports: display "Certificate," "Share," "Legal Notice," and "Leader-Giotag" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
+  - For "Open" status reports: display "Certificate," "Share," "Legal Notice," and "GPS‑tagged leader image" buttons (4 buttons total) with uniform color, consistent text and icon size, equal height, and balanced prominence that blends seamlessly with the card design, plus small edit/update icon next to status indicator
   - For "Resolved" status reports: hide all call-to-action buttons and status update icon, making resolved report cards view-only for all users
   - Real-time UI updates when status changes to immediately reflect button visibility changes
   - Only one "Share" button displayed per report card to avoid duplication
@@ -1557,7 +1557,7 @@ A civic reporting application that allows users in India to report various civic
 - All CTA button icons are uniform in size across all devices, especially in mobile view, for a consistent appearance across all action buttons
 - The "Certificate" button includes a download icon (without download text) matching the style of other buttons, ensuring all CTA buttons have one icon and text for visual consistency
 - Every CTA button displays both an icon and text, with consistent alignment and sizing, for a clean, professional, and mobile-friendly appearance
-- "Legal Notice" and "Leader-Giotag" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
+- "Legal Notice" and "GPS‑tagged leader image" buttons are styled consistently with other action buttons and display a "Coming Soon" message when clicked
 - When users click the edit/update icon, they can change the status to "Resolved" only without any authentication requirements
 - Status update interface requires proof photo upload, reporter name input (auto-filled and non-editable for verified volunteers with single, consistent badge icon display next to the volunteer's name using real volunteer data), and includes an optional notes field
 - For verified volunteers updating status to "Resolved," the name field is auto-filled with the volunteer's name and is non-editable, with the single, consistent volunteer badge icon displayed next to the volunteer's name, and the "Mark as Resolved" button remains active and functional
