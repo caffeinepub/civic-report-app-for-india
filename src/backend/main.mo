@@ -233,6 +233,8 @@ persistent actor {
     };
 
     public shared ({ caller }) func submitReport(photoPath : Text, latitude : Float, longitude : Float, username : ?Text, notes : ?Text, issueType : Text, mlaName : ?Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text, pmName : ?Text, cmName : ?Text, customAddress : ?Text, state : Text, mlaDesignation : Text, isVolunteer : Bool, pmData : ?Representative, cmData : ?Representative, mpData : ?Representative, address : Text, coordinates : Text, localCivicBody : ?LocalCivicBody) : async Text {
+        // Auto-initialize caller so getCallerUserRole never traps for this user
+        AccessControl.initialize(accessControlState, caller);
         let id = Time.now().toText();
         let report : Report = {
             id;
@@ -401,20 +403,28 @@ persistent actor {
     var userProfiles = Map.empty<Principal, UserProfile>();
 
     public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Runtime.trap("Unauthorized: Only authenticated users can view profiles");
+        if (caller.isAnonymous()) {
+            return null;
         };
         userProfiles.get(caller);
     };
 
     public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-        if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+        // Safe check: only allow own profile or admin; unregistered non-anonymous users get denied
+        let isAdmin = if (caller.isAnonymous()) { false } else {
+            switch (accessControlState.userRoles.get(caller)) {
+                case (?#admin) { true };
+                case (_) { false };
+            };
+        };
+        if (caller != user and not isAdmin) {
             Runtime.trap("Unauthorized: Can only view your own profile");
         };
         userProfiles.get(user);
     };
 
     public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
             Runtime.trap("Unauthorized: Only authenticated users can save profiles");
         };
@@ -620,6 +630,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func applyVolunteer(name : Text, photoPath : Text, contactInfo : Text, address : Text, showFullMobile : Bool) : async Text {
+        AccessControl.initialize(accessControlState, caller);
         let id = Time.now().toText();
         let volunteer : Volunteer = {
             id;
@@ -2136,6 +2147,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func registerNgoNpo(organizationName : Text, logoPath : Text, contactPerson : Text, email : Text, phone : Text, address : Text, website : Text, description : Text, missionStatement : Text, showContactInfo : Bool) : async Text {
+        AccessControl.initialize(accessControlState, caller);
         let id = Time.now().toText();
         let ngoNpo : NgoNpo = {
             id;
@@ -2366,7 +2378,11 @@ persistent actor {
     };
 
     public query func getUserRole(caller : Principal) : async Text {
-        let role = AccessControl.getUserRole(accessControlState, caller);
+        if (caller.isAnonymous()) { return "guest" };
+        let role = switch (accessControlState.userRoles.get(caller)) {
+            case (?r) { r };
+            case (null) { #guest };
+        };
         switch (role) {
             case (#admin) { "admin" };
             case (#user) { "user" };
@@ -2461,6 +2477,8 @@ persistent actor {
     };
 
     public shared ({ caller }) func trackUniqueVisitor() : async () {
+        // Auto-initialize caller so getCallerUserRole never traps for this user
+        AccessControl.initialize(accessControlState, caller);
         if (not uniqueVisitors.containsKey(caller)) {
             uniqueVisitors.add(caller, true);
         };
