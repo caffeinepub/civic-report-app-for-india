@@ -54,7 +54,7 @@ module {
   public func migrateAccessControlState(old : OldAccessControlState) : NewAccessControlState {
     {
       var adminAssigned = old.adminAssigned;
-      userRoles = migrateOrderedMap<Principal, UserRole>(old.userRoles, );
+      userRoles = migrateOrderedMap<Principal, UserRole>(old.userRoles);
     };
   };
 };

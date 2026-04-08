@@ -1886,7 +1886,7 @@ export function ReportForm() {
       <div className="mobile-form-container">
         <div className="form-header">
           <h2 className="form-title">
-            Report by clicking Photo & Get Leader-Giotag, Certificate, Complaint
+            Report by clicking Photo & GPS leader image, Certificate, Complaint
             & Legal Notice
           </h2>
           <p className="form-subtitle">

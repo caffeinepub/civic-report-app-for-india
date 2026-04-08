@@ -452,14 +452,16 @@ persistent actor {
     };
 
     public query ({ caller }) func getLogoHistory() : async [LogoHistory] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view logo history");
         };
         logoState.history;
     };
 
     public query ({ caller }) func getAdmins() : async [Principal] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view admin list");
         };
         let adminList = List.empty<Principal>();
@@ -619,7 +621,8 @@ persistent actor {
     };
 
     public query ({ caller }) func isCallerApproved() : async Bool {
-        AccessControl.hasPermission(accessControlState, caller, #admin) or UserApproval.isApproved(approvalState, caller);
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        isAdmin or UserApproval.isApproved(approvalState, caller);
     };
 
     public shared ({ caller }) func requestApproval() : async () {
@@ -636,7 +639,8 @@ persistent actor {
     };
 
     public query ({ caller }) func listApprovals() : async [UserApproval.UserApprovalInfo] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can perform this action");
         };
         UserApproval.listApprovals(approvalState);
@@ -775,7 +779,8 @@ persistent actor {
     };
 
     public query ({ caller }) func getAllPendingProfileEdits() : async [PendingProfileEdit] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view all pending profile edits");
         };
         let editList = List.empty<PendingProfileEdit>();
@@ -872,7 +877,8 @@ persistent actor {
     };
 
     public query ({ caller }) func getAllVolunteers() : async [Volunteer] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view all volunteers");
         };
         let volunteerList = List.empty<Volunteer>();
@@ -2299,7 +2305,8 @@ persistent actor {
     };
 
     public query ({ caller }) func getAllNgoNpos() : async [NgoNpo] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view all NGOs/NPOs");
         };
         let ngoNpoList = List.empty<NgoNpo>();
@@ -2330,7 +2337,8 @@ persistent actor {
     };
 
     public query ({ caller }) func getAllFeedback() : async [Feedback] {
-        if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+        let isAdmin = switch (accessControlState.userRoles.get(caller)) { case (?#admin) { true }; case (_) { false } };
+        if (not isAdmin) {
             Runtime.trap("Unauthorized: Only admins can view feedback");
         };
         let feedbackList = List.empty<Feedback>();
