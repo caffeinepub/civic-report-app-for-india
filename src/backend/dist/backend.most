@@ -1,4 +1,4 @@
-// Version: 3.0.0
+// Version: 1.0.0
 type AdministrativeUnit__1068508323 =
   {
     name : Text;
@@ -26,29 +26,10 @@ type Feedback__217957820 =
     timestamp : Int;
     type_ : Text
   };
-type Feedback__708873834 =
-  {
-    admin : ?Principal;
-    contactInfo : Text;
-    id : Text;
-    message : Text;
-    response : ?Text;
-    status : Text;
-    timestamp : Int;
-    type_ : Text
-  };
 type FileReference__185630561 = {hash : Text; path : Text};
-type FileReference__486842902 = {hash : Text; path : Text};
 type Internal__8484328<K, V> =
   {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
-type LocalCivicBody__1003087246 =
-  {
-    bodyName : Text;
-    bodyType : Text;
-    photoPath : ?Text;
-    representativeName : Text
-  };
 type LocalCivicBody__889409735 =
   {
     bodyName : Text;
@@ -61,30 +42,9 @@ type LogoHistory__395944464 =
 type Map__158565046<K, V> = Map__297112838<K, V>;
 type Map__297112838<K, V> =
   {var root : Node__46230540<K, V>; var size : Nat__490723111};
-type Map__334413012<K, V> = {root : Tree__4145630<K, V>; size : Nat};
 type Map__605269027<K, V> = Map__158565046<K, V>;
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
-type NgoNpo__219178032 =
-  {
-    address : Text;
-    approvalTimestamp : ?Int;
-    approved : Bool;
-    contactPerson : Text;
-    description : Text;
-    email : Text;
-    id : Text;
-    impactScore : Int;
-    logoPath : Text;
-    missionStatement : Text;
-    organizationName : Text;
-    phone : Text;
-    principal : Principal;
-    registrationDate : Int;
-    rejectionNote : ?Text;
-    showContactInfo : Bool;
-    website : Text
-  };
 type NgoNpo__826944762 =
   {
     address : Text;
@@ -107,19 +67,6 @@ type NgoNpo__826944762 =
   };
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
-type OldAccessControlState__633397628 =
-  {
-    var adminAssigned : Bool;
-    var userRoles : Map__334413012<Principal, UserRole__403611420>
-  };
-type OldApprovalState__567598485 =
-  {var approvalStatus : Map__334413012<Principal, ApprovalStatus__575141016>};
-type OldRegistry__429183789 =
-  {
-    var authorizedPrincipals : [Principal];
-    var blobsToRemove : Map__334413012<Text, Bool>;
-    var references : Map__334413012<Text, FileReference__486842902>
-  };
 type PendingProfileEdit__135759048 =
   {
     id : Text;
@@ -129,47 +76,6 @@ type PendingProfileEdit__135759048 =
     updates : VolunteerProfileUpdate__914556178;
     volunteerId : Text;
     volunteerPrincipal : Principal
-  };
-type PendingProfileEdit__359611675 =
-  {
-    id : Text;
-    rejectionNote : ?Text;
-    status : Text;
-    submittedAt : Int;
-    updates : VolunteerProfileUpdate__806975729;
-    volunteerId : Text;
-    volunteerPrincipal : Principal
-  };
-type Report__823533311 =
-  {
-    address : Text;
-    cmData : ?Representative__718830407;
-    cmName : ?Text;
-    cmPhotoPath : ?Text;
-    completionNotes : ?Text;
-    coordinates : Text;
-    customAddress : ?Text;
-    id : Text;
-    issueType : Text;
-    localCivicBody : ?LocalCivicBody__1003087246;
-    location : {latitude : Float; longitude : Float};
-    mlaDesignation : Text;
-    mlaName : ?Text;
-    mlaPhotoPath : ?Text;
-    mpData : ?Representative__718830407;
-    notes : ?Text;
-    photoPath : Text;
-    pmData : ?Representative__718830407;
-    pmName : ?Text;
-    pmPhotoPath : ?Text;
-    proofPhotoPath : ?Text;
-    reporterName : ?Text;
-    resolvedByVolunteer : Bool;
-    state : Text;
-    status : Text;
-    submittedByVolunteer : Bool;
-    timestamp : Int;
-    username : ?Text
   };
 type Report__89520890 =
   {
@@ -202,16 +108,6 @@ type Report__89520890 =
     timestamp : Int;
     username : ?Text
   };
-type Representative__718830407 =
-  {
-    email : Text;
-    lastUpdated : Int;
-    name : Text;
-    photoPath : Text;
-    politicalParty : ?Text;
-    remarks : Text;
-    twitterHandle : Text
-  };
 type Representative__798190847 =
   {
     email : Text;
@@ -239,24 +135,8 @@ type State__1030826395 =
     isUnionTerritory : Bool;
     name : Text
   };
-type Tree__4145630<K, V> =
-  {
-    #black : (Tree__4145630<K, V>, K, V, Tree__4145630<K, V>);
-    #leaf;
-    #red : (Tree__4145630<K, V>, K, V, Tree__4145630<K, V>)
-  };
-type UserProfile__315128327 = {name : Text};
 type UserProfile__491224006 = {name : Text};
 type UserRole__1054455867 = {#admin; #guest; #user};
-type UserRole__403611420 = {#admin; #guest; #user};
-type VolunteerProfileUpdate__806975729 =
-  {
-    address : Text;
-    contactInfo : Text;
-    name : Text;
-    photoPath : Text;
-    showFullMobile : Bool
-  };
 type VolunteerProfileUpdate__914556178 =
   {
     address : Text;
@@ -280,49 +160,7 @@ type Volunteer__362124582 =
     rejectionNote : ?Text;
     showFullMobile : Bool
   };
-type Volunteer__881033824 =
-  {
-    address : Text;
-    applicationDate : Int;
-    approvalTimestamp : ?Int;
-    approved : Bool;
-    contactInfo : Text;
-    id : Text;
-    impactScore : Int;
-    name : Text;
-    photoPath : Text;
-    principal : Principal;
-    rejectionNote : ?Text;
-    showFullMobile : Bool
-  };
-actor ({
-  in accessControlState : OldAccessControlState__633397628;
-  in approvalState : OldApprovalState__567598485;
-  stable var directory :
-    {
-      administrativeUnits : [AdministrativeUnit__1068508323];
-      primeMinister : ?Representative__798190847;
-      states : [State__1030826395];
-      unionTerritories : [State__1030826395]
-    };
-  in var feedbacks : Map__334413012<Text, Feedback__708873834>;
-  stable var fileRegistry :
-    {
-      var root : Node__46230540<Text, FileReference__185630561>;
-      var size : Nat__490723111
-    };
-  stable var logoState :
-    {currentLogo : Text; history : [LogoHistory__395944464]};
-  in var ngoNpos : Map__334413012<Text, NgoNpo__219178032>;
-  in var pendingProfileEdits :
-    Map__334413012<Text, PendingProfileEdit__359611675>;
-  in registry : OldRegistry__429183789;
-  in var reports : Map__334413012<Text, Report__823533311>;
-  stable var roadmapFeatures : [RoadmapFeature__952403808];
-  in var uniqueVisitors : Map__334413012<Principal, Bool>;
-  in var userProfiles : Map__334413012<Principal, UserProfile__315128327>;
-  in var volunteers : Map__334413012<Text, Volunteer__881033824>
-}, {
+actor {
   stable accessControlState :
     {
       var adminAssigned : Bool;
@@ -380,4 +218,4 @@ actor ({
       var root : Node__46230540<Text, Volunteer__362124582>;
       var size : Nat__490723111
     }
-}) ;
+};

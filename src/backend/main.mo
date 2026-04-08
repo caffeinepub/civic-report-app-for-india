@@ -12,9 +12,9 @@ import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
 import UserApproval "mo:caffeineai-user-approval/approval";
 import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
 import Nat "mo:core/Nat";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 persistent actor {
     type Report = {
         id : Text;
