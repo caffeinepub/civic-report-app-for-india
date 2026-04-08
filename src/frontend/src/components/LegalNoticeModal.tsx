@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, FileText, Download } from 'lucide-react';
-import { Report } from '../backend';
+import { Download, FileText, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Report } from "../backend";
 
 interface LegalNoticeModalProps {
   report: Report;
@@ -11,23 +12,30 @@ interface LegalNoticeModalProps {
   formatDate: (timestamp: bigint) => string;
 }
 
-export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLocationDisplay, formatDate }: LegalNoticeModalProps) {
+export function LegalNoticeModal({
+  report,
+  isOpen,
+  onClose,
+  imageUrl,
+  formatLocationDisplay,
+  formatDate,
+}: LegalNoticeModalProps) {
   // Section 1: Your Details
-  const [yourName, setYourName] = useState('');
-  const [yourContact, setYourContact] = useState('');
-  const [yourAddress, setYourAddress] = useState('');
-  const [yourEmail, setYourEmail] = useState('');
+  const [yourName, setYourName] = useState("");
+  const [yourContact, setYourContact] = useState("");
+  const [yourAddress, setYourAddress] = useState("");
+  const [yourEmail, setYourEmail] = useState("");
 
   // Section 2: Recipient/Offender/Entity Details
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientContact, setRecipientContact] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [violationNature, setViolationNature] = useState('');
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientContact, setRecipientContact] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [violationNature, setViolationNature] = useState("");
 
   // Section 3: Incident Details
-  const [whatWentWrong, setWhatWentWrong] = useState(report.notes || '');
-  const [howAffected, setHowAffected] = useState('');
+  const [whatWentWrong, setWhatWentWrong] = useState(report.notes || "");
+  const [howAffected, setHowAffected] = useState("");
 
   // Section 4: Signature
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,9 +52,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
   // Initialize canvas for signature
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Set canvas size
@@ -56,44 +64,56 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
     // Set drawing style
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = "#000000";
     ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
     // Fill with white background
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, [isOpen]);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     setIsDrawing(true);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
-    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
+    const x =
+      "touches" in e ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
+    const y =
+      "touches" in e ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
 
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     if (!isDrawing) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
-    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
+    const x =
+      "touches" in e ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
+    const y =
+      "touches" in e ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
 
     ctx.lineTo(x, y);
     ctx.stroke();
@@ -108,10 +128,10 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     setHasSignature(false);
   };
@@ -134,7 +154,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
   };
 
   // Get image dimensions and calculate aspect ratio
-  const getImageDimensions = async (url: string): Promise<{ width: number; height: number }> => {
+  const getImageDimensions = async (
+    url: string,
+  ): Promise<{ width: number; height: number }> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -158,32 +180,34 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
         reader.onloadend = () => {
           const base64 = reader.result as string;
           // Remove data URL prefix to get pure base64
-          const base64Data = base64.split(',')[1];
+          const base64Data = base64.split(",")[1];
           resolve(base64Data);
         };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error converting image to base64:', error);
+      console.error("Error converting image to base64:", error);
       throw error;
     }
   };
 
   // Simple CRC32 implementation for ZIP
   const crc32 = (data: Uint8Array): number => {
-    let crc = 0xFFFFFFFF;
+    let crc = 0xffffffff;
     for (let i = 0; i < data.length; i++) {
       crc ^= data[i];
       for (let j = 0; j < 8; j++) {
-        crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+        crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
       }
     }
-    return (crc ^ 0xFFFFFFFF) >>> 0;
+    return (crc ^ 0xffffffff) >>> 0;
   };
 
   // Create ZIP file manually
-  const createZip = (files: Array<{ path: string; content: string | Uint8Array }>): Uint8Array => {
+  const createZip = (
+    files: Array<{ path: string; content: string | Uint8Array }>,
+  ): Uint8Array => {
     const encoder = new TextEncoder();
     const centralDirectory: Uint8Array[] = [];
     const fileData: Uint8Array[] = [];
@@ -191,16 +215,17 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
     files.forEach((file) => {
       const pathBytes = encoder.encode(file.path);
-      const contentBytes = typeof file.content === 'string' 
-        ? encoder.encode(file.content) 
-        : file.content;
-      
+      const contentBytes =
+        typeof file.content === "string"
+          ? encoder.encode(file.content)
+          : file.content;
+
       const crc = crc32(contentBytes);
-      
+
       // Local file header
       const localHeader = new Uint8Array(30 + pathBytes.length);
       const view = new DataView(localHeader.buffer);
-      
+
       view.setUint32(0, 0x04034b50, true); // signature
       view.setUint16(4, 20, true); // version
       view.setUint16(6, 0, true); // flags
@@ -212,16 +237,16 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       view.setUint32(22, contentBytes.length, true); // uncompressed size
       view.setUint16(26, pathBytes.length, true); // filename length
       view.setUint16(28, 0, true); // extra field length
-      
+
       localHeader.set(pathBytes, 30);
-      
+
       fileData.push(localHeader);
       fileData.push(contentBytes);
-      
+
       // Central directory header
       const cdHeader = new Uint8Array(46 + pathBytes.length);
       const cdView = new DataView(cdHeader.buffer);
-      
+
       cdView.setUint32(0, 0x02014b50, true); // signature
       cdView.setUint16(4, 20, true); // version made by
       cdView.setUint16(6, 20, true); // version needed
@@ -239,20 +264,20 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       cdView.setUint16(36, 0, true); // internal attributes
       cdView.setUint32(38, 0, true); // external attributes
       cdView.setUint32(42, offset, true); // relative offset
-      
+
       cdHeader.set(pathBytes, 46);
       centralDirectory.push(cdHeader);
-      
+
       offset += localHeader.length + contentBytes.length;
     });
-    
+
     // Calculate sizes
     const cdSize = centralDirectory.reduce((sum, cd) => sum + cd.length, 0);
-    
+
     // End of central directory
     const eocd = new Uint8Array(22);
     const eocdView = new DataView(eocd.buffer);
-    
+
     eocdView.setUint32(0, 0x06054b50, true); // signature
     eocdView.setUint16(4, 0, true); // disk number
     eocdView.setUint16(6, 0, true); // disk with central directory
@@ -261,24 +286,24 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
     eocdView.setUint32(12, cdSize, true); // central directory size
     eocdView.setUint32(16, offset, true); // central directory offset
     eocdView.setUint16(20, 0, true); // comment length
-    
+
     // Combine all parts
     const totalSize = offset + cdSize + eocd.length;
     const result = new Uint8Array(totalSize);
     let pos = 0;
-    
-    fileData.forEach(data => {
+
+    fileData.forEach((data) => {
       result.set(data, pos);
       pos += data.length;
     });
-    
-    centralDirectory.forEach(cd => {
+
+    centralDirectory.forEach((cd) => {
       result.set(cd, pos);
       pos += cd.length;
     });
-    
+
     result.set(eocd, pos);
-    
+
     return result;
   };
 
@@ -287,31 +312,31 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
     return new Promise((resolve, reject) => {
       const canvas = canvasRef.current;
       if (!canvas) {
-        reject(new Error('Canvas not found'));
+        reject(new Error("Canvas not found"));
         return;
       }
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          reject(new Error('Failed to create blob'));
+          reject(new Error("Failed to create blob"));
           return;
         }
 
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = reader.result as string;
-          const base64Data = base64.split(',')[1];
+          const base64Data = base64.split(",")[1];
           resolve(base64Data);
         };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
-      }, 'image/png');
+      }, "image/png");
     });
   };
 
   const generateLegalNotice = async () => {
     if (!isFormValid()) {
-      alert('Please complete all required fields and sign the document.');
+      alert("Please complete all required fields and sign the document.");
       return;
     }
 
@@ -322,25 +347,28 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       const signatureBase64 = await getSignatureBase64();
 
       // Get issue photo as base64 if available
-      let issuePhotoBase64 = '';
+      let issuePhotoBase64 = "";
       let issuePhotoDimensions = { width: 800, height: 600 };
-      
+
       if (imageUrl) {
         try {
           issuePhotoDimensions = await getImageDimensions(imageUrl);
           issuePhotoBase64 = await imageToBase64(imageUrl);
         } catch (error) {
-          console.error('Failed to embed issue photo:', error);
-          alert('Warning: Could not embed the issue photo. The document will be generated without it.');
+          console.error("Failed to embed issue photo:", error);
+          alert(
+            "Warning: Could not embed the issue photo. The document will be generated without it.",
+          );
         }
       }
 
       // Calculate proportional dimensions for the issue photo - same as PrintableComplaintModal
       const maxWidthEMU = 2571750; // 4.5 inches in EMUs
-      const aspectRatio = issuePhotoDimensions.width / issuePhotoDimensions.height;
+      const aspectRatio =
+        issuePhotoDimensions.width / issuePhotoDimensions.height;
       let issuePhotoWidthEMU = maxWidthEMU;
       let issuePhotoHeightEMU = Math.round(maxWidthEMU / aspectRatio);
-      
+
       // If height is too large, constrain by height instead - 3.6 inches
       const maxHeightEMU = 2057280;
       if (issuePhotoHeightEMU > maxHeightEMU) {
@@ -355,11 +383,11 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       // Escape XML special characters
       const escapeXml = (text: string) => {
         return text
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&apos;');
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
       };
 
       // Create .docx file structure using Open XML format
@@ -377,7 +405,7 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
     
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="120"/></w:pPr>
-      <w:r><w:rPr><w:b/><w:sz w:val="22"/></w:rPr><w:t>Date: ${new Date().toLocaleDateString('en-IN')}</w:t></w:r>
+      <w:r><w:rPr><w:b/><w:sz w:val="22"/></w:rPr><w:t>Date: ${new Date().toLocaleDateString("en-IN")}</w:t></w:r>
     </w:p>
     
     <w:p>
@@ -392,14 +420,22 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="40"/></w:pPr>
       <w:r><w:rPr><w:sz w:val="22"/></w:rPr><w:t>${escapeXml(recipientAddress)}</w:t></w:r>
     </w:p>
-    ${recipientContact ? `<w:p>
+    ${
+      recipientContact
+        ? `<w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="40"/></w:pPr>
       <w:r><w:rPr><w:sz w:val="22"/></w:rPr><w:t>Contact: ${escapeXml(recipientContact)}</w:t></w:r>
-    </w:p>` : ''}
-    ${recipientEmail ? `<w:p>
+    </w:p>`
+        : ""
+    }
+    ${
+      recipientEmail
+        ? `<w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="160"/></w:pPr>
       <w:r><w:rPr><w:sz w:val="22"/></w:rPr><w:t>Email: ${escapeXml(recipientEmail)}</w:t></w:r>
-    </w:p>` : '<w:p><w:pPr><w:spacing w:after="160"/></w:pPr></w:p>'}
+    </w:p>`
+        : '<w:p><w:pPr><w:spacing w:after="160"/></w:pPr></w:p>'
+    }
     
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="80"/></w:pPr>
@@ -476,7 +512,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       <w:r><w:rPr><w:sz w:val="22"/></w:rPr><w:t>${escapeXml(report.id)}</w:t></w:r>
     </w:p>
     
-    ${issuePhotoBase64 ? `
+    ${
+      issuePhotoBase64
+        ? `
     <w:p>
       <w:pPr><w:jc w:val="center"/><w:spacing w:after="60"/></w:pPr>
       <w:r><w:rPr><w:b/><w:sz w:val="22"/></w:rPr><w:t>Issue Photo:</w:t></w:r>
@@ -521,7 +559,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
         </w:drawing>
       </w:r>
     </w:p>
-    ` : ''}
+    `
+        : ""
+    }
     
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="80"/></w:pPr>
@@ -614,7 +654,7 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 </w:document>`;
 
       // Create relationships file
-      const relsXml = issuePhotoBase64 
+      const relsXml = issuePhotoBase64
         ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/signature.png"/>
@@ -631,7 +671,7 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Default Extension="png" ContentType="image/png"/>
-  ${issuePhotoBase64 ? '<Default Extension="jpeg" ContentType="image/jpeg"/>' : ''}
+  ${issuePhotoBase64 ? '<Default Extension="jpeg" ContentType="image/jpeg"/>' : ""}
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>`;
 
@@ -650,11 +690,11 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
       // Prepare files for ZIP
       const files: Array<{ path: string; content: string | Uint8Array }> = [
-        { path: '[Content_Types].xml', content: contentTypesXml },
-        { path: '_rels/.rels', content: mainRelsXml },
-        { path: 'word/document.xml', content: docXml },
-        { path: 'word/_rels/document.xml.rels', content: relsXml },
-        { path: 'word/media/signature.png', content: signatureBytes }
+        { path: "[Content_Types].xml", content: contentTypesXml },
+        { path: "_rels/.rels", content: mainRelsXml },
+        { path: "word/document.xml", content: docXml },
+        { path: "word/_rels/document.xml.rels", content: relsXml },
+        { path: "word/media/signature.png", content: signatureBytes },
       ];
 
       // Add issue photo if available
@@ -664,19 +704,19 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
         for (let i = 0; i < issueBinaryString.length; i++) {
           issuePhotoBytes[i] = issueBinaryString.charCodeAt(i);
         }
-        files.push({ path: 'word/media/issue.jpeg', content: issuePhotoBytes });
+        files.push({ path: "word/media/issue.jpeg", content: issuePhotoBytes });
       }
 
       // Create ZIP
       const zipData = createZip(files);
-      
+
       // Create blob and download
-      const blob = new Blob([zipData.slice(0)], { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      const blob = new Blob([zipData.slice(0)], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
-      
+
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `LegalNotice_${report.id}_${Date.now()}.docx`;
       document.body.appendChild(a);
@@ -684,11 +724,13 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      alert('Legal Notice downloaded successfully! The .docx file is ready for editing in Microsoft Word or Google Docs.');
+      alert(
+        "Legal Notice downloaded successfully! The .docx file is ready for editing in Microsoft Word or Google Docs.",
+      );
       onClose();
     } catch (error) {
-      console.error('Error generating legal notice:', error);
-      alert('Failed to generate legal notice. Please try again.');
+      console.error("Error generating legal notice:", error);
+      alert("Failed to generate legal notice. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -703,7 +745,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <FileText className="h-6 w-6 text-blue-600" />
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Generate Legal Notice</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                Generate Legal Notice
+              </h2>
             </div>
             <button
               onClick={onClose}
@@ -713,14 +757,18 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
             </button>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            Fill in the details below to generate a professional legal notice document (.docx format) with the issue photo embedded for this civic issue report.
+            Fill in the details below to generate a professional legal notice
+            document (.docx format) with the issue photo embedded for this civic
+            issue report.
           </p>
         </div>
 
         <div className="p-4 sm:p-6 space-y-6">
           {/* Section 1: Your Details */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">1. Your Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              1. Your Details
+            </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -775,7 +823,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
           {/* Section 2: Recipient Details */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">2. Recipient/Offender/Entity Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              2. Recipient/Offender/Entity Details
+            </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -842,7 +892,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
           {/* Section 3: Incident Details */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">3. Incident Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              3. Incident Details
+            </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -873,9 +925,13 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
           {/* Section 4: Signature */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">4. Signature *</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              4. Signature *
+            </h3>
             <div className="space-y-3">
-              <p className="text-sm text-gray-600">Please sign below using your mouse or touchscreen:</p>
+              <p className="text-sm text-gray-600">
+                Please sign below using your mouse or touchscreen:
+              </p>
               <div className="border-2 border-gray-300 rounded-lg bg-white overflow-hidden">
                 <canvas
                   ref={canvasRef}
@@ -887,7 +943,7 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
                   onTouchMove={draw}
                   onTouchEnd={stopDrawing}
                   className="w-full h-40 cursor-crosshair touch-none"
-                  style={{ touchAction: 'none' }}
+                  style={{ touchAction: "none" }}
                 />
               </div>
               <button
@@ -901,7 +957,9 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
           {/* Mandatory Checkboxes */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirmation Required</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Confirmation Required
+            </h3>
             <label className="flex items-start space-x-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -910,7 +968,8 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
                 className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">
-                I confirm that all information provided is accurate and true to the best of my knowledge.
+                I confirm that all information provided is accurate and true to
+                the best of my knowledge.
               </span>
             </label>
             <label className="flex items-start space-x-3 cursor-pointer">
@@ -921,7 +980,8 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
                 className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">
-                I consent to data processing per Privacy Policy and understand CivicReport is not a law firm and does not provide legal advice.
+                I consent to data processing per Privacy Policy and understand
+                CivicReport is not a law firm and does not provide legal advice.
               </span>
             </label>
           </div>
@@ -955,7 +1015,11 @@ export function LegalNoticeModal({ report, isOpen, onClose, imageUrl, formatLoca
 
           <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
             <p className="text-xs text-gray-600">
-              <strong>Note:</strong> The legal notice will be downloaded as a professionally formatted .docx file with your signature and the issue photo embedded as actual images. You can open it in Microsoft Word, Google Docs, or any word processor for further editing and printing.
+              <strong>Note:</strong> The legal notice will be downloaded as a
+              professionally formatted .docx file with your signature and the
+              issue photo embedded as actual images. You can open it in
+              Microsoft Word, Google Docs, or any word processor for further
+              editing and printing.
             </p>
           </div>
         </div>

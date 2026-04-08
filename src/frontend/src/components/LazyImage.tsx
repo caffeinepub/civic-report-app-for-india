@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface LazyImageProps {
   src: string;
@@ -6,18 +7,18 @@ interface LazyImageProps {
   className?: string;
   style?: React.CSSProperties;
   onClick?: () => void;
-  priority?: 'high' | 'low';
+  priority?: "high" | "low";
   placeholder?: React.ReactNode;
 }
 
-export function LazyImage({ 
-  src, 
-  alt, 
-  className = '', 
-  style = {}, 
+export function LazyImage({
+  src,
+  alt,
+  className = "",
+  style = {},
   onClick,
-  priority = 'low',
-  placeholder
+  priority = "low",
+  placeholder,
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -26,7 +27,7 @@ export function LazyImage({
 
   useEffect(() => {
     // High priority images load immediately
-    if (priority === 'high') {
+    if (priority === "high") {
       setIsInView(true);
       return;
     }
@@ -34,8 +35,8 @@ export function LazyImage({
     // Low priority images use IntersectionObserver
     const options: IntersectionObserverInit = {
       root: null,
-      rootMargin: '50px', // Start loading 50px before entering viewport
-      threshold: 0.01
+      rootMargin: "50px", // Start loading 50px before entering viewport
+      threshold: 0.01,
     };
 
     observerRef.current = new IntersectionObserver((entries) => {
@@ -75,17 +76,17 @@ export function LazyImage({
           )}
         </div>
       )}
-      
+
       {/* Actual image - only load when in view */}
       <img
         ref={imgRef}
-        src={isInView ? src : ''}
+        src={isInView ? src : ""}
         alt={alt}
-        className={`${className} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`${className} transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}
         style={style}
         onLoad={handleLoad}
         onClick={onClick}
-        loading={priority === 'high' ? 'eager' : 'lazy'}
+        loading={priority === "high" ? "eager" : "lazy"}
       />
     </div>
   );

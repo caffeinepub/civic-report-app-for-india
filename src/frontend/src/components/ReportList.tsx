@@ -1,11 +1,11 @@
-import React from 'react';
-import { useGetAllReports } from '../hooks/useQueries';
-import { ReportCard } from './ReportCard';
-import { Loader2 } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { Loader2 } from "lucide-react";
+import React from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useGetAllReports } from "../hooks/useQueries";
+import { ReportCard } from "./ReportCard";
 
 export function ReportList() {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const { data: reports, isLoading, error } = useGetAllReports();
 
   if (isLoading) {

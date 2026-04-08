@@ -1,37 +1,44 @@
-import React, { useState } from 'react';
-import { Coffee, MessageSquare, Send, X } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useSubmitFeedback } from '../hooks/useQueries';
+import { Coffee, MessageSquare, Send, X } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useSubmitFeedback } from "../hooks/useQueries";
 
 export function Footer() {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackType, setFeedbackType] = useState<'feedback' | 'bug' | 'contact'>('feedback');
-  const [message, setMessage] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
+  const [feedbackType, setFeedbackType] = useState<
+    "feedback" | "bug" | "contact"
+  >("feedback");
+  const [message, setMessage] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
   const { mutate: submitFeedback, isPending } = useSubmitFeedback();
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && contactInfo.trim()) {
       submitFeedback(
-        { type: feedbackType, message: message.trim(), contactInfo: contactInfo.trim() },
+        {
+          type: feedbackType,
+          message: message.trim(),
+          contactInfo: contactInfo.trim(),
+        },
         {
           onSuccess: () => {
-            setMessage('');
-            setContactInfo('');
+            setMessage("");
+            setContactInfo("");
             setShowFeedbackModal(false);
-            alert('Thank you! Your submission has been received.');
+            alert("Thank you! Your submission has been received.");
           },
           onError: (error) => {
-            console.error('Failed to submit feedback:', error);
-            alert('Failed to submit. Please try again.');
-          }
-        }
+            console.error("Failed to submit feedback:", error);
+            alert("Failed to submit. Please try again.");
+          },
+        },
       );
     }
   };
-  
+
   return (
     <footer className="bg-white border-t border-gray-200 py-6 mt-8">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -41,11 +48,11 @@ export function Footer() {
             {/* Compact Support Card */}
             <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg shadow-sm p-4 border border-orange-100">
               <div className="flex items-center justify-center mb-2">
-                <div className="coffee-icon-animated text-2xl">
-                  ☕
-                </div>
+                <div className="coffee-icon-animated text-2xl">☕</div>
               </div>
-              <h3 className="text-base font-bold text-gray-900 text-center mb-2">Support This Project</h3>
+              <h3 className="text-base font-bold text-gray-900 text-center mb-2">
+                Support This Project
+              </h3>
               <p className="text-xs text-gray-600 text-center mb-3 leading-relaxed">
                 Help maintain this tool with a small donation!
               </p>
@@ -65,7 +72,9 @@ export function Footer() {
               <div className="flex items-center justify-center mb-2">
                 <MessageSquare className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-base font-bold text-gray-900 text-center mb-2">Feedback & Contact</h3>
+              <h3 className="text-base font-bold text-gray-900 text-center mb-2">
+                Feedback & Contact
+              </h3>
               <p className="text-xs text-gray-600 text-center mb-3 leading-relaxed">
                 Share feedback, report bugs, or get in touch!
               </p>
@@ -82,7 +91,13 @@ export function Footer() {
           {/* Legal Notice */}
           <div className="text-center pt-3 border-t border-gray-100 w-full">
             <p className="text-gray-500 text-xs leading-relaxed max-w-4xl">
-              <strong>Legal Notice:</strong> This platform is dedicated to reporting civic infrastructure issues. Users are responsible for their content, and we do not verify reports or endorse claims. Terms of Service • Operated under Section 79 of the IT Act, 2000.
+              <strong>Legal Notice:</strong> This platform is dedicated to
+              reporting civic infrastructure issues. Users are responsible for
+              their content, and we do not verify reports or endorse claims.
+            </p>
+            <p className="text-gray-500 text-xs leading-relaxed max-w-4xl mt-1">
+              <strong>Terms of Service:</strong> Operated under Section 79 of
+              the IT Act, 2000.
             </p>
           </div>
 
@@ -101,7 +116,9 @@ export function Footer() {
           <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Get in Touch</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Get in Touch
+                </h3>
                 <button
                   onClick={() => setShowFeedbackModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -109,7 +126,7 @@ export function Footer() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -117,7 +134,11 @@ export function Footer() {
                   </label>
                   <select
                     value={feedbackType}
-                    onChange={(e) => setFeedbackType(e.target.value as 'feedback' | 'bug' | 'contact')}
+                    onChange={(e) =>
+                      setFeedbackType(
+                        e.target.value as "feedback" | "bug" | "contact",
+                      )
+                    }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="feedback">General Feedback</option>
@@ -125,7 +146,7 @@ export function Footer() {
                     <option value="contact">Contact / Inquiry</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Email or Phone
@@ -139,7 +160,7 @@ export function Footer() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Message
@@ -152,7 +173,7 @@ export function Footer() {
                     required
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -163,11 +184,13 @@ export function Footer() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isPending || !message.trim() || !contactInfo.trim()}
+                    disabled={
+                      isPending || !message.trim() || !contactInfo.trim()
+                    }
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2"
                   >
                     <Send className="h-4 w-4" />
-                    <span>{isPending ? 'Sending...' : 'Send'}</span>
+                    <span>{isPending ? "Sending..." : "Send"}</span>
                   </button>
                 </div>
               </form>

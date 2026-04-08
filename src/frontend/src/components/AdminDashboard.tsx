@@ -1,56 +1,111 @@
-import React, { useState } from 'react';
-import { Shield, Users, FileText, Settings, UserCheck, Award, Clock, CheckCircle, XCircle, User, Mail, Phone, MapPin, Calendar, Eye, MessageSquare, Building2, Menu, X as CloseIcon, Globe, FileText as FileTextIcon, Star, Edit } from 'lucide-react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useIsAdmin, useGetAllVolunteers, useApproveVolunteer, useRejectVolunteer, useGetAllReports, useGetAllNgoNpos, useApproveNgoNpo, useRejectNgoNpo, useGetAllPendingProfileEdits, useApproveVolunteerProfileEdit, useRejectVolunteerProfileEdit } from '../hooks/useQueries';
-import { useFileUrl } from '../blob-storage/FileStorage';
-import { AdminReportsTable } from './AdminReportsTable';
-import { AdminUserManagement } from './AdminUserManagement';
-import { AdminContentManagement } from './AdminContentManagement';
-import { AdminDirectory } from './AdminDirectory';
-import { AdminFeedbackManagement } from './AdminFeedbackManagement';
-import { Principal } from '@dfinity/principal';
-import { NgoNpo, PendingProfileEdit, Volunteer } from '../backend';
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
+import { Principal } from "@dfinity/principal";
+import {
+  Award,
+  Building2,
+  Calendar,
+  CheckCircle,
+  Clock,
+  X as CloseIcon,
+  Edit,
+  Eye,
+  FileText,
+  FileText as FileTextIcon,
+  Globe,
+  Mail,
+  MapPin,
+  Menu,
+  MessageSquare,
+  Phone,
+  Settings,
+  Shield,
+  Star,
+  User,
+  UserCheck,
+  Users,
+  XCircle,
+} from "lucide-react";
+import React, { useState } from "react";
+import type { NgoNpo, PendingProfileEdit, Volunteer } from "../backend";
+import { useFileUrl } from "../blob-storage/FileStorage";
+import {
+  useApproveNgoNpo,
+  useApproveVolunteer,
+  useApproveVolunteerProfileEdit,
+  useGetAllNgoNpos,
+  useGetAllPendingProfileEdits,
+  useGetAllReports,
+  useGetAllVolunteers,
+  useIsAdmin,
+  useRejectNgoNpo,
+  useRejectVolunteer,
+  useRejectVolunteerProfileEdit,
+} from "../hooks/useQueries";
+import { AdminContentManagement } from "./AdminContentManagement";
+import { AdminDirectory } from "./AdminDirectory";
+import { AdminFeedbackManagement } from "./AdminFeedbackManagement";
+import { AdminReportsTable } from "./AdminReportsTable";
+import { AdminUserManagement } from "./AdminUserManagement";
 
-type AdminTab = 'reports' | 'users' | 'volunteers' | 'ngo-npo' | 'content' | 'directory' | 'feedback';
+type AdminTab =
+  | "reports"
+  | "users"
+  | "volunteers"
+  | "ngo-npo"
+  | "content"
+  | "directory"
+  | "feedback";
 
 export function AdminDashboard() {
   const { identity, login, loginStatus } = useInternetIdentity();
   const { data: isAdmin, isLoading: isLoadingAdmin } = useIsAdmin();
-  const { data: allVolunteers, isLoading: isLoadingVolunteers } = useGetAllVolunteers();
+  const { data: allVolunteers, isLoading: isLoadingVolunteers } =
+    useGetAllVolunteers();
   const { data: allReports, isLoading: isLoadingReports } = useGetAllReports();
   const { data: allNgoNpos, isLoading: isLoadingNgoNpos } = useGetAllNgoNpos();
-  const { data: pendingProfileEdits, isLoading: isLoadingPendingEdits } = useGetAllPendingProfileEdits();
-  const { mutate: approveVolunteer, isPending: isApprovingVolunteer } = useApproveVolunteer();
-  const { mutate: rejectVolunteer, isPending: isRejectingVolunteer } = useRejectVolunteer();
-  const { mutate: approveNgoNpo, isPending: isApprovingNgoNpo } = useApproveNgoNpo();
-  const { mutate: rejectNgoNpo, isPending: isRejectingNgoNpo } = useRejectNgoNpo();
-  const { mutate: approveProfileEdit, isPending: isApprovingProfileEdit } = useApproveVolunteerProfileEdit();
-  const { mutate: rejectProfileEdit, isPending: isRejectingProfileEdit } = useRejectVolunteerProfileEdit();
-  
-  const [activeTab, setActiveTab] = useState<AdminTab>('reports');
+  const { data: pendingProfileEdits, isLoading: _isLoadingPendingEdits } =
+    useGetAllPendingProfileEdits();
+  const { mutate: approveVolunteer, isPending: isApprovingVolunteer } =
+    useApproveVolunteer();
+  const { mutate: rejectVolunteer, isPending: isRejectingVolunteer } =
+    useRejectVolunteer();
+  const { mutate: approveNgoNpo, isPending: isApprovingNgoNpo } =
+    useApproveNgoNpo();
+  const { mutate: rejectNgoNpo, isPending: isRejectingNgoNpo } =
+    useRejectNgoNpo();
+  const { mutate: approveProfileEdit, isPending: isApprovingProfileEdit } =
+    useApproveVolunteerProfileEdit();
+  const { mutate: rejectProfileEdit, isPending: isRejectingProfileEdit } =
+    useRejectVolunteerProfileEdit();
+
+  const [activeTab, setActiveTab] = useState<AdminTab>("reports");
   const [selectedVolunteer, setSelectedVolunteer] = useState<any>(null);
   const [selectedNgoNpo, setSelectedNgoNpo] = useState<NgoNpo | null>(null);
-  const [selectedProfileEdit, setSelectedProfileEdit] = useState<PendingProfileEdit | null>(null);
-  const [rejectionNote, setRejectionNote] = useState('');
+  const [selectedProfileEdit, setSelectedProfileEdit] =
+    useState<PendingProfileEdit | null>(null);
+  const [rejectionNote, setRejectionNote] = useState("");
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [volunteerToReject, setVolunteerToReject] = useState<any>(null);
   const [ngoNpoToReject, setNgoNpoToReject] = useState<NgoNpo | null>(null);
-  const [profileEditToReject, setProfileEditToReject] = useState<PendingProfileEdit | null>(null);
+  const [profileEditToReject, setProfileEditToReject] =
+    useState<PendingProfileEdit | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogin = async () => {
     try {
       await login();
     } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.message === 'User is already authenticated') {
+      console.error("Login error:", error);
+      if (error.message === "User is already authenticated") {
         window.location.reload();
       }
     }
   };
 
   const handleApproveVolunteer = (volunteerId: string) => {
-    if (confirm('Are you sure you want to approve this volunteer application?')) {
+    if (
+      confirm("Are you sure you want to approve this volunteer application?")
+    ) {
       approveVolunteer(volunteerId);
     }
   };
@@ -59,12 +114,12 @@ export function AdminDashboard() {
     setVolunteerToReject(volunteer);
     setNgoNpoToReject(null);
     setProfileEditToReject(null);
-    setRejectionNote('');
+    setRejectionNote("");
     setShowRejectionModal(true);
   };
 
   const handleApproveNgoNpo = (ngoNpoId: string) => {
-    if (confirm('Are you sure you want to approve this NGO/NPO application?')) {
+    if (confirm("Are you sure you want to approve this NGO/NPO application?")) {
       approveNgoNpo(ngoNpoId);
     }
   };
@@ -73,12 +128,14 @@ export function AdminDashboard() {
     setNgoNpoToReject(ngoNpo);
     setVolunteerToReject(null);
     setProfileEditToReject(null);
-    setRejectionNote('');
+    setRejectionNote("");
     setShowRejectionModal(true);
   };
 
   const handleApproveProfileEdit = (editId: string) => {
-    if (confirm('Are you sure you want to approve this profile edit request?')) {
+    if (
+      confirm("Are you sure you want to approve this profile edit request?")
+    ) {
       approveProfileEdit(editId);
     }
   };
@@ -87,24 +144,33 @@ export function AdminDashboard() {
     setProfileEditToReject(edit);
     setVolunteerToReject(null);
     setNgoNpoToReject(null);
-    setRejectionNote('');
+    setRejectionNote("");
     setShowRejectionModal(true);
   };
 
   const confirmReject = () => {
     if (rejectionNote.trim()) {
       if (volunteerToReject) {
-        rejectVolunteer({ volunteerId: volunteerToReject.id, rejectionNote: rejectionNote.trim() });
+        rejectVolunteer({
+          volunteerId: volunteerToReject.id,
+          rejectionNote: rejectionNote.trim(),
+        });
       } else if (ngoNpoToReject) {
-        rejectNgoNpo({ ngoNpoId: ngoNpoToReject.id, rejectionNote: rejectionNote.trim() });
+        rejectNgoNpo({
+          ngoNpoId: ngoNpoToReject.id,
+          rejectionNote: rejectionNote.trim(),
+        });
       } else if (profileEditToReject) {
-        rejectProfileEdit({ editId: profileEditToReject.id, rejectionNote: rejectionNote.trim() });
+        rejectProfileEdit({
+          editId: profileEditToReject.id,
+          rejectionNote: rejectionNote.trim(),
+        });
       }
       setShowRejectionModal(false);
       setVolunteerToReject(null);
       setNgoNpoToReject(null);
       setProfileEditToReject(null);
-      setRejectionNote('');
+      setRejectionNote("");
     }
   };
 
@@ -113,16 +179,21 @@ export function AdminDashboard() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
           <Shield className="h-12 sm:h-16 w-12 sm:w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+            Admin Dashboard
+          </h2>
           <p className="text-sm sm:text-base text-gray-600 mb-6">
             Sign in with Internet Identity to access the admin dashboard.
           </p>
           <button
+            type="button"
             onClick={handleLogin}
-            disabled={loginStatus === 'logging-in'}
+            disabled={loginStatus === "logging-in"}
             className="bg-red-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base"
           >
-            {loginStatus === 'logging-in' ? 'Signing in...' : 'Sign in with Internet Identity'}
+            {loginStatus === "logging-in"
+              ? "Signing in..."
+              : "Sign in with Internet Identity"}
           </button>
         </div>
       </div>
@@ -134,8 +205,12 @@ export function AdminDashboard() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
           <Shield className="h-12 sm:h-16 w-12 sm:w-16 text-red-500 mx-auto mb-4 animate-pulse" />
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Checking Admin Access...</h2>
-          <p className="text-sm sm:text-base text-gray-600">Please wait while we verify your permissions.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+            Checking Admin Access...
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600">
+            Please wait while we verify your permissions.
+          </p>
         </div>
       </div>
     );
@@ -146,7 +221,9 @@ export function AdminDashboard() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
           <Shield className="h-12 sm:h-16 w-12 sm:w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+            Access Denied
+          </h2>
           <p className="text-sm sm:text-base text-gray-600 mb-6">
             You don't have admin permissions to access this dashboard.
           </p>
@@ -158,32 +235,39 @@ export function AdminDashboard() {
     );
   }
 
-  const pendingVolunteers = allVolunteers?.filter(v => !v.approved && !v.rejectionNote) || [];
-  const approvedVolunteers = allVolunteers?.filter(v => v.approved) || [];
-  const rejectedVolunteers = allVolunteers?.filter(v => v.rejectionNote && !v.approved) || [];
+  const pendingVolunteers =
+    allVolunteers?.filter((v) => !v.approved && !v.rejectionNote) || [];
+  const approvedVolunteers = allVolunteers?.filter((v) => v.approved) || [];
+  const rejectedVolunteers =
+    allVolunteers?.filter((v) => v.rejectionNote && !v.approved) || [];
 
-  const pendingNgoNpos = allNgoNpos?.filter(n => !n.approved && !n.rejectionNote) || [];
-  const approvedNgoNpos = allNgoNpos?.filter(n => n.approved) || [];
-  const rejectedNgoNpos = allNgoNpos?.filter(n => n.rejectionNote && !n.approved) || [];
+  const pendingNgoNpos =
+    allNgoNpos?.filter((n) => !n.approved && !n.rejectionNote) || [];
+  const approvedNgoNpos = allNgoNpos?.filter((n) => n.approved) || [];
+  const rejectedNgoNpos =
+    allNgoNpos?.filter((n) => n.rejectionNote && !n.approved) || [];
 
   const tabs = [
-    { id: 'reports' as AdminTab, label: 'Reports', icon: FileText },
-    { 
-      id: 'volunteers' as AdminTab, 
-      label: 'Volunteers', 
+    { id: "reports" as AdminTab, label: "Reports", icon: FileText },
+    {
+      id: "volunteers" as AdminTab,
+      label: "Volunteers",
       icon: UserCheck,
-      badge: (pendingVolunteers.length + (pendingProfileEdits?.length || 0)) > 0 ? (pendingVolunteers.length + (pendingProfileEdits?.length || 0)) : undefined
+      badge:
+        pendingVolunteers.length + (pendingProfileEdits?.length || 0) > 0
+          ? pendingVolunteers.length + (pendingProfileEdits?.length || 0)
+          : undefined,
     },
-    { 
-      id: 'ngo-npo' as AdminTab, 
-      label: 'NGO/NPO', 
+    {
+      id: "ngo-npo" as AdminTab,
+      label: "NGO/NPO",
       icon: Building2,
-      badge: pendingNgoNpos.length > 0 ? pendingNgoNpos.length : undefined
+      badge: pendingNgoNpos.length > 0 ? pendingNgoNpos.length : undefined,
     },
-    { id: 'directory' as AdminTab, label: 'Directory', icon: Building2 },
-    { id: 'feedback' as AdminTab, label: 'Feedback', icon: MessageSquare },
-    { id: 'users' as AdminTab, label: 'Users', icon: Users },
-    { id: 'content' as AdminTab, label: 'Content', icon: Settings },
+    { id: "directory" as AdminTab, label: "Directory", icon: Building2 },
+    { id: "feedback" as AdminTab, label: "Feedback", icon: MessageSquare },
+    { id: "users" as AdminTab, label: "Users", icon: Users },
+    { id: "content" as AdminTab, label: "Content", icon: Settings },
   ];
 
   return (
@@ -193,13 +277,21 @@ export function AdminDashboard() {
           <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
             <Shield className="h-6 sm:h-8 w-6 sm:w-8 text-red-500 flex-shrink-0" />
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Admin Dashboard</h1>
-              <p className="text-xs sm:text-base text-gray-600 hidden sm:block">Manage reports, volunteers, NGOs/NPOs, directory, feedback, users, and content</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
+                Admin Dashboard
+              </h1>
+              <p className="text-xs sm:text-base text-gray-600 hidden sm:block">
+                Manage reports, volunteers, NGOs/NPOs, directory, feedback,
+                users, and content
+              </p>
             </div>
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs sm:text-sm text-gray-600">Admin</p>
-            <p className="font-mono text-xs text-gray-500 max-w-[80px] sm:max-w-[120px] truncate" title={identity.getPrincipal().toString()}>
+            <p
+              className="font-mono text-xs text-gray-500 max-w-[80px] sm:max-w-[120px] truncate"
+              title={identity.getPrincipal().toString()}
+            >
               {identity.getPrincipal().toString().slice(0, 8)}...
             </p>
           </div>
@@ -208,14 +300,24 @@ export function AdminDashboard() {
 
       <div className="lg:hidden mb-4">
         <button
+          type="button"
           onClick={() => setShowMobileMenu(!showMobileMenu)}
           className="w-full bg-white rounded-lg shadow-md p-4 flex items-center justify-between"
         >
           <div className="flex items-center space-x-2">
-            {tabs.find(t => t.id === activeTab)?.icon && React.createElement(tabs.find(t => t.id === activeTab)!.icon, { className: "h-5 w-5 text-red-600" })}
-            <span className="font-medium text-gray-900">{tabs.find(t => t.id === activeTab)?.label}</span>
+            {tabs.find((t) => t.id === activeTab)?.icon &&
+              React.createElement(tabs.find((t) => t.id === activeTab)!.icon, {
+                className: "h-5 w-5 text-red-600",
+              })}
+            <span className="font-medium text-gray-900">
+              {tabs.find((t) => t.id === activeTab)?.label}
+            </span>
           </div>
-          {showMobileMenu ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {showMobileMenu ? (
+            <CloseIcon className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
       </div>
 
@@ -225,6 +327,7 @@ export function AdminDashboard() {
             const Icon = tab.icon;
             return (
               <button
+                type="button"
                 key={tab.id}
                 onClick={() => {
                   setActiveTab(tab.id);
@@ -232,8 +335,8 @@ export function AdminDashboard() {
                 }}
                 className={`w-full flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-red-50 text-red-600'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? "bg-red-50 text-red-600"
+                    : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -258,12 +361,13 @@ export function AdminDashboard() {
               const Icon = tab.icon;
               return (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-3 sm:py-4 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? "border-red-500 text-red-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
                   <Icon className="h-4 sm:h-5 w-4 sm:w-5" />
@@ -282,48 +386,66 @@ export function AdminDashboard() {
       </div>
 
       <div className="space-y-4 sm:space-y-6">
-        {activeTab === 'reports' && (
+        {activeTab === "reports" && (
           <div>
             {isLoadingReports ? (
               <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
                 <FileText className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400 mx-auto mb-4 animate-pulse" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Loading Reports...</h3>
-                <p className="text-sm sm:text-base text-gray-600">Please wait while we fetch the report data.</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  Loading Reports...
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600">
+                  Please wait while we fetch the report data.
+                </p>
               </div>
             ) : !allReports || allReports.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
                 <FileText className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Reports Found</h3>
-                <p className="text-sm sm:text-base text-gray-600">No reports have been submitted yet.</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  No Reports Found
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600">
+                  No reports have been submitted yet.
+                </p>
               </div>
             ) : (
               <AdminReportsTable reports={allReports} />
             )}
           </div>
         )}
-        
-        {activeTab === 'volunteers' && (
+
+        {activeTab === "volunteers" && (
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <UserCheck className="h-5 sm:h-6 w-5 sm:w-6 text-blue-600" />
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Volunteer Management</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                  Volunteer Management
+                </h2>
               </div>
               <div className="text-xs sm:text-sm text-gray-600">
-                {allVolunteers?.length || 0} total • {pendingVolunteers.length} pending • {approvedVolunteers.length} approved • {rejectedVolunteers.length} rejected
+                {allVolunteers?.length || 0} total • {pendingVolunteers.length}{" "}
+                pending • {approvedVolunteers.length} approved •{" "}
+                {rejectedVolunteers.length} rejected
               </div>
             </div>
 
             {isLoadingVolunteers ? (
               <div className="text-center py-8">
                 <Clock className="h-6 sm:h-8 w-6 sm:w-8 text-blue-500 mx-auto mb-2 animate-spin" />
-                <p className="text-sm sm:text-base text-gray-600">Loading volunteer applications...</p>
+                <p className="text-sm sm:text-base text-gray-600">
+                  Loading volunteer applications...
+                </p>
               </div>
             ) : !allVolunteers || allVolunteers.length === 0 ? (
               <div className="text-center py-8">
                 <UserCheck className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Volunteer Applications</h3>
-                <p className="text-sm sm:text-base text-gray-600">No volunteer applications have been submitted yet.</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  No Volunteer Applications
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600">
+                  No volunteer applications have been submitted yet.
+                </p>
               </div>
             ) : (
               <div className="space-y-4 sm:space-y-6">
@@ -331,7 +453,8 @@ export function AdminDashboard() {
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
                       <Edit className="h-4 sm:h-5 w-4 sm:w-5 text-purple-500 mr-2" />
-                      Pending Profile Edit Requests ({pendingProfileEdits.length})
+                      Pending Profile Edit Requests (
+                      {pendingProfileEdits.length})
                     </h3>
                     <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       {pendingProfileEdits.map((edit) => (
@@ -414,28 +537,38 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'ngo-npo' && (
+        {activeTab === "ngo-npo" && (
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <Building2 className="h-5 sm:h-6 w-5 sm:w-6 text-blue-600" />
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">NGO/NPO Management</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                  NGO/NPO Management
+                </h2>
               </div>
               <div className="text-xs sm:text-sm text-gray-600">
-                {allNgoNpos?.length || 0} total • {pendingNgoNpos.length} pending • {approvedNgoNpos.length} approved • {rejectedNgoNpos.length} rejected
+                {allNgoNpos?.length || 0} total • {pendingNgoNpos.length}{" "}
+                pending • {approvedNgoNpos.length} approved •{" "}
+                {rejectedNgoNpos.length} rejected
               </div>
             </div>
 
             {isLoadingNgoNpos ? (
               <div className="text-center py-8">
                 <Clock className="h-6 sm:h-8 w-6 sm:w-8 text-blue-500 mx-auto mb-2 animate-spin" />
-                <p className="text-sm sm:text-base text-gray-600">Loading NGO/NPO applications...</p>
+                <p className="text-sm sm:text-base text-gray-600">
+                  Loading NGO/NPO applications...
+                </p>
               </div>
             ) : !allNgoNpos || allNgoNpos.length === 0 ? (
               <div className="text-center py-8">
                 <Building2 className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No NGO/NPO Applications</h3>
-                <p className="text-sm sm:text-base text-gray-600">No NGO/NPO applications have been submitted yet.</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  No NGO/NPO Applications
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600">
+                  No NGO/NPO applications have been submitted yet.
+                </p>
               </div>
             ) : (
               <div className="space-y-4 sm:space-y-6">
@@ -502,25 +635,33 @@ export function AdminDashboard() {
             )}
           </div>
         )}
-        
-        {activeTab === 'directory' && <AdminDirectory />}
-        {activeTab === 'feedback' && <AdminFeedbackManagement />}
-        {activeTab === 'users' && <AdminUserManagement />}
-        {activeTab === 'content' && <AdminContentManagement />}
+
+        {activeTab === "directory" && <AdminDirectory />}
+        {activeTab === "feedback" && <AdminFeedbackManagement />}
+        {activeTab === "users" && <AdminUserManagement />}
+        {activeTab === "content" && <AdminContentManagement />}
       </div>
 
       {selectedVolunteer && (
         <VolunteerDetailsModal
           volunteer={selectedVolunteer}
           onClose={() => setSelectedVolunteer(null)}
-          onApprove={selectedVolunteer.approved || selectedVolunteer.rejectionNote ? undefined : () => {
-            handleApproveVolunteer(selectedVolunteer.id);
-            setSelectedVolunteer(null);
-          }}
-          onReject={selectedVolunteer.approved || selectedVolunteer.rejectionNote ? undefined : () => {
-            handleRejectVolunteer(selectedVolunteer);
-            setSelectedVolunteer(null);
-          }}
+          onApprove={
+            selectedVolunteer.approved || selectedVolunteer.rejectionNote
+              ? undefined
+              : () => {
+                  handleApproveVolunteer(selectedVolunteer.id);
+                  setSelectedVolunteer(null);
+                }
+          }
+          onReject={
+            selectedVolunteer.approved || selectedVolunteer.rejectionNote
+              ? undefined
+              : () => {
+                  handleRejectVolunteer(selectedVolunteer);
+                  setSelectedVolunteer(null);
+                }
+          }
           isApproving={isApprovingVolunteer}
           isRejecting={isRejectingVolunteer}
         />
@@ -530,14 +671,22 @@ export function AdminDashboard() {
         <NgoNpoDetailsModal
           ngoNpo={selectedNgoNpo}
           onClose={() => setSelectedNgoNpo(null)}
-          onApprove={selectedNgoNpo.approved || selectedNgoNpo.rejectionNote ? undefined : () => {
-            handleApproveNgoNpo(selectedNgoNpo.id);
-            setSelectedNgoNpo(null);
-          }}
-          onReject={selectedNgoNpo.approved || selectedNgoNpo.rejectionNote ? undefined : () => {
-            handleRejectNgoNpo(selectedNgoNpo);
-            setSelectedNgoNpo(null);
-          }}
+          onApprove={
+            selectedNgoNpo.approved || selectedNgoNpo.rejectionNote
+              ? undefined
+              : () => {
+                  handleApproveNgoNpo(selectedNgoNpo.id);
+                  setSelectedNgoNpo(null);
+                }
+          }
+          onReject={
+            selectedNgoNpo.approved || selectedNgoNpo.rejectionNote
+              ? undefined
+              : () => {
+                  handleRejectNgoNpo(selectedNgoNpo);
+                  setSelectedNgoNpo(null);
+                }
+          }
           isApproving={isApprovingNgoNpo}
           isRejecting={isRejectingNgoNpo}
         />
@@ -561,66 +710,98 @@ export function AdminDashboard() {
         />
       )}
 
-      {showRejectionModal && (volunteerToReject || ngoNpoToReject || profileEditToReject) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                  Reject {volunteerToReject ? 'Application' : ngoNpoToReject ? 'Application' : 'Profile Edit'}
-                </h3>
-                <button
-                  onClick={() => setShowRejectionModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XCircle className="h-5 w-5" />
-                </button>
-              </div>
-              
-              <p className="text-sm sm:text-base text-gray-600 mb-4">
-                You are about to reject the {volunteerToReject ? 'volunteer' : ngoNpoToReject ? 'NGO/NPO' : 'profile edit'} {volunteerToReject || ngoNpoToReject ? 'application' : 'request'} for <strong>{volunteerToReject?.name || ngoNpoToReject?.organizationName || 'this volunteer'}</strong>. 
-                Please provide a reason for rejection:
-              </p>
-              
-              <textarea
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-                placeholder="Enter rejection reason (required)..."
-                className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none h-20 sm:h-24 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base"
-                required
-              />
-              
-              <div className="flex items-center justify-end space-x-2 sm:space-x-3 mt-4 sm:mt-6">
-                <button
-                  onClick={() => setShowRejectionModal(false)}
-                  className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmReject}
-                  disabled={!rejectionNote.trim() || isRejectingVolunteer || isRejectingNgoNpo || isRejectingProfileEdit}
-                  className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {(isRejectingVolunteer || isRejectingNgoNpo || isRejectingProfileEdit) ? 'Rejecting...' : `Reject ${volunteerToReject || ngoNpoToReject ? 'Application' : 'Request'}`}
-                </button>
+      {showRejectionModal &&
+        (volunteerToReject || ngoNpoToReject || profileEditToReject) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                    Reject{" "}
+                    {volunteerToReject
+                      ? "Application"
+                      : ngoNpoToReject
+                        ? "Application"
+                        : "Profile Edit"}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectionModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <XCircle className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
+                  You are about to reject the{" "}
+                  {volunteerToReject
+                    ? "volunteer"
+                    : ngoNpoToReject
+                      ? "NGO/NPO"
+                      : "profile edit"}{" "}
+                  {volunteerToReject || ngoNpoToReject
+                    ? "application"
+                    : "request"}{" "}
+                  for{" "}
+                  <strong>
+                    {volunteerToReject?.name ||
+                      ngoNpoToReject?.organizationName ||
+                      "this volunteer"}
+                  </strong>
+                  . Please provide a reason for rejection:
+                </p>
+
+                <textarea
+                  value={rejectionNote}
+                  onChange={(e) => setRejectionNote(e.target.value)}
+                  placeholder="Enter rejection reason (required)..."
+                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none h-20 sm:h-24 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base"
+                  required
+                />
+
+                <div className="flex items-center justify-end space-x-2 sm:space-x-3 mt-4 sm:mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectionModal(false)}
+                    className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmReject}
+                    disabled={
+                      !rejectionNote.trim() ||
+                      isRejectingVolunteer ||
+                      isRejectingNgoNpo ||
+                      isRejectingProfileEdit
+                    }
+                    className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isRejectingVolunteer ||
+                    isRejectingNgoNpo ||
+                    isRejectingProfileEdit
+                      ? "Rejecting..."
+                      : `Reject ${volunteerToReject || ngoNpoToReject ? "Application" : "Request"}`}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
 
-function ProfileEditRequestCard({ 
-  edit, 
+function ProfileEditRequestCard({
+  edit,
   volunteers,
-  onApprove, 
+  onApprove,
   onReject,
-  onViewDetails, 
-  isApproving, 
-  isRejecting
+  onViewDetails,
+  isApproving,
+  isRejecting,
 }: {
   edit: PendingProfileEdit;
   volunteers: Volunteer[];
@@ -630,12 +811,14 @@ function ProfileEditRequestCard({
   isApproving?: boolean;
   isRejecting?: boolean;
 }) {
-  const volunteer = volunteers.find(v => v.id === edit.volunteerId);
-  const { data: currentPhotoUrl } = useFileUrl(volunteer?.photoPath || '');
+  const volunteer = volunteers.find((v) => v.id === edit.volunteerId);
+  const { data: currentPhotoUrl } = useFileUrl(volunteer?.photoPath || "");
   const { data: newPhotoUrl } = useFileUrl(edit.updates.photoPath);
 
-  const currentContactInfo = volunteer ? JSON.parse(volunteer.contactInfo || '{}') : {};
-  const newContactInfo = JSON.parse(edit.updates.contactInfo || '{}');
+  const currentContactInfo = volunteer
+    ? JSON.parse(volunteer.contactInfo || "{}")
+    : {};
+  const newContactInfo = JSON.parse(edit.updates.contactInfo || "{}");
 
   return (
     <div className="border border-purple-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow bg-purple-50">
@@ -669,12 +852,12 @@ function ProfileEditRequestCard({
             )}
           </div>
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
             <div>
               <h4 className="text-sm sm:text-base font-semibold text-gray-900">
-                {volunteer?.name || 'Unknown Volunteer'}
+                {volunteer?.name || "Unknown Volunteer"}
               </h4>
               <p className="text-xs text-purple-600">Profile Edit Request</p>
             </div>
@@ -682,7 +865,7 @@ function ProfileEditRequestCard({
               Pending Review
             </span>
           </div>
-          
+
           <div className="space-y-1 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -698,35 +881,43 @@ function ProfileEditRequestCard({
             </div>
             <div className="flex items-center space-x-2 pt-1">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Submitted {new Date(Number(edit.submittedAt) / 1000000).toLocaleDateString()}</span>
+              <span>
+                Submitted{" "}
+                {new Date(
+                  Number(edit.submittedAt) / 1000000,
+                ).toLocaleDateString()}
+              </span>
             </div>
           </div>
-          
+
           <div className="flex items-center flex-wrap gap-2">
             <button
+              type="button"
               onClick={onViewDetails}
               className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
             >
               <Eye className="h-3 w-3" />
               <span>View Details</span>
             </button>
-            
+
             <button
+              type="button"
               onClick={onApprove}
               disabled={isApproving}
               className="flex items-center space-x-1 text-green-600 hover:text-green-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
             >
               <CheckCircle className="h-3 w-3" />
-              <span>{isApproving ? 'Approving...' : 'Approve'}</span>
+              <span>{isApproving ? "Approving..." : "Approve"}</span>
             </button>
 
             <button
+              type="button"
               onClick={onReject}
               disabled={isRejecting}
               className="flex items-center space-x-1 text-red-600 hover:text-red-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
             >
               <XCircle className="h-3 w-3" />
-              <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
+              <span>{isRejecting ? "Rejecting..." : "Reject"}</span>
             </button>
           </div>
         </div>
@@ -735,14 +926,14 @@ function ProfileEditRequestCard({
   );
 }
 
-function ProfileEditDetailsModal({ 
-  edit, 
+function ProfileEditDetailsModal({
+  edit,
   volunteers,
-  onClose, 
-  onApprove, 
+  onClose,
+  onApprove,
   onReject,
   isApproving,
-  isRejecting
+  isRejecting,
 }: {
   edit: PendingProfileEdit;
   volunteers: Volunteer[];
@@ -752,39 +943,61 @@ function ProfileEditDetailsModal({
   isApproving?: boolean;
   isRejecting?: boolean;
 }) {
-  const volunteer = volunteers.find(v => v.id === edit.volunteerId);
-  const { data: currentPhotoUrl } = useFileUrl(volunteer?.photoPath || '');
+  const volunteer = volunteers.find((v) => v.id === edit.volunteerId);
+  const { data: currentPhotoUrl } = useFileUrl(volunteer?.photoPath || "");
   const { data: newPhotoUrl } = useFileUrl(edit.updates.photoPath);
 
-  const currentContactInfo = volunteer ? JSON.parse(volunteer.contactInfo || '{}') : {};
-  const newContactInfo = JSON.parse(edit.updates.contactInfo || '{}');
+  const currentContactInfo = volunteer
+    ? JSON.parse(volunteer.contactInfo || "{}")
+    : {};
+  const newContactInfo = JSON.parse(edit.updates.contactInfo || "{}");
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto my-8">
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Profile Edit Request Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+              Profile Edit Request Details
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <XCircle className="h-5 sm:h-6 w-5 sm:w-6" />
             </button>
           </div>
-          
+
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-purple-900 mb-2">Volunteer Information</h3>
-              <p className="text-sm text-gray-700">Name: {volunteer?.name || 'Unknown'}</p>
-              <p className="text-xs text-gray-600 break-all">Principal: {edit.volunteerPrincipal.toString()}</p>
+              <h3 className="text-sm font-semibold text-purple-900 mb-2">
+                Volunteer Information
+              </h3>
+              <p className="text-sm text-gray-700">
+                Name: {volunteer?.name || "Unknown"}
+              </p>
+              <p className="text-xs text-gray-600 break-all">
+                Principal: {edit.volunteerPrincipal.toString()}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-4">
-                <h3 className="text-base font-semibold text-gray-900 border-b pb-2">Current Information</h3>
-                
+                <h3 className="text-base font-semibold text-gray-900 border-b pb-2">
+                  Current Information
+                </h3>
+
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Profile Photo
+                  </p>
                   {currentPhotoUrl ? (
-                    <img src={currentPhotoUrl} alt="Current" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200" />
+                    <img
+                      src={currentPhotoUrl}
+                      alt="Current"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200"
+                    />
                   ) : (
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center">
                       <User className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400" />
@@ -793,40 +1006,68 @@ function ProfileEditDetailsModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Name</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{volunteer?.name || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">{currentContactInfo.email || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Mobile</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{currentContactInfo.mobile || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Address</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{volunteer?.address || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Mobile Visibility</label>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </p>
                   <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                    {volunteer?.showFullMobile ? 'Full Number Visible' : 'Partially Hidden'}
+                    {volunteer?.name || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">
+                    {currentContactInfo.email || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Mobile
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {currentContactInfo.mobile || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {volunteer?.address || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Mobile Visibility
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {volunteer?.showFullMobile
+                      ? "Full Number Visible"
+                      : "Partially Hidden"}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-base font-semibold text-purple-900 border-b border-purple-200 pb-2">Requested Changes</h3>
-                
+                <h3 className="text-base font-semibold text-purple-900 border-b border-purple-200 pb-2">
+                  Requested Changes
+                </h3>
+
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Profile Photo</label>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Profile Photo
+                  </p>
                   {newPhotoUrl ? (
-                    <img src={newPhotoUrl} alt="New" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-purple-500" />
+                    <img
+                      src={newPhotoUrl}
+                      alt="New"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-purple-500"
+                    />
                   ) : (
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-purple-200 flex items-center justify-center">
                       <User className="h-10 sm:h-12 w-10 sm:w-12 text-purple-600" />
@@ -835,70 +1076,98 @@ function ProfileEditDetailsModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Name</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">{edit.updates.name}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Email</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200 break-all">{newContactInfo.email}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Mobile</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">{newContactInfo.mobile}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Address</label>
-                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">{edit.updates.address}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">New Mobile Visibility</label>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Name
+                  </p>
                   <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
-                    {edit.updates.showFullMobile ? 'Full Number Visible' : 'Partially Hidden'}
+                    {edit.updates.name}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Email
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200 break-all">
+                    {newContactInfo.email}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Mobile
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
+                    {newContactInfo.mobile}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Address
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
+                    {edit.updates.address}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-purple-700 mb-2">
+                    New Mobile Visibility
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-900 bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
+                    {edit.updates.showFullMobile
+                      ? "Full Number Visible"
+                      : "Partially Hidden"}
                   </p>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Submission Date
-              </label>
+              </p>
               <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                {new Date(Number(edit.submittedAt) / 1000000).toLocaleDateString('en-IN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(
+                  Number(edit.submittedAt) / 1000000,
+                ).toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
-            <button onClick={onClose} className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
               Close
             </button>
-            
+
             <button
+              type="button"
               onClick={onApprove}
               disabled={isApproving}
               className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              {isApproving ? 'Approving...' : 'Approve Changes'}
+              {isApproving ? "Approving..." : "Approve Changes"}
             </button>
 
             <button
+              type="button"
               onClick={onReject}
               disabled={isRejecting}
               className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              {isRejecting ? 'Rejecting...' : 'Reject Changes'}
+              {isRejecting ? "Rejecting..." : "Reject Changes"}
             </button>
           </div>
         </div>
@@ -907,15 +1176,15 @@ function ProfileEditDetailsModal({
   );
 }
 
-function VolunteerApplicationCard({ 
-  volunteer, 
-  onApprove, 
+function VolunteerApplicationCard({
+  volunteer,
+  onApprove,
   onReject,
-  onViewDetails, 
-  isApproving, 
+  onViewDetails,
+  isApproving,
   isRejecting,
   isApproved = false,
-  isRejected = false
+  isRejected = false,
 }: {
   volunteer: any;
   onApprove?: () => void;
@@ -927,7 +1196,7 @@ function VolunteerApplicationCard({
   isRejected?: boolean;
 }) {
   const { data: photoUrl } = useFileUrl(volunteer.photoPath);
-  const contactInfo = JSON.parse(volunteer.contactInfo || '{}');
+  const contactInfo = JSON.parse(volunteer.contactInfo || "{}");
 
   return (
     <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
@@ -950,62 +1219,78 @@ function VolunteerApplicationCard({
             </div>
           )}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{volunteer.name}</h4>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${
-              isApproved ? 'text-green-600 bg-green-50 border-green-200' :
-              isRejected ? 'text-red-600 bg-red-50 border-red-200' :
-              'text-yellow-600 bg-yellow-50 border-yellow-200'
-            }`}>
-              {isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending'}
+            <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+              {volunteer.name}
+            </h4>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full border ${
+                isApproved
+                  ? "text-green-600 bg-green-50 border-green-200"
+                  : isRejected
+                    ? "text-red-600 bg-red-50 border-red-200"
+                    : "text-yellow-600 bg-yellow-50 border-yellow-200"
+              }`}
+            >
+              {isApproved ? "Approved" : isRejected ? "Rejected" : "Pending"}
             </span>
           </div>
-          
+
           <div className="space-y-1 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
             <div className="flex items-center space-x-2">
               <Mail className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">{contactInfo.email || 'Not provided'}</span>
+              <span className="truncate">
+                {contactInfo.email || "Not provided"}
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <Phone className="h-3 w-3 flex-shrink-0" />
-              <span>{contactInfo.mobile || 'Not provided'}</span>
+              <span>{contactInfo.mobile || "Not provided"}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Applied {new Date(Number(volunteer.applicationDate) / 1000000).toLocaleDateString()}</span>
+              <span>
+                Applied{" "}
+                {new Date(
+                  Number(volunteer.applicationDate) / 1000000,
+                ).toLocaleDateString()}
+              </span>
             </div>
           </div>
-          
+
           <div className="flex items-center flex-wrap gap-2">
             <button
+              type="button"
               onClick={onViewDetails}
               className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
             >
               <Eye className="h-3 w-3" />
               <span>View Details</span>
             </button>
-            
+
             {onApprove && (
               <button
+                type="button"
                 onClick={onApprove}
                 disabled={isApproving}
                 className="flex items-center space-x-1 text-green-600 hover:text-green-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
               >
                 <CheckCircle className="h-3 w-3" />
-                <span>{isApproving ? 'Approving...' : 'Approve'}</span>
+                <span>{isApproving ? "Approving..." : "Approve"}</span>
               </button>
             )}
 
             {onReject && (
               <button
+                type="button"
                 onClick={onReject}
                 disabled={isRejecting}
                 className="flex items-center space-x-1 text-red-600 hover:text-red-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
               >
                 <XCircle className="h-3 w-3" />
-                <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
+                <span>{isRejecting ? "Rejecting..." : "Reject"}</span>
               </button>
             )}
           </div>
@@ -1015,15 +1300,15 @@ function VolunteerApplicationCard({
   );
 }
 
-function NgoNpoApplicationCard({ 
-  ngoNpo, 
-  onApprove, 
+function NgoNpoApplicationCard({
+  ngoNpo,
+  onApprove,
   onReject,
-  onViewDetails, 
-  isApproving, 
+  onViewDetails,
+  isApproving,
   isRejecting,
   isApproved = false,
-  isRejected = false
+  isRejected = false,
 }: {
   ngoNpo: NgoNpo;
   onApprove?: () => void;
@@ -1052,19 +1337,25 @@ function NgoNpoApplicationCard({
             </div>
           )}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{ngoNpo.organizationName}</h4>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${
-              isApproved ? 'text-green-600 bg-green-50 border-green-200' :
-              isRejected ? 'text-red-600 bg-red-50 border-red-200' :
-              'text-yellow-600 bg-yellow-50 border-yellow-200'
-            }`}>
-              {isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending'}
+            <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+              {ngoNpo.organizationName}
+            </h4>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full border ${
+                isApproved
+                  ? "text-green-600 bg-green-50 border-green-200"
+                  : isRejected
+                    ? "text-red-600 bg-red-50 border-red-200"
+                    : "text-yellow-600 bg-yellow-50 border-yellow-200"
+              }`}
+            >
+              {isApproved ? "Approved" : isRejected ? "Rejected" : "Pending"}
             </span>
           </div>
-          
+
           <div className="space-y-1 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
             <div className="flex items-center space-x-2">
               <Mail className="h-3 w-3 flex-shrink-0" />
@@ -1076,38 +1367,46 @@ function NgoNpoApplicationCard({
             </div>
             <div className="flex items-center space-x-2">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Registered {new Date(Number(ngoNpo.registrationDate) / 1000000).toLocaleDateString()}</span>
+              <span>
+                Registered{" "}
+                {new Date(
+                  Number(ngoNpo.registrationDate) / 1000000,
+                ).toLocaleDateString()}
+              </span>
             </div>
           </div>
-          
+
           <div className="flex items-center flex-wrap gap-2">
             <button
+              type="button"
               onClick={onViewDetails}
               className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
             >
               <Eye className="h-3 w-3" />
               <span>View Details</span>
             </button>
-            
+
             {onApprove && (
               <button
+                type="button"
                 onClick={onApprove}
                 disabled={isApproving}
                 className="flex items-center space-x-1 text-green-600 hover:text-green-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
               >
                 <CheckCircle className="h-3 w-3" />
-                <span>{isApproving ? 'Approving...' : 'Approve'}</span>
+                <span>{isApproving ? "Approving..." : "Approve"}</span>
               </button>
             )}
 
             {onReject && (
               <button
+                type="button"
                 onClick={onReject}
                 disabled={isRejecting}
                 className="flex items-center space-x-1 text-red-600 hover:text-red-700 disabled:opacity-50 text-xs sm:text-sm font-medium"
               >
                 <XCircle className="h-3 w-3" />
-                <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
+                <span>{isRejecting ? "Rejecting..." : "Reject"}</span>
               </button>
             )}
           </div>
@@ -1117,13 +1416,13 @@ function NgoNpoApplicationCard({
   );
 }
 
-function VolunteerDetailsModal({ 
-  volunteer, 
-  onClose, 
-  onApprove, 
+function VolunteerDetailsModal({
+  volunteer,
+  onClose,
+  onApprove,
   onReject,
   isApproving,
-  isRejecting
+  isRejecting,
 }: {
   volunteer: any;
   onClose: () => void;
@@ -1133,114 +1432,142 @@ function VolunteerDetailsModal({
   isRejecting?: boolean;
 }) {
   const { data: photoUrl } = useFileUrl(volunteer.photoPath);
-  const contactInfo = JSON.parse(volunteer.contactInfo || '{}');
+  const contactInfo = JSON.parse(volunteer.contactInfo || "{}");
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto my-8">
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Volunteer Application Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+              Volunteer Application Details
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <XCircle className="h-5 sm:h-6 w-5 sm:w-6" />
             </button>
           </div>
-          
+
           <div className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
               <div className="relative">
                 {photoUrl ? (
-                  <img src={photoUrl} alt={`${volunteer.name} profile`} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200" />
+                  <img
+                    src={photoUrl}
+                    alt={`${volunteer.name} profile`}
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200"
+                  />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center">
                     <User className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400" />
                   </div>
                 )}
               </div>
-              
+
               <div className="text-center sm:text-left">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{volunteer.name}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 break-all">Principal: {volunteer.principal.toString()}</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  {volunteer.name}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 break-all">
+                  Principal: {volunteer.principal.toString()}
+                </p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <Mail className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Email Address
-                </label>
-                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">{contactInfo.email || 'Not provided'}</p>
+                </p>
+                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">
+                  {contactInfo.email || "Not provided"}
+                </p>
               </div>
-              
+
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <Phone className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Mobile Number
-                </label>
-                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{contactInfo.mobile || 'Not provided'}</p>
+                </p>
+                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {contactInfo.mobile || "Not provided"}
+                </p>
               </div>
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <MapPin className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Complete Address
-              </label>
-              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{volunteer.address}</p>
+              </p>
+              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                {volunteer.address}
+              </p>
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Application Date
-              </label>
+              </p>
               <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                {new Date(Number(volunteer.applicationDate) / 1000000).toLocaleDateString('en-IN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(
+                  Number(volunteer.applicationDate) / 1000000,
+                ).toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
             </div>
 
             {volunteer.rejectionNote && (
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <MessageSquare className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Rejection Reason
-                </label>
+                </p>
                 <div className="text-sm sm:text-base text-gray-900 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
                   {volunteer.rejectionNote}
                 </div>
               </div>
             )}
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
-            <button onClick={onClose} className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
               Close
             </button>
-            
+
             {onApprove && (
               <button
+                type="button"
                 onClick={onApprove}
                 disabled={isApproving}
                 className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                {isApproving ? 'Approving...' : 'Approve Application'}
+                {isApproving ? "Approving..." : "Approve Application"}
               </button>
             )}
 
             {onReject && (
               <button
+                type="button"
                 onClick={onReject}
                 disabled={isRejecting}
                 className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                {isRejecting ? 'Rejecting...' : 'Reject Application'}
+                {isRejecting ? "Rejecting..." : "Reject Application"}
               </button>
             )}
           </div>
@@ -1250,13 +1577,13 @@ function VolunteerDetailsModal({
   );
 }
 
-function NgoNpoDetailsModal({ 
-  ngoNpo, 
-  onClose, 
-  onApprove, 
+function NgoNpoDetailsModal({
+  ngoNpo,
+  onClose,
+  onApprove,
   onReject,
   isApproving,
-  isRejecting
+  isRejecting,
 }: {
   ngoNpo: NgoNpo;
   onClose: () => void;
@@ -1272,150 +1599,197 @@ function NgoNpoDetailsModal({
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto my-8">
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">NGO/NPO Application Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+              NGO/NPO Application Details
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <XCircle className="h-5 sm:h-6 w-5 sm:w-6" />
             </button>
           </div>
-          
+
           <div className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
               <div className="relative">
                 {logoUrl ? (
-                  <img src={logoUrl} alt={`${ngoNpo.organizationName} logo`} className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border-4 border-gray-200" />
+                  <img
+                    src={logoUrl}
+                    alt={`${ngoNpo.organizationName} logo`}
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border-4 border-gray-200"
+                  />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gray-200 flex items-center justify-center">
                     <Building2 className="h-10 sm:h-12 w-10 sm:w-12 text-gray-400" />
                   </div>
                 )}
               </div>
-              
+
               <div className="text-center sm:text-left">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{ngoNpo.organizationName}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 break-all">Principal: {ngoNpo.principal.toString()}</p>
-                <span className={`inline-block mt-2 px-3 py-1 text-xs sm:text-sm font-medium rounded-full border ${
-                  ngoNpo.approved ? 'text-green-600 bg-green-50 border-green-200' :
-                  ngoNpo.rejectionNote ? 'text-red-600 bg-red-50 border-red-200' :
-                  'text-yellow-600 bg-yellow-50 border-yellow-200'
-                }`}>
-                  {ngoNpo.approved ? 'Approved' : ngoNpo.rejectionNote ? 'Rejected' : 'Pending'}
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  {ngoNpo.organizationName}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 break-all">
+                  Principal: {ngoNpo.principal.toString()}
+                </p>
+                <span
+                  className={`inline-block mt-2 px-3 py-1 text-xs sm:text-sm font-medium rounded-full border ${
+                    ngoNpo.approved
+                      ? "text-green-600 bg-green-50 border-green-200"
+                      : ngoNpo.rejectionNote
+                        ? "text-red-600 bg-red-50 border-red-200"
+                        : "text-yellow-600 bg-yellow-50 border-yellow-200"
+                  }`}
+                >
+                  {ngoNpo.approved
+                    ? "Approved"
+                    : ngoNpo.rejectionNote
+                      ? "Rejected"
+                      : "Pending"}
                 </span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <User className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Contact Person
-                </label>
-                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{ngoNpo.contactPerson}</p>
+                </p>
+                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {ngoNpo.contactPerson}
+                </p>
               </div>
-              
+
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <Mail className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Email
-                </label>
-                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">{ngoNpo.email}</p>
+                </p>
+                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg break-all">
+                  {ngoNpo.email}
+                </p>
               </div>
-              
+
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <Phone className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Phone
-                </label>
-                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{ngoNpo.phone}</p>
+                </p>
+                <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {ngoNpo.phone}
+                </p>
               </div>
-              
+
               {ngoNpo.website && (
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     <Globe className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                     Website
-                  </label>
-                  <a href={ngoNpo.website} target="_blank" rel="noopener noreferrer" className="text-sm sm:text-base text-blue-600 hover:text-blue-700 bg-gray-50 px-3 py-2 rounded-lg block break-all">
+                  </p>
+                  <a
+                    href={ngoNpo.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm sm:text-base text-blue-600 hover:text-blue-700 bg-gray-50 px-3 py-2 rounded-lg block break-all"
+                  >
                     {ngoNpo.website}
                   </a>
                 </div>
               )}
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <MapPin className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Address
-              </label>
-              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{ngoNpo.address}</p>
+              </p>
+              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                {ngoNpo.address}
+              </p>
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <FileTextIcon className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Description
-              </label>
-              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{ngoNpo.description}</p>
+              </p>
+              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                {ngoNpo.description}
+              </p>
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <FileTextIcon className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Mission Statement
-              </label>
-              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">{ngoNpo.missionStatement}</p>
+              </p>
+              <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                {ngoNpo.missionStatement}
+              </p>
             </div>
-            
+
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                 Registration Date
-              </label>
+              </p>
               <p className="text-sm sm:text-base text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                {new Date(Number(ngoNpo.registrationDate) / 1000000).toLocaleDateString('en-IN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(
+                  Number(ngoNpo.registrationDate) / 1000000,
+                ).toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
             </div>
 
             {ngoNpo.rejectionNote && (
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   <MessageSquare className="h-3 sm:h-4 w-3 sm:w-4 inline mr-2" />
                   Rejection Reason
-                </label>
+                </p>
                 <div className="text-sm sm:text-base text-gray-900 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
                   {ngoNpo.rejectionNote}
                 </div>
               </div>
             )}
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
-            <button onClick={onClose} className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
               Close
             </button>
-            
+
             {onApprove && (
               <button
+                type="button"
                 onClick={onApprove}
                 disabled={isApproving}
                 className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                {isApproving ? 'Approving...' : 'Approve Application'}
+                {isApproving ? "Approving..." : "Approve Application"}
               </button>
             )}
 
             {onReject && (
               <button
+                type="button"
                 onClick={onReject}
                 disabled={isRejecting}
                 className="w-full sm:w-auto px-4 sm:px-6 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                {isRejecting ? 'Rejecting...' : 'Reject Application'}
+                {isRejecting ? "Rejecting..." : "Reject Application"}
               </button>
             )}
           </div>

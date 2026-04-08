@@ -1,9 +1,24 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from '@tanstack/react-router';
-import { Home, Search, MapPin, User, Mail, Twitter, ChevronDown, ChevronRight, Filter, X, Building2, Crown, Calendar, Loader2 } from 'lucide-react';
-import { useGetDirectory } from '../hooks/useQueries';
-import { Representative, State, Constituency } from '../backend';
-import { useFileUrl } from '../blob-storage/FileStorage';
+import { Link } from "@tanstack/react-router";
+import {
+  Building2,
+  Calendar,
+  ChevronDown,
+  ChevronRight,
+  Crown,
+  Filter,
+  Home,
+  Loader2,
+  Mail,
+  MapPin,
+  Search,
+  Twitter,
+  User,
+  X,
+} from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import type { Constituency, Representative, State } from "../backend";
+import { useFileUrl } from "../blob-storage/FileStorage";
+import { useGetDirectory } from "../hooks/useQueries";
 
 interface LocationData {
   state: string;
@@ -15,50 +30,57 @@ interface LocationData {
 
 export function KnowYourNeta() {
   const { data: directory, isLoading } = useGetDirectory();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedState, setSelectedState] = useState<string>('');
-  const [selectedConstituency, setSelectedConstituency] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedConstituency, setSelectedConstituency] = useState<string>("");
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [photoModalUrl, setPhotoModalUrl] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'lok-sabha' | 'vidhan-sabha' | 'both'>('both');
+  const [viewMode, setViewMode] = useState<
+    "lok-sabha" | "vidhan-sabha" | "both"
+  >("both");
 
   // Reverse geocode coordinates to get location details
-  const reverseGeocode = async (latitude: number, longitude: number): Promise<LocationData | null> => {
+  const reverseGeocode = async (
+    latitude: number,
+    longitude: number,
+  ): Promise<LocationData | null> => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
       );
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch location data');
+        throw new Error("Failed to fetch location data");
       }
-      
+
       const data = await response.json();
       const address = data.address || {};
-      
+
       // Extract state name from various possible fields
-      let stateName = address.state || address.region || address.province || '';
-      
+      let stateName = address.state || address.region || address.province || "";
+
       // Clean up state name (remove "State of" prefix if present)
-      stateName = stateName.replace(/^State of\s+/i, '').trim();
-      
+      stateName = stateName.replace(/^State of\s+/i, "").trim();
+
       // Extract district/constituency information
-      const district = address.state_district || address.county || address.district || '';
-      const constituency = address.suburb || address.neighbourhood || address.city_district || '';
-      
+      const district =
+        address.state_district || address.county || address.district || "";
+      const constituency =
+        address.suburb || address.neighbourhood || address.city_district || "";
+
       return {
         state: stateName,
         district: district,
         constituency: constituency,
         latitude,
-        longitude
+        longitude,
       };
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      console.error("Reverse geocoding error:", error);
       return null;
     }
   };
@@ -66,22 +88,23 @@ export function KnowYourNeta() {
   // Find matching state in directory
   const findMatchingState = (locationState: string): State | null => {
     if (!directory || !locationState) return null;
-    
+
     const allStates = [...directory.states, ...directory.unionTerritories];
-    
+
     // Try exact match first
-    let match = allStates.find(s => 
-      s.name.toLowerCase() === locationState.toLowerCase()
+    let match = allStates.find(
+      (s) => s.name.toLowerCase() === locationState.toLowerCase(),
     );
-    
+
     // Try partial match if exact match fails
     if (!match) {
-      match = allStates.find(s => 
-        s.name.toLowerCase().includes(locationState.toLowerCase()) ||
-        locationState.toLowerCase().includes(s.name.toLowerCase())
+      match = allStates.find(
+        (s) =>
+          s.name.toLowerCase().includes(locationState.toLowerCase()) ||
+          locationState.toLowerCase().includes(s.name.toLowerCase()),
       );
     }
-    
+
     return match || null;
   };
 
@@ -89,9 +112,11 @@ export function KnowYourNeta() {
   const handleLocateMe = async () => {
     setIsLocating(true);
     setLocationError(null);
-    
+
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser. Please select your state and constituency manually.');
+      setLocationError(
+        "Geolocation is not supported by your browser. Please select your state and constituency manually.",
+      );
       setIsLocating(false);
       return;
     }
@@ -99,75 +124,84 @@ export function KnowYourNeta() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Reverse geocode to get location details
         const locationData = await reverseGeocode(latitude, longitude);
-        
+
         if (!locationData || !locationData.state) {
-          setLocationError('Unable to determine your location. Please select your state and constituency manually.');
+          setLocationError(
+            "Unable to determine your location. Please select your state and constituency manually.",
+          );
           setIsLocating(false);
           return;
         }
-        
+
         setUserLocation(locationData);
-        
+
         // Find matching state in directory
         const matchingState = findMatchingState(locationData.state);
-        
+
         if (matchingState) {
           setSelectedState(matchingState.name);
-          
+
           // Auto-expand the state to show constituencies
           const newExpanded = new Set(expandedStates);
           newExpanded.add(matchingState.name);
           setExpandedStates(newExpanded);
-          
+
           // Try to match constituency if available
           if (locationData.district || locationData.constituency) {
-            const searchTerm = locationData.district || locationData.constituency || '';
-            const matchingConstituency = matchingState.constituencies.find(c =>
-              c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              searchTerm.toLowerCase().includes(c.name.toLowerCase())
+            const searchTerm =
+              locationData.district || locationData.constituency || "";
+            const matchingConstituency = matchingState.constituencies.find(
+              (c) =>
+                c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                searchTerm.toLowerCase().includes(c.name.toLowerCase()),
             );
-            
+
             if (matchingConstituency) {
               setSelectedConstituency(matchingConstituency.name);
             }
           }
-          
+
           setLocationError(null);
         } else {
-          setLocationError(`Location detected: ${locationData.state}. However, this state is not found in our directory. Please select manually.`);
+          setLocationError(
+            `Location detected: ${locationData.state}. However, this state is not found in our directory. Please select manually.`,
+          );
         }
-        
+
         setIsLocating(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        let errorMessage = 'Unable to get your location. ';
-        
+        console.error("Geolocation error:", error);
+        let errorMessage = "Unable to get your location. ";
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += 'Location permission denied. Please enable location access and try again.';
+            errorMessage +=
+              "Location permission denied. Please enable location access and try again.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage += 'Location information unavailable. Please try again.';
+            errorMessage +=
+              "Location information unavailable. Please try again.";
             break;
           case error.TIMEOUT:
-            errorMessage += 'Location request timed out. Please try again.';
+            errorMessage += "Location request timed out. Please try again.";
             break;
           default:
-            errorMessage += 'An unknown error occurred. Please select your state and constituency manually.';
+            errorMessage +=
+              "An unknown error occurred. Please select your state and constituency manually.";
         }
-        
+
         setLocationError(errorMessage);
         setIsLocating(false);
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0
-      }
+        maximumAge: 0,
+      },
     );
   };
 
@@ -185,45 +219,49 @@ export function KnowYourNeta() {
   // Get all states (including union territories)
   const allStates = useMemo(() => {
     if (!directory) return [];
-    return [...directory.states, ...directory.unionTerritories].sort((a, b) => a.name.localeCompare(b.name));
+    return [...directory.states, ...directory.unionTerritories].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }, [directory]);
 
   // Get constituencies for selected state
   const constituencies = useMemo(() => {
     if (!selectedState || !directory) return [];
-    const state = allStates.find(s => s.name === selectedState);
+    const state = allStates.find((s) => s.name === selectedState);
     return state?.constituencies || [];
   }, [selectedState, allStates, directory]);
 
   // Filter states based on search and filters
   const filteredStates = useMemo(() => {
     let filtered = allStates;
-    
+
     if (selectedState) {
-      filtered = filtered.filter(s => s.name === selectedState);
+      filtered = filtered.filter((s) => s.name === selectedState);
     }
-    
+
     if (searchTerm) {
       const query = searchTerm.toLowerCase();
-      filtered = filtered.filter(state => 
-        state.name.toLowerCase().includes(query) ||
-        state.cm?.name.toLowerCase().includes(query) ||
-        state.constituencies.some(c => 
-          c.name.toLowerCase().includes(query) ||
-          c.mp?.name.toLowerCase().includes(query) ||
-          c.mlas.some(m => m.name.toLowerCase().includes(query))
-        )
+      filtered = filtered.filter(
+        (state) =>
+          state.name.toLowerCase().includes(query) ||
+          state.cm?.name.toLowerCase().includes(query) ||
+          state.constituencies.some(
+            (c) =>
+              c.name.toLowerCase().includes(query) ||
+              c.mp?.name.toLowerCase().includes(query) ||
+              c.mlas.some((m) => m.name.toLowerCase().includes(query)),
+          ),
       );
     }
-    
+
     return filtered;
   }, [allStates, searchTerm, selectedState]);
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedState('');
-    setSelectedConstituency('');
+    setSearchTerm("");
+    setSelectedState("");
+    setSelectedConstituency("");
     setUserLocation(null);
     setLocationError(null);
   };
@@ -239,14 +277,14 @@ export function KnowYourNeta() {
     );
   }
 
-  const showLokSabha = viewMode === 'lok-sabha' || viewMode === 'both';
-  const showVidhanSabha = viewMode === 'vidhan-sabha' || viewMode === 'both';
+  const showLokSabha = viewMode === "lok-sabha" || viewMode === "both";
+  const showVidhanSabha = viewMode === "vidhan-sabha" || viewMode === "both";
 
   return (
     <div className="space-y-6">
       {/* Photo Modal */}
       {photoModalUrl && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
           onClick={() => setPhotoModalUrl(null)}
         >
@@ -257,9 +295,9 @@ export function KnowYourNeta() {
             >
               <X className="h-8 w-8" />
             </button>
-            <img 
-              src={photoModalUrl} 
-              alt="Full size" 
+            <img
+              src={photoModalUrl}
+              alt="Full size"
               className="max-w-full max-h-[90vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
@@ -271,8 +309,13 @@ export function KnowYourNeta() {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Know Your Neta</h1>
-            <p className="text-gray-600">Find your representatives - PM, CM, MP, MLA, and local civic bodies</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Know Your Neta
+            </h1>
+            <p className="text-gray-600">
+              Find your representatives - PM, CM, MP, MLA, and local civic
+              bodies
+            </p>
           </div>
           <Link
             to="/"
@@ -301,7 +344,7 @@ export function KnowYourNeta() {
             </>
           )}
         </button>
-        
+
         {/* Location Status Messages */}
         {userLocation && !locationError && (
           <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -315,16 +358,17 @@ export function KnowYourNeta() {
             </p>
           </div>
         )}
-        
+
         {locationError && (
           <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">{locationError}</p>
           </div>
         )}
-        
+
         {!userLocation && !locationError && !isLocating && (
           <p className="text-sm text-gray-500 mt-2">
-            Auto-detect your location to find your representatives, or use filters below to search manually.
+            Auto-detect your location to find your representatives, or use
+            filters below to search manually.
           </p>
         )}
       </div>
@@ -353,32 +397,42 @@ export function KnowYourNeta() {
               <Filter className="h-4 w-4" />
               <span>Filters</span>
             </div>
-            {showFilters ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {showFilters ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
           </button>
 
           {/* Filters */}
-          <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${showFilters ? 'block' : 'hidden sm:grid'}`}>
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${showFilters ? "block" : "hidden sm:grid"}`}
+          >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">State/UT</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                State/UT
+              </label>
               <select
                 value={selectedState}
                 onChange={(e) => {
                   setSelectedState(e.target.value);
-                  setSelectedConstituency('');
+                  setSelectedConstituency("");
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All States/UTs</option>
-                {allStates.map(state => (
+                {allStates.map((state) => (
                   <option key={state.name} value={state.name}>
-                    {state.name} {state.isUnionTerritory ? '(UT)' : ''}
+                    {state.name} {state.isUnionTerritory ? "(UT)" : ""}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Constituency</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Constituency
+              </label>
               <select
                 value={selectedConstituency}
                 onChange={(e) => setSelectedConstituency(e.target.value)}
@@ -386,7 +440,7 @@ export function KnowYourNeta() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">All Constituencies</option>
-                {constituencies.map(constituency => (
+                {constituencies.map((constituency) => (
                   <option key={constituency.name} value={constituency.name}>
                     {constituency.name}
                   </option>
@@ -410,30 +464,38 @@ export function KnowYourNeta() {
       {/* Table-Based Directory */}
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="flex flex-col gap-4 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Representatives Directory</h2>
-          
+          <h2 className="text-xl font-semibold text-gray-900">
+            Representatives Directory
+          </h2>
+
           {/* View Mode Toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
             <button
-              onClick={() => setViewMode('lok-sabha')}
+              onClick={() => setViewMode("lok-sabha")}
               className={`flex-1 sm:flex-none px-3 py-1.5 text-xs sm:text-sm rounded transition-colors ${
-                viewMode === 'lok-sabha' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                viewMode === "lok-sabha"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600"
               }`}
             >
               Lok Sabha
             </button>
             <button
-              onClick={() => setViewMode('vidhan-sabha')}
+              onClick={() => setViewMode("vidhan-sabha")}
               className={`flex-1 sm:flex-none px-3 py-1.5 text-xs sm:text-sm rounded transition-colors ${
-                viewMode === 'vidhan-sabha' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                viewMode === "vidhan-sabha"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600"
               }`}
             >
               Vidhan Sabha
             </button>
             <button
-              onClick={() => setViewMode('both')}
+              onClick={() => setViewMode("both")}
               className={`flex-1 sm:flex-none px-3 py-1.5 text-xs sm:text-sm rounded transition-colors ${
-                viewMode === 'both' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
+                viewMode === "both"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600"
               }`}
             >
               Both
@@ -447,14 +509,30 @@ export function KnowYourNeta() {
               <table className="min-w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100 border-b-2 border-gray-300">
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Level</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Administrative Unit</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Representative Name</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Photo</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Email</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">X Handle</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Political Party</th>
-                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Last Updated</th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Level
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Administrative Unit
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Representative Name
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Photo
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Email
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      X Handle
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Political Party
+                    </th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      Last Updated
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -463,10 +541,10 @@ export function KnowYourNeta() {
                     primeMinister={directory?.primeMinister}
                     onPhotoClick={setPhotoModalUrl}
                   />
-                  
+
                   {/* State Rows */}
                   {filteredStates
-                    .filter(state => !state.isUnionTerritory)
+                    .filter((state) => !state.isUnionTerritory)
                     .map((state, stateIndex) => (
                       <StateTableRows
                         key={state.name}
@@ -482,10 +560,10 @@ export function KnowYourNeta() {
                         selectedConstituency={selectedConstituency}
                       />
                     ))}
-                  
+
                   {/* UT Rows */}
                   {filteredStates
-                    .filter(state => state.isUnionTerritory)
+                    .filter((state) => state.isUnionTerritory)
                     .map((state, utIndex) => (
                       <StateTableRows
                         key={state.name}
@@ -510,8 +588,12 @@ export function KnowYourNeta() {
         {filteredStates.length === 0 && (
           <div className="text-center py-8">
             <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Found</h3>
-            <p className="text-gray-600">Try adjusting your search or filters.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Results Found
+            </h3>
+            <p className="text-gray-600">
+              Try adjusting your search or filters.
+            </p>
           </div>
         )}
       </div>
@@ -519,9 +601,10 @@ export function KnowYourNeta() {
       {/* Info Note */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>Note:</strong> This is a read-only directory for public lookup and discovery. 
-          Representative information is managed by administrators. If you notice any outdated information, 
-          please contact the admin team.
+          <strong>Note:</strong> This is a read-only directory for public lookup
+          and discovery. Representative information is managed by
+          administrators. If you notice any outdated information, please contact
+          the admin team.
         </p>
       </div>
     </div>
@@ -531,12 +614,12 @@ export function KnowYourNeta() {
 // Prime Minister Table Row Component
 function PrimeMinisterTableRow({
   primeMinister,
-  onPhotoClick
+  onPhotoClick,
 }: {
   primeMinister?: Representative;
   onPhotoClick: (url: string) => void;
 }) {
-  const { data: pmPhotoUrl } = useFileUrl(primeMinister?.photoPath || '');
+  const { data: pmPhotoUrl } = useFileUrl(primeMinister?.photoPath || "");
 
   return (
     <tr className="border-b border-gray-200 bg-purple-50 hover:bg-purple-100">
@@ -547,73 +630,89 @@ function PrimeMinisterTableRow({
         </div>
       </td>
       <td className="p-2 sm:p-3">
-        <div className="font-medium text-gray-900 text-xs sm:text-sm">Prime Minister of India</div>
+        <div className="font-medium text-gray-900 text-xs sm:text-sm">
+          Prime Minister of India
+        </div>
       </td>
       <td className="p-2 sm:p-3">
-        <div className="text-xs sm:text-sm text-gray-900">{primeMinister?.name || 'No PM Set'}</div>
+        <div className="text-xs sm:text-sm text-gray-900">
+          {primeMinister?.name || "No PM Set"}
+        </div>
       </td>
       <td className="p-2 sm:p-3">
         {pmPhotoUrl && (
-          <img 
-            src={pmPhotoUrl} 
-            alt={primeMinister?.name} 
-            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+          <img
+            src={pmPhotoUrl}
+            alt={primeMinister?.name}
+            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => onPhotoClick(pmPhotoUrl)}
           />
         )}
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{primeMinister?.email || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {primeMinister?.email || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{primeMinister?.twitterHandle || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {primeMinister?.twitterHandle || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{primeMinister?.politicalParty || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {primeMinister?.politicalParty || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3 text-xs text-gray-600">
-        {primeMinister?.lastUpdated ? new Date(Number(primeMinister.lastUpdated) / 1000000).toLocaleDateString() : '-'}
+        {primeMinister?.lastUpdated
+          ? new Date(
+              Number(primeMinister.lastUpdated) / 1000000,
+            ).toLocaleDateString()
+          : "-"}
       </td>
     </tr>
   );
 }
 
 // State Table Rows Component
-function StateTableRows({ 
-  state, 
+function StateTableRows({
+  state,
   stateNumber,
   levelLabel,
-  isExpanded, 
-  onToggle, 
-  viewMode,
+  isExpanded,
+  onToggle,
+  viewMode: _viewMode,
   showLokSabha,
   showVidhanSabha,
   onPhotoClick,
-  selectedConstituency
+  selectedConstituency,
 }: {
   state: State;
   stateNumber: number;
-  levelLabel: 'State' | 'UT';
+  levelLabel: "State" | "UT";
   isExpanded: boolean;
   onToggle: () => void;
-  viewMode: 'lok-sabha' | 'vidhan-sabha' | 'both';
+  viewMode: "lok-sabha" | "vidhan-sabha" | "both";
   showLokSabha: boolean;
   showVidhanSabha: boolean;
   onPhotoClick: (url: string) => void;
   selectedConstituency?: string;
 }) {
-  const { data: cmPhotoUrl } = useFileUrl(state.cm?.photoPath || '');
+  const { data: cmPhotoUrl } = useFileUrl(state.cm?.photoPath || "");
 
-  const lokSabhaConstituencies = state.constituencies.filter(c => c.mp);
-  const vidhanSabhaConstituencies = state.constituencies.filter(c => c.mlas.length > 0);
+  const lokSabhaConstituencies = state.constituencies.filter((c) => c.mp);
+  const vidhanSabhaConstituencies = state.constituencies.filter(
+    (c) => c.mlas.length > 0,
+  );
 
   // Filter constituencies if a specific one is selected
-  const filteredLokSabha = selectedConstituency 
-    ? lokSabhaConstituencies.filter(c => c.name === selectedConstituency)
+  const filteredLokSabha = selectedConstituency
+    ? lokSabhaConstituencies.filter((c) => c.name === selectedConstituency)
     : lokSabhaConstituencies;
-    
+
   const filteredVidhanSabha = selectedConstituency
-    ? vidhanSabhaConstituencies.filter(c => c.name === selectedConstituency)
+    ? vidhanSabhaConstituencies.filter((c) => c.name === selectedConstituency)
     : vidhanSabhaConstituencies;
 
   return (
@@ -622,65 +721,90 @@ function StateTableRows({
       <tr className="border-b border-gray-200 bg-blue-50 hover:bg-blue-100">
         <td className="p-2 sm:p-3">
           <div className="flex items-center space-x-2">
-            <button onClick={onToggle} className="p-1 hover:bg-blue-200 rounded">
-              {isExpanded ? <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />}
+            <button
+              onClick={onToggle}
+              className="p-1 hover:bg-blue-200 rounded"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              ) : (
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
             </button>
-            <span className="font-semibold text-xs sm:text-sm">{String(stateNumber).padStart(2, '0')}. {levelLabel}</span>
+            <span className="font-semibold text-xs sm:text-sm">
+              {String(stateNumber).padStart(2, "0")}. {levelLabel}
+            </span>
           </div>
         </td>
         <td className="p-2 sm:p-3">
-          <div className="font-medium text-gray-900 text-xs sm:text-sm">{state.name}</div>
+          <div className="font-medium text-gray-900 text-xs sm:text-sm">
+            {state.name}
+          </div>
         </td>
         <td className="p-2 sm:p-3">
-          <div className="text-xs sm:text-sm text-gray-900">{state.cm?.name || 'No CM/Administrator'}</div>
+          <div className="text-xs sm:text-sm text-gray-900">
+            {state.cm?.name || "No CM/Administrator"}
+          </div>
         </td>
         <td className="p-2 sm:p-3">
           {cmPhotoUrl && (
-            <img 
-              src={cmPhotoUrl} 
-              alt={state.cm?.name} 
-              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+            <img
+              src={cmPhotoUrl}
+              alt={state.cm?.name}
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => onPhotoClick(cmPhotoUrl)}
             />
           )}
         </td>
         <td className="p-2 sm:p-3">
-          <span className="text-xs sm:text-sm text-gray-700">{state.cm?.email || '-'}</span>
+          <span className="text-xs sm:text-sm text-gray-700">
+            {state.cm?.email || "-"}
+          </span>
         </td>
         <td className="p-2 sm:p-3">
-          <span className="text-xs sm:text-sm text-gray-700">{state.cm?.twitterHandle || '-'}</span>
+          <span className="text-xs sm:text-sm text-gray-700">
+            {state.cm?.twitterHandle || "-"}
+          </span>
         </td>
         <td className="p-2 sm:p-3">
-          <span className="text-xs sm:text-sm text-gray-700">{state.cm?.politicalParty || '-'}</span>
+          <span className="text-xs sm:text-sm text-gray-700">
+            {state.cm?.politicalParty || "-"}
+          </span>
         </td>
         <td className="p-2 sm:p-3 text-xs text-gray-600">
-          {state.cm?.lastUpdated ? new Date(Number(state.cm.lastUpdated) / 1000000).toLocaleDateString() : '-'}
+          {state.cm?.lastUpdated
+            ? new Date(
+                Number(state.cm.lastUpdated) / 1000000,
+              ).toLocaleDateString()
+            : "-"}
         </td>
       </tr>
 
       {/* Constituency Rows */}
       {isExpanded && (
         <>
-          {showLokSabha && filteredLokSabha.map((constituency, constIndex) => (
-            <ConstituencyTableRow
-              key={`lok-${constituency.name}`}
-              stateName={state.name}
-              constituency={constituency}
-              constituencyNumber={constIndex + 1}
-              type="Lok Sabha"
-              onPhotoClick={onPhotoClick}
-            />
-          ))}
-          {showVidhanSabha && filteredVidhanSabha.map((constituency, constIndex) => (
-            <ConstituencyTableRow
-              key={`vidhan-${constituency.name}`}
-              stateName={state.name}
-              constituency={constituency}
-              constituencyNumber={constIndex + 1}
-              type="Vidhan Sabha"
-              onPhotoClick={onPhotoClick}
-            />
-          ))}
+          {showLokSabha &&
+            filteredLokSabha.map((constituency, constIndex) => (
+              <ConstituencyTableRow
+                key={`lok-${constituency.name}`}
+                stateName={state.name}
+                constituency={constituency}
+                constituencyNumber={constIndex + 1}
+                type="Lok Sabha"
+                onPhotoClick={onPhotoClick}
+              />
+            ))}
+          {showVidhanSabha &&
+            filteredVidhanSabha.map((constituency, constIndex) => (
+              <ConstituencyTableRow
+                key={`vidhan-${constituency.name}`}
+                stateName={state.name}
+                constituency={constituency}
+                constituencyNumber={constIndex + 1}
+                type="Vidhan Sabha"
+                onPhotoClick={onPhotoClick}
+              />
+            ))}
         </>
       )}
     </>
@@ -689,19 +813,24 @@ function StateTableRows({
 
 // Constituency Table Row Component
 function ConstituencyTableRow({
-  stateName,
+  stateName: _stateName,
   constituency,
   constituencyNumber,
   type,
-  onPhotoClick
+  onPhotoClick,
 }: {
   stateName: string;
   constituency: Constituency;
   constituencyNumber: number;
-  type: 'Lok Sabha' | 'Vidhan Sabha';
+  type: "Lok Sabha" | "Vidhan Sabha";
   onPhotoClick: (url: string) => void;
 }) {
-  const representatives = type === 'Lok Sabha' ? (constituency.mp ? [constituency.mp] : []) : constituency.mlas;
+  const representatives =
+    type === "Lok Sabha"
+      ? constituency.mp
+        ? [constituency.mp]
+        : []
+      : constituency.mlas;
 
   return (
     <>
@@ -725,52 +854,69 @@ function RepresentativeTableRow({
   representative,
   constituencyNumber,
   type,
-  onPhotoClick
+  onPhotoClick,
 }: {
   constituencyName: string;
   representative: Representative;
   constituencyNumber: number;
-  type: 'Lok Sabha' | 'Vidhan Sabha';
+  type: "Lok Sabha" | "Vidhan Sabha";
   onPhotoClick: (url: string) => void;
 }) {
   const { data: photoUrl } = useFileUrl(representative.photoPath);
 
-  const bgColor = type === 'Lok Sabha' ? 'bg-green-50 hover:bg-green-100' : 'bg-yellow-50 hover:bg-yellow-100';
+  const bgColor =
+    type === "Lok Sabha"
+      ? "bg-green-50 hover:bg-green-100"
+      : "bg-yellow-50 hover:bg-yellow-100";
 
   return (
     <tr className={`border-b border-gray-200 ${bgColor}`}>
       <td className="p-2 sm:p-3">
         <div className="text-xs font-medium text-gray-700 pl-4 sm:pl-8">
-          {String(constituencyNumber).padStart(2, '0')} {type}
+          {String(constituencyNumber).padStart(2, "0")} {type}
         </div>
       </td>
       <td className="p-2 sm:p-3">
-        <div className="text-xs sm:text-sm text-gray-900">{constituencyName}</div>
+        <div className="text-xs sm:text-sm text-gray-900">
+          {constituencyName}
+        </div>
       </td>
       <td className="p-2 sm:p-3">
-        <div className="font-medium text-gray-900 text-xs sm:text-sm">{representative.name}</div>
+        <div className="font-medium text-gray-900 text-xs sm:text-sm">
+          {representative.name}
+        </div>
       </td>
       <td className="p-2 sm:p-3">
         {photoUrl && (
-          <img 
-            src={photoUrl} 
-            alt={representative.name} 
-            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+          <img
+            src={photoUrl}
+            alt={representative.name}
+            className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => onPhotoClick(photoUrl)}
           />
         )}
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{representative.email || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {representative.email || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{representative.twitterHandle || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {representative.twitterHandle || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3">
-        <span className="text-xs sm:text-sm text-gray-700">{representative.politicalParty || '-'}</span>
+        <span className="text-xs sm:text-sm text-gray-700">
+          {representative.politicalParty || "-"}
+        </span>
       </td>
       <td className="p-2 sm:p-3 text-xs text-gray-600">
-        {representative.lastUpdated ? new Date(Number(representative.lastUpdated) / 1000000).toLocaleDateString() : '-'}
+        {representative.lastUpdated
+          ? new Date(
+              Number(representative.lastUpdated) / 1000000,
+            ).toLocaleDateString()
+          : "-"}
       </td>
     </tr>
   );

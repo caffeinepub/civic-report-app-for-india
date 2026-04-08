@@ -1,26 +1,32 @@
-import React, { useEffect } from 'react';
-import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
-import { ReportForm } from './components/ReportForm';
-import { RecentReports } from './components/RecentReports';
-import { Dashboard } from './components/Dashboard';
-import { AdminDashboard } from './components/AdminDashboard';
-import { Header } from './components/Header';
-import { ReportVerification } from './components/ReportVerification';
-import { ReportPage } from './components/ReportPage';
-import { MapView } from './components/MapView';
-import { Roadmap } from './components/Roadmap';
-import { Footer } from './components/Footer';
-import { VolunteerRegistration } from './components/VolunteerRegistration';
-import { VolunteerDashboard } from './components/VolunteerDashboard';
-import { VolunteerDirectory } from './components/VolunteerDirectory';
-import { NgoNpoRegistration } from './components/NgoNpoRegistration';
-import { NgoNpoDashboard } from './components/NgoNpoDashboard';
-import { NgoNpoDirectory } from './components/NgoNpoDirectory';
-import { KnowYourNeta } from './components/KnowYourNeta';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { LocationRefreshProvider } from './contexts/LocationRefreshContext';
-import { useTrackUniqueVisitor } from './hooks/useQueries';
-import { useActor } from './hooks/useActor';
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
+import React, { useEffect } from "react";
+import { AdminDashboard } from "./components/AdminDashboard";
+import { Dashboard } from "./components/Dashboard";
+import { Footer } from "./components/Footer";
+import { Header } from "./components/Header";
+import { KnowYourNeta } from "./components/KnowYourNeta";
+import { MapView } from "./components/MapView";
+import { NgoNpoDashboard } from "./components/NgoNpoDashboard";
+import { NgoNpoDirectory } from "./components/NgoNpoDirectory";
+import { NgoNpoRegistration } from "./components/NgoNpoRegistration";
+import { RecentReports } from "./components/RecentReports";
+import { ReportForm } from "./components/ReportForm";
+import { ReportPage } from "./components/ReportPage";
+import { ReportVerification } from "./components/ReportVerification";
+import { Roadmap } from "./components/Roadmap";
+import { VolunteerDashboard } from "./components/VolunteerDashboard";
+import { VolunteerDirectory } from "./components/VolunteerDirectory";
+import { VolunteerRegistration } from "./components/VolunteerRegistration";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { LocationRefreshProvider } from "./contexts/LocationRefreshContext";
+import { useActor } from "./hooks/useActor";
+import { useTrackUniqueVisitor } from "./hooks/useQueries";
 
 function AppLayout() {
   const { mutate: trackVisitor } = useTrackUniqueVisitor();
@@ -54,7 +60,7 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   component: () => (
     <div className="space-y-8">
       <ReportForm />
@@ -65,88 +71,88 @@ const indexRoute = createRoute({
 
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/dashboard',
+  path: "/dashboard",
   component: Dashboard,
 });
 
 const mapRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/map',
+  path: "/map",
   component: MapView,
 });
 
 const roadmapRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/roadmap',
+  path: "/roadmap",
   component: Roadmap,
 });
 
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin',
+  path: "/admin",
   component: AdminDashboard,
 });
 
 const volunteerRegistrationRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/volunteer/register',
+  path: "/volunteer/register",
   component: VolunteerRegistration,
 });
 
 const volunteerDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/volunteer/dashboard',
+  path: "/volunteer/dashboard",
   component: VolunteerDashboard,
 });
 
 const volunteerDirectoryRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/volunteer/directory',
+  path: "/volunteer/directory",
   component: VolunteerDirectory,
 });
 
 const ngoNpoRegistrationRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/ngo-npo/register',
+  path: "/ngo-npo/register",
   component: NgoNpoRegistration,
 });
 
 const ngoNpoDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/ngo-npo/dashboard',
+  path: "/ngo-npo/dashboard",
   component: NgoNpoDashboard,
 });
 
 const ngoNpoDirectoryRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/ngo-npo/directory',
+  path: "/ngo-npo/directory",
   component: NgoNpoDirectory,
 });
 
 const knowYourNetaRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/know-your-neta',
+  path: "/know-your-neta",
   component: KnowYourNeta,
 });
 
 const verifyRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/verify/$reportId',
+  path: "/verify/$reportId",
   component: ReportVerification,
 });
 
 const reportRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/report/$reportId',
+  path: "/report/$reportId",
   component: ReportPage,
 });
 
 const routeTree = rootRoute.addChildren([
-  indexRoute, 
-  dashboardRoute, 
-  mapRoute, 
-  roadmapRoute, 
-  adminRoute, 
+  indexRoute,
+  dashboardRoute,
+  mapRoute,
+  roadmapRoute,
+  adminRoute,
   volunteerRegistrationRoute,
   volunteerDashboardRoute,
   volunteerDirectoryRoute,
@@ -154,13 +160,13 @@ const routeTree = rootRoute.addChildren([
   ngoNpoDashboardRoute,
   ngoNpoDirectoryRoute,
   knowYourNetaRoute,
-  verifyRoute, 
-  reportRoute
+  verifyRoute,
+  reportRoute,
 ]);
 
 const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }

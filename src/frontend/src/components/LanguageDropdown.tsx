@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
-import { useLanguage, languages, Language } from '../contexts/LanguageContext';
+import { Check, ChevronDown } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  type Language,
+  languages,
+  useLanguage,
+} from "../contexts/LanguageContext";
 
 export function LanguageDropdown() {
   const { currentLanguage, setLanguage } = useLanguage();
@@ -9,14 +13,17 @@ export function LanguageDropdown() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -33,9 +40,11 @@ export function LanguageDropdown() {
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className="language-dropdown-text-compact">{currentLanguage.nativeName}</span>
-        <ChevronDown 
-          className={`language-dropdown-icon-compact ${isOpen ? 'language-dropdown-icon-open' : ''}`} 
+        <span className="language-dropdown-text-compact">
+          {currentLanguage.nativeName}
+        </span>
+        <ChevronDown
+          className={`language-dropdown-icon-compact ${isOpen ? "language-dropdown-icon-open" : ""}`}
         />
       </button>
 
@@ -47,12 +56,16 @@ export function LanguageDropdown() {
                 key={language.code}
                 onClick={() => handleLanguageSelect(language)}
                 className={`language-dropdown-item-compact ${
-                  currentLanguage.code === language.code ? 'language-dropdown-item-selected' : ''
+                  currentLanguage.code === language.code
+                    ? "language-dropdown-item-selected"
+                    : ""
                 }`}
                 role="option"
                 aria-selected={currentLanguage.code === language.code}
               >
-                <span className="language-dropdown-item-text-compact">{language.nativeName}</span>
+                <span className="language-dropdown-item-text-compact">
+                  {language.nativeName}
+                </span>
                 {currentLanguage.code === language.code && (
                   <Check className="language-dropdown-check-compact" />
                 )}

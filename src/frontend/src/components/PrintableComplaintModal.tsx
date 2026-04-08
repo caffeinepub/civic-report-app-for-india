@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X, FileText, Download } from 'lucide-react';
-import { Report } from '../backend';
+import { Download, FileText, X } from "lucide-react";
+import React, { useState } from "react";
+import type { Report } from "../backend";
 
 interface PrintableComplaintModalProps {
   report: Report;
@@ -17,19 +17,21 @@ export function PrintableComplaintModal({
   onClose,
   imageUrl,
   formatLocationDisplay,
-  formatDate
+  formatDate,
 }: PrintableComplaintModalProps) {
-  const [complainerName, setComplainerName] = useState(report.username || '');
+  const [complainerName, setComplainerName] = useState(report.username || "");
   const [localCivicBodyName, setLocalCivicBodyName] = useState(
-    report.localCivicBody?.bodyName || ''
+    report.localCivicBody?.bodyName || "",
   );
-  const [contactMobile, setContactMobile] = useState('');
+  const [contactMobile, setContactMobile] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   if (!isOpen) return null;
 
   // Get image dimensions and calculate aspect ratio
-  const getImageDimensions = async (url: string): Promise<{ width: number; height: number }> => {
+  const getImageDimensions = async (
+    url: string,
+  ): Promise<{ width: number; height: number }> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -53,32 +55,34 @@ export function PrintableComplaintModal({
         reader.onloadend = () => {
           const base64 = reader.result as string;
           // Remove data URL prefix to get pure base64
-          const base64Data = base64.split(',')[1];
+          const base64Data = base64.split(",")[1];
           resolve(base64Data);
         };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error converting image to base64:', error);
+      console.error("Error converting image to base64:", error);
       throw error;
     }
   };
 
   // Simple CRC32 implementation for ZIP
   const crc32 = (data: Uint8Array): number => {
-    let crc = 0xFFFFFFFF;
+    let crc = 0xffffffff;
     for (let i = 0; i < data.length; i++) {
       crc ^= data[i];
       for (let j = 0; j < 8; j++) {
-        crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+        crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
       }
     }
-    return (crc ^ 0xFFFFFFFF) >>> 0;
+    return (crc ^ 0xffffffff) >>> 0;
   };
 
   // Create ZIP file manually
-  const createZip = (files: Array<{ path: string; content: string | Uint8Array }>): Uint8Array => {
+  const createZip = (
+    files: Array<{ path: string; content: string | Uint8Array }>,
+  ): Uint8Array => {
     const encoder = new TextEncoder();
     const centralDirectory: Uint8Array[] = [];
     const fileData: Uint8Array[] = [];
@@ -86,16 +90,17 @@ export function PrintableComplaintModal({
 
     files.forEach((file) => {
       const pathBytes = encoder.encode(file.path);
-      const contentBytes = typeof file.content === 'string' 
-        ? encoder.encode(file.content) 
-        : file.content;
-      
+      const contentBytes =
+        typeof file.content === "string"
+          ? encoder.encode(file.content)
+          : file.content;
+
       const crc = crc32(contentBytes);
-      
+
       // Local file header
       const localHeader = new Uint8Array(30 + pathBytes.length);
       const view = new DataView(localHeader.buffer);
-      
+
       view.setUint32(0, 0x04034b50, true); // signature
       view.setUint16(4, 20, true); // version
       view.setUint16(6, 0, true); // flags
@@ -107,16 +112,16 @@ export function PrintableComplaintModal({
       view.setUint32(22, contentBytes.length, true); // uncompressed size
       view.setUint16(26, pathBytes.length, true); // filename length
       view.setUint16(28, 0, true); // extra field length
-      
+
       localHeader.set(pathBytes, 30);
-      
+
       fileData.push(localHeader);
       fileData.push(contentBytes);
-      
+
       // Central directory header
       const cdHeader = new Uint8Array(46 + pathBytes.length);
       const cdView = new DataView(cdHeader.buffer);
-      
+
       cdView.setUint32(0, 0x02014b50, true); // signature
       cdView.setUint16(4, 20, true); // version made by
       cdView.setUint16(6, 20, true); // version needed
@@ -134,20 +139,20 @@ export function PrintableComplaintModal({
       cdView.setUint16(36, 0, true); // internal attributes
       cdView.setUint32(38, 0, true); // external attributes
       cdView.setUint32(42, offset, true); // relative offset
-      
+
       cdHeader.set(pathBytes, 46);
       centralDirectory.push(cdHeader);
-      
+
       offset += localHeader.length + contentBytes.length;
     });
-    
+
     // Calculate sizes
     const cdSize = centralDirectory.reduce((sum, cd) => sum + cd.length, 0);
-    
+
     // End of central directory
     const eocd = new Uint8Array(22);
     const eocdView = new DataView(eocd.buffer);
-    
+
     eocdView.setUint32(0, 0x06054b50, true); // signature
     eocdView.setUint16(4, 0, true); // disk number
     eocdView.setUint16(6, 0, true); // disk with central directory
@@ -156,46 +161,48 @@ export function PrintableComplaintModal({
     eocdView.setUint32(12, cdSize, true); // central directory size
     eocdView.setUint32(16, offset, true); // central directory offset
     eocdView.setUint16(20, 0, true); // comment length
-    
+
     // Combine all parts
     const totalSize = offset + cdSize + eocd.length;
     const result = new Uint8Array(totalSize);
     let pos = 0;
-    
-    fileData.forEach(data => {
+
+    fileData.forEach((data) => {
       result.set(data, pos);
       pos += data.length;
     });
-    
-    centralDirectory.forEach(cd => {
+
+    centralDirectory.forEach((cd) => {
       result.set(cd, pos);
       pos += cd.length;
     });
-    
+
     result.set(eocd, pos);
-    
+
     return result;
   };
 
   const handleGenerate = async () => {
     if (!complainerName.trim()) {
-      alert('Please enter the complainer name');
+      alert("Please enter the complainer name");
       return;
     }
 
     setIsGenerating(true);
 
     try {
-      let imageBase64 = '';
+      let imageBase64 = "";
       let imageDimensions = { width: 800, height: 600 };
-      
+
       if (imageUrl) {
         try {
           imageDimensions = await getImageDimensions(imageUrl);
           imageBase64 = await imageToBase64(imageUrl);
         } catch (error) {
-          console.error('Failed to embed image:', error);
-          alert('Warning: Could not embed the issue photo. The document will be generated without it.');
+          console.error("Failed to embed image:", error);
+          alert(
+            "Warning: Could not embed the issue photo. The document will be generated without it.",
+          );
         }
       }
 
@@ -204,7 +211,7 @@ export function PrintableComplaintModal({
       const aspectRatio = imageDimensions.width / imageDimensions.height;
       let imageWidthEMU = maxWidthEMU;
       let imageHeightEMU = Math.round(maxWidthEMU / aspectRatio);
-      
+
       // If height is too large, constrain by height instead - increased from 3.2 to 3.6 inches
       const maxHeightEMU = 2057280; // 3.6 inches
       if (imageHeightEMU > maxHeightEMU) {
@@ -232,7 +239,7 @@ export function PrintableComplaintModal({
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="60"/></w:pPr>
       <w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t>To: </w:t></w:r>
-      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>${localCivicBodyName.trim() || '___________________________'}</w:t></w:r>
+      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>${localCivicBodyName.trim() || "___________________________"}</w:t></w:r>
     </w:p>
     
     <w:p>
@@ -244,7 +251,7 @@ export function PrintableComplaintModal({
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="160"/></w:pPr>
       <w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t>Contact: </w:t></w:r>
-      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>${contactMobile.trim() || 'N/A'}</w:t></w:r>
+      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>${contactMobile.trim() || "N/A"}</w:t></w:r>
     </w:p>
     
     <w:p>
@@ -267,7 +274,9 @@ export function PrintableComplaintModal({
       <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>${formatLocationDisplay()}</w:t></w:r>
     </w:p>
     
-    ${imageBase64 ? `
+    ${
+      imageBase64
+        ? `
     <w:p>
       <w:pPr><w:jc w:val="center"/><w:spacing w:after="60"/></w:pPr>
       <w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t>Issue Photo:</w:t></w:r>
@@ -312,7 +321,9 @@ export function PrintableComplaintModal({
         </w:drawing>
       </w:r>
     </w:p>
-    ` : ''}
+    `
+        : ""
+    }
     
     <w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="100"/></w:pPr>
@@ -379,7 +390,7 @@ export function PrintableComplaintModal({
     </w:p>
     <w:p>
       <w:pPr><w:jc w:val="left"/></w:pPr>
-      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>Date: ${new Date().toLocaleDateString('en-IN')}</w:t></w:r>
+      <w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>Date: ${new Date().toLocaleDateString("en-IN")}</w:t></w:r>
     </w:p>
     
     <w:sectPr>
@@ -390,10 +401,12 @@ export function PrintableComplaintModal({
 </w:document>`;
 
       // Create relationships file
-      const relsXml = imageBase64 ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      const relsXml = imageBase64
+        ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.jpeg"/>
-</Relationships>` : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+</Relationships>`
+        : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 </Relationships>`;
 
@@ -402,7 +415,7 @@ export function PrintableComplaintModal({
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
-  ${imageBase64 ? '<Default Extension="jpeg" ContentType="image/jpeg"/>' : ''}
+  ${imageBase64 ? '<Default Extension="jpeg" ContentType="image/jpeg"/>' : ""}
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>`;
 
@@ -414,10 +427,10 @@ export function PrintableComplaintModal({
 
       // Prepare files for ZIP
       const files: Array<{ path: string; content: string | Uint8Array }> = [
-        { path: '[Content_Types].xml', content: contentTypesXml },
-        { path: '_rels/.rels', content: mainRelsXml },
-        { path: 'word/document.xml', content: docXml },
-        { path: 'word/_rels/document.xml.rels', content: relsXml }
+        { path: "[Content_Types].xml", content: contentTypesXml },
+        { path: "_rels/.rels", content: mainRelsXml },
+        { path: "word/document.xml", content: docXml },
+        { path: "word/_rels/document.xml.rels", content: relsXml },
       ];
 
       // Add image if available
@@ -428,19 +441,19 @@ export function PrintableComplaintModal({
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        files.push({ path: 'word/media/image1.jpeg', content: bytes });
+        files.push({ path: "word/media/image1.jpeg", content: bytes });
       }
 
       // Create ZIP
       const zipData = createZip(files);
-      
+
       // Create blob and download - use slice to create a proper copy
-      const blob = new Blob([zipData.slice(0)], { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      const blob = new Blob([zipData.slice(0)], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
-      
+
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `complaint-${report.id}.docx`;
       document.body.appendChild(a);
@@ -448,11 +461,13 @@ export function PrintableComplaintModal({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      alert('Complaint document generated successfully! The .docx file is ready for editing and submission.');
+      alert(
+        "Complaint document generated successfully! The .docx file is ready for editing and submission.",
+      );
       onClose();
     } catch (error) {
-      console.error('Error generating document:', error);
-      alert('Failed to generate document. Please try again.');
+      console.error("Error generating document:", error);
+      alert("Failed to generate document. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -465,7 +480,9 @@ export function PrintableComplaintModal({
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2">
               <FileText className="h-6 w-6 text-blue-600" />
-              <h3 className="text-xl font-bold text-gray-900">Generate Printable Complaint</h3>
+              <h3 className="text-xl font-bold text-gray-900">
+                Generate Printable Complaint
+              </h3>
             </div>
             <button
               onClick={onClose}
@@ -476,7 +493,9 @@ export function PrintableComplaintModal({
           </div>
 
           <p className="text-sm text-gray-600 mb-6">
-            Fill in the details below to generate an editable .docx complaint document with the issue photo embedded. These details are session-specific and won't affect the original report.
+            Fill in the details below to generate an editable .docx complaint
+            document with the issue photo embedded. These details are
+            session-specific and won't affect the original report.
           </p>
 
           <div className="space-y-4 mb-6">
@@ -498,7 +517,8 @@ export function PrintableComplaintModal({
             {/* Local Civic Body Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Local Civic Body Name <span className="text-gray-400">(Optional)</span>
+                Local Civic Body Name{" "}
+                <span className="text-gray-400">(Optional)</span>
               </label>
               <input
                 type="text"
@@ -515,7 +535,8 @@ export function PrintableComplaintModal({
             {/* Contact Mobile Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Mobile Number <span className="text-gray-400">(Optional)</span>
+                Contact Mobile Number{" "}
+                <span className="text-gray-400">(Optional)</span>
               </label>
               <input
                 type="tel"
@@ -529,7 +550,10 @@ export function PrintableComplaintModal({
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> The generated document will be a fully editable .docx file with the issue photo embedded as an actual image. You can open it in Microsoft Word, Google Docs, or any word processor for editing and official submission.
+              <strong>Note:</strong> The generated document will be a fully
+              editable .docx file with the issue photo embedded as an actual
+              image. You can open it in Microsoft Word, Google Docs, or any word
+              processor for editing and official submission.
             </p>
           </div>
 

@@ -4,9 +4,9 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
   }
-  
+
   body {
     @apply bg-gray-50 text-gray-900;
   }
@@ -16,27 +16,25 @@
   .btn-primary {
     @apply bg-gradient-to-r from-orange-500 to-green-600 text-white py-3 px-6 rounded-lg font-medium hover:from-orange-600 hover:to-green-700 transition-all text-lg;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors text-lg;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow-md p-6;
   }
-  
+
   .indian-border {
     @apply border-4 border-orange-400 bg-gradient-to-br from-orange-50 to-green-50;
-    box-shadow: 
-      inset 0 0 0 2px #ffffff,
-      inset 0 0 0 6px #138808,
-      0 4px 12px rgba(255, 153, 51, 0.2);
+    box-shadow: inset 0 0 0 2px #ffffff, inset 0 0 0 6px #138808, 0 4px 12px
+      rgba(255, 153, 51, 0.2);
   }
-  
+
   .indian-accent {
     @apply text-orange-600 border-orange-300 bg-orange-50;
   }
-  
+
   .certificate-frame {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -50,23 +48,26 @@
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     background: rgba(255, 255, 255, 0.25);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 
-      0 2px 12px rgba(0, 0, 0, 0.08),
-      inset 0 1px 2px rgba(255, 255, 255, 0.6),
-      0 0 0 1px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), inset 0 1px 2px
+      rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.4);
     position: relative;
     overflow: hidden;
   }
 
   .mode-indicator-glass::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
     transition: left 0.5s ease;
   }
 
@@ -76,10 +77,8 @@
 
   .mode-indicator-glass:hover {
     transform: translateY(-1px) scale(1.02);
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.12),
-      inset 0 1px 2px rgba(255, 255, 255, 0.7),
-      0 0 0 1px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 2px
+      rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.3);
   }
 
   /* Admin Mode - Red Glass with enhanced transparency */
@@ -91,10 +90,8 @@
 
   .mode-indicator-admin:hover {
     background: rgba(254, 226, 226, 0.45);
-    box-shadow: 
-      0 4px 16px rgba(239, 68, 68, 0.2),
-      inset 0 1px 2px rgba(255, 255, 255, 0.7),
-      0 0 0 1px rgba(239, 68, 68, 0.2);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2), inset 0 1px 2px
+      rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(239, 68, 68, 0.2);
   }
 
   /* Volunteer Mode - Blue Glass with enhanced transparency */
@@ -106,10 +103,8 @@
 
   .mode-indicator-volunteer:hover {
     background: rgba(219, 234, 254, 0.45);
-    box-shadow: 
-      0 4px 16px rgba(59, 130, 246, 0.2),
-      inset 0 1px 2px rgba(255, 255, 255, 0.7),
-      0 0 0 1px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2), inset 0 1px 2px
+      rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(59, 130, 246, 0.2);
   }
 
   /* NGO/NPO Mode - Green Glass with enhanced transparency */
@@ -121,10 +116,8 @@
 
   .mode-indicator-ngo:hover {
     background: rgba(220, 252, 231, 0.45);
-    box-shadow: 
-      0 4px 16px rgba(34, 197, 94, 0.2),
-      inset 0 1px 2px rgba(255, 255, 255, 0.7),
-      0 0 0 1px rgba(34, 197, 94, 0.2);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2), inset 0 1px 2px
+      rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(34, 197, 94, 0.2);
   }
 
   /* Citizen Mode - Gray Glass with enhanced transparency */
@@ -136,10 +129,8 @@
 
   .mode-indicator-citizen:hover {
     background: rgba(243, 244, 246, 0.45);
-    box-shadow: 
-      0 4px 16px rgba(156, 163, 175, 0.2),
-      inset 0 1px 2px rgba(255, 255, 255, 0.7),
-      0 0 0 1px rgba(156, 163, 175, 0.2);
+    box-shadow: 0 4px 16px rgba(156, 163, 175, 0.2), inset 0 1px 2px
+      rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(156, 163, 175, 0.2);
   }
 
   /* Report Card Action Buttons - Perfectly Aligned Layout */
@@ -187,7 +178,7 @@
     justify-content: center;
     font-weight: bold;
     color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   .cluster-small {
@@ -207,23 +198,23 @@
 
   /* Enhanced Leaflet overrides for better photo thumbnail styling and performance */
   .leaflet-container {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     z-index: 1; /* Keep map container at base level */
   }
 
   .leaflet-popup-content-wrapper {
     border-radius: 0.5rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     z-index: 500; /* Popups should be above markers but below modal overlays */
   }
 
   .leaflet-popup-tip {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
   .leaflet-control-zoom {
     border: none !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     z-index: 200; /* Controls should be above markers */
   }
 
@@ -265,7 +256,7 @@
 
   .custom-marker-icon:hover .marker-photo-thumbnail {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   }
 
   /* Improved marker loading states with better performance */
@@ -276,7 +267,8 @@
   }
 
   @keyframes marker-loading {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
@@ -287,7 +279,8 @@
   /* Optimized popup styles for better mobile experience */
   .custom-popup .leaflet-popup-content-wrapper {
     border-radius: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px
+      rgba(0, 0, 0, 0.04);
     border: 1px solid #e5e7eb;
   }
 
@@ -299,7 +292,7 @@
   .custom-popup .leaflet-popup-tip {
     background: white;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   /* Mobile slide-up animation for info card */
@@ -623,7 +616,8 @@
 
   /* Coffee Icon Animation */
   @keyframes shuttle {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateX(0) rotate(0deg);
     }
     25% {
@@ -745,12 +739,14 @@
   /* Implemented Features - Light Green Theme */
   .roadmap-card-implemented {
     @apply border-green-200 bg-gradient-to-br from-green-50 to-emerald-50;
-    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px rgba(34, 197, 94, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -1px
+      rgba(34, 197, 94, 0.06);
   }
 
   .roadmap-card-implemented:hover {
     @apply border-green-300;
-    box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.2), 0 4px 6px -2px rgba(34, 197, 94, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.2), 0 4px 6px -2px
+      rgba(34, 197, 94, 0.1);
   }
 
   .roadmap-card-implemented .progress-bar {
@@ -760,12 +756,14 @@
   /* Under Consideration - Light Blue Theme */
   .roadmap-card-under-consideration {
     @apply border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px
+      rgba(59, 130, 246, 0.06);
   }
 
   .roadmap-card-under-consideration:hover {
     @apply border-blue-300;
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px
+      rgba(59, 130, 246, 0.1);
   }
 
   .roadmap-card-under-consideration .progress-bar {
@@ -775,12 +773,14 @@
   /* Upcoming/Planned Features - Light Orange Theme */
   .roadmap-card-upcoming {
     @apply border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50;
-    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.1), 0 2px 4px -1px rgba(249, 115, 22, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.1), 0 2px 4px -1px
+      rgba(249, 115, 22, 0.06);
   }
 
   .roadmap-card-upcoming:hover {
     @apply border-orange-300;
-    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2), 0 4px 6px -2px rgba(249, 115, 22, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2), 0 4px 6px -2px
+      rgba(249, 115, 22, 0.1);
   }
 
   .roadmap-card-upcoming .progress-bar {
@@ -1083,7 +1083,8 @@
   .volunteer-privacy-toggle:focus-visible {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 4px 12px
+      rgba(0, 0, 0, 0.15);
   }
 
   .volunteer-privacy-toggle[data-state="unchecked"] {
@@ -1252,12 +1253,17 @@
 
   .cm-upload-pulse-ring {
     @apply absolute inset-0 rounded-lg;
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+    background: radial-gradient(
+      circle,
+      rgba(34, 197, 94, 0.1) 0%,
+      transparent 70%
+    );
     animation: pulse-ring 2s ease-in-out infinite;
   }
 
   @keyframes pulse-ring {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
       opacity: 0.3;
     }
@@ -1761,7 +1767,8 @@
 
 /* Loading animations */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -1787,14 +1794,14 @@
 }
 
 .indian-gradient-animation {
-  background: linear-gradient(-45deg, #FF9933, #FFFFFF, #138808, #000080);
+  background: linear-gradient(-45deg, #ff9933, #ffffff, #138808, #000080);
   background-size: 400% 400%;
   animation: indian-gradient 8s ease infinite;
 }
 
 /* Certificate specific styles - updated for clean, minimalist design */
 .certificate-text {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   color: #1f2937;
 }
 
@@ -1808,13 +1815,11 @@
   .container {
     @apply px-4;
   }
-  
+
   .indian-border {
     @apply border-2;
-    box-shadow: 
-      inset 0 0 0 1px #ffffff,
-      inset 0 0 0 3px #138808,
-      0 2px 8px rgba(255, 153, 51, 0.2);
+    box-shadow: inset 0 0 0 1px #ffffff, inset 0 0 0 3px #138808, 0 2px 8px
+      rgba(255, 153, 51, 0.2);
   }
 
   .mobile-form-container {
@@ -1845,7 +1850,8 @@
     @apply p-6;
   }
 
-  .text-input, .textarea-input {
+  .text-input,
+  .textarea-input {
     @apply text-lg;
   }
 
@@ -2311,15 +2317,16 @@
   .category-card {
     @apply min-h-[100px];
   }
-  
+
   .upload-option {
     @apply p-8;
   }
-  
-  .text-input, .textarea-input {
+
+  .text-input,
+  .textarea-input {
     @apply text-lg;
   }
-  
+
   .submit-button {
     @apply py-5;
   }
@@ -2549,7 +2556,7 @@
   .no-print {
     display: none !important;
   }
-  
+
   .certificate-frame {
     border: 1px solid #e5e7eb !important;
     box-shadow: none !important;
@@ -2558,7 +2565,7 @@
 
 /* Decorative elements for Indian theme */
 .lotus-pattern::before {
-  content: '🪷';
+  content: "🪷";
   opacity: 0.1;
   position: absolute;
   font-size: 2rem;
@@ -2566,12 +2573,12 @@
 }
 
 .om-symbol::before {
-  content: 'ॐ';
+  content: "ॐ";
   opacity: 0.05;
   position: absolute;
   font-size: 3rem;
   pointer-events: none;
-  color: #FF9933;
+  color: #ff9933;
 }
 
 /* Enhanced button styles with Indian theme */
@@ -2622,7 +2629,7 @@
 }
 
 .certificate-content {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   color: #1f2937;
   line-height: 1.6;
 }
@@ -2688,15 +2695,15 @@
   .certificate-title {
     font-size: 2.25rem;
   }
-  
+
   .certificate-subtitle {
     font-size: 1.5rem;
   }
-  
+
   .certificate-section-title {
     font-size: 1.25rem;
   }
-  
+
   .certificate-text-content {
     font-size: 1rem;
   }
@@ -2787,7 +2794,11 @@
 
 .drop-zone-active {
   @apply ring-2 ring-blue-500 ring-opacity-50;
-  background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(147, 197, 253, 0.1)
+  );
 }
 
 /* Icon selection grid enhancements */
@@ -2938,7 +2949,7 @@
   .roadmap-feature-card {
     @apply border-2 border-gray-800;
   }
-  
+
   .roadmap-drop-zone {
     @apply border-4;
   }
@@ -2967,7 +2978,7 @@
     animation: none;
     transition: none;
   }
-  
+
   .roadmap-feature-card:hover,
   .volunteer-privacy-toggle:hover,
   .mode-indicator-glass:hover {
@@ -2980,7 +2991,7 @@
   .roadmap-feature-card {
     @apply bg-gray-800 border-gray-700 text-white;
   }
-  
+
   .roadmap-section-header {
     @apply bg-gray-800 border-gray-700;
   }
@@ -2994,6 +3005,7 @@
   }
 
   .mode-indicator-glass {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 1px
+      rgba(255, 255, 255, 0.3);
   }
 }

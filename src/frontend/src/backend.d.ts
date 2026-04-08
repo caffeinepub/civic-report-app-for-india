@@ -7,12 +7,6 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface LocalCivicBody {
-    photoPath?: string;
-    representativeName: string;
-    bodyName: string;
-    bodyType: string;
-}
 export interface FileReference {
     hash: string;
     path: string;
@@ -32,16 +26,6 @@ export interface Representative {
     twitterHandle: string;
     remarks: string;
 }
-export interface Feedback {
-    id: string;
-    status: string;
-    contactInfo: string;
-    admin?: Principal;
-    type: string;
-    message: string;
-    response?: string;
-    timestamp: bigint;
-}
 export interface RoadmapFeature {
     id: string;
     title: string;
@@ -51,11 +35,15 @@ export interface RoadmapFeature {
     sectionId: string;
     timestamp: bigint;
 }
-export interface AdministrativeUnit {
-    unitType: string;
-    parentState?: string;
-    name: string;
-    parentConstituency?: string;
+export interface Feedback {
+    id: string;
+    status: string;
+    contactInfo: string;
+    admin?: Principal;
+    type: string;
+    message: string;
+    response?: string;
+    timestamp: bigint;
 }
 export interface Report {
     id: string;
@@ -109,6 +97,12 @@ export interface NgoNpo {
     registrationDate: bigint;
     showContactInfo: boolean;
 }
+export interface AdministrativeUnit {
+    unitType: string;
+    parentState?: string;
+    name: string;
+    parentConstituency?: string;
+}
 export interface UserApprovalInfo {
     status: ApprovalStatus;
     principal: Principal;
@@ -132,19 +126,6 @@ export interface PendingProfileEdit {
     rejectionNote?: string;
     volunteerPrincipal: Principal;
 }
-export interface State {
-    cm?: Representative;
-    constituencies: Array<Constituency>;
-    name: string;
-    isUnionTerritory: boolean;
-}
-export interface VolunteerProfileUpdate {
-    photoPath: string;
-    contactInfo: string;
-    name: string;
-    address: string;
-    showFullMobile: boolean;
-}
 export interface Volunteer {
     id: string;
     photoPath: string;
@@ -159,8 +140,27 @@ export interface Volunteer {
     showFullMobile: boolean;
     applicationDate: bigint;
 }
+export interface VolunteerProfileUpdate {
+    photoPath: string;
+    contactInfo: string;
+    name: string;
+    address: string;
+    showFullMobile: boolean;
+}
+export interface State {
+    cm?: Representative;
+    constituencies: Array<Constituency>;
+    name: string;
+    isUnionTerritory: boolean;
+}
 export interface UserProfile {
     name: string;
+}
+export interface LocalCivicBody {
+    photoPath?: string;
+    representativeName: string;
+    bodyName: string;
+    bodyType: string;
 }
 export enum ApprovalStatus {
     pending = "pending",
@@ -268,7 +268,6 @@ export interface backendInterface {
     getVolunteerById(volunteerId: string): Promise<Volunteer | null>;
     getVolunteerDirectory(): Promise<Array<Volunteer>>;
     importDirectory(newDirectory: Directory): Promise<void>;
-    initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isCallerApproved(): Promise<boolean>;
     listApprovals(): Promise<Array<UserApprovalInfo>>;

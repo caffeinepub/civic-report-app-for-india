@@ -1,17 +1,20 @@
-import Registry "blob-storage/registry";
-import BlobStorage "blob-storage/Mixin";
-import OrderedMap "mo:base/OrderedMap";
-import Text "mo:base/Text";
-import Time "mo:base/Time";
-import List "mo:base/List";
-import Int "mo:base/Int";
-import Principal "mo:base/Principal";
-import Array "mo:base/Array";
-import Debug "mo:base/Debug";
-import AccessControl "authorization/access-control";
-import UserApproval "user-approval/approval";
-import Nat "mo:base/Nat";
+import Map "mo:core/Map";
+import Text "mo:core/Text";
+import Time "mo:core/Time";
+import List "mo:core/List";
+import Int "mo:core/Int";
+import Principal "mo:core/Principal";
+import Array "mo:core/Array";
+import Debug "mo:core/Debug";
+import Runtime "mo:core/Runtime";
+import AccessControl "mo:caffeineai-authorization/access-control";
+import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
+import UserApproval "mo:caffeineai-user-approval/approval";
+import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
+import Nat "mo:core/Nat";
+import Migration "migration";
 
+(with migration = Migration.run)
 persistent actor {
     type Report = {
         id : Text;
@@ -176,53 +179,61 @@ persistent actor {
         admin : ?Principal;
     };
 
-    let registry = Registry.new();
-    transient let reportMap = OrderedMap.Make<Text>(Text.compare);
-    transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
-    transient let volunteerMap = OrderedMap.Make<Text>(Text.compare);
-    transient let ngoNpoMap = OrderedMap.Make<Text>(Text.compare);
-    transient let feedbackMap = OrderedMap.Make<Text>(Text.compare);
-    transient let pendingEditMap = OrderedMap.Make<Text>(Text.compare);
+    type FileReference = {
+        path : Text;
+        hash : Text;
+    };
 
-    var reports = reportMap.empty<Report>();
+    var fileRegistry = Map.empty<Text, FileReference>();
+
+    var reports = Map.empty<Text, Report>();
     let accessControlState = AccessControl.initState();
+    include MixinAuthorization(accessControlState);
+    include MixinObjectStorage();
     var logoState : LogoState = {
         currentLogo = "";
         history = [];
     };
     var roadmapFeatures : [RoadmapFeature] = [];
-    var volunteers = volunteerMap.empty<Volunteer>();
+    var volunteers = Map.empty<Text, Volunteer>();
     var directory : Directory = {
         states = [];
         unionTerritories = [];
         administrativeUnits = [];
         primeMinister = null;
     };
-    var ngoNpos = ngoNpoMap.empty<NgoNpo>();
-    var feedbacks = feedbackMap.empty<Feedback>();
-    var uniqueVisitors = principalMap.empty<Bool>();
-    var pendingProfileEdits = pendingEditMap.empty<PendingProfileEdit>();
+    var ngoNpos = Map.empty<Text, NgoNpo>();
+    var feedbacks = Map.empty<Text, Feedback>();
+    var uniqueVisitors = Map.empty<Principal, Bool>();
+    var pendingProfileEdits = Map.empty<Text, PendingProfileEdit>();
 
     let approvalState = UserApproval.initState(accessControlState);
 
     public shared func registerFileReference(path : Text, hash : Text) : async () {
-        Registry.add(registry, path, hash);
+        fileRegistry.add(path, { path; hash });
     };
 
-    public query func getFileReference(path : Text) : async Registry.FileReference {
-        Registry.get(registry, path);
+    public query func getFileReference(path : Text) : async FileReference {
+        switch (fileRegistry.get(path)) {
+            case (?ref) { ref };
+            case (null) { Runtime.trap("File reference not found: " # path) };
+        };
     };
 
-    public query func listFileReferences() : async [Registry.FileReference] {
-        Registry.list(registry);
+    public query func listFileReferences() : async [FileReference] {
+        let refs = List.empty<FileReference>();
+        for ((_, ref) in fileRegistry.entries()) {
+            refs.add(ref);
+        };
+        refs.toArray();
     };
 
     public shared func dropFileReference(path : Text) : async () {
-        Registry.remove(registry, path);
+        fileRegistry.remove(path);
     };
 
     public shared ({ caller }) func submitReport(photoPath : Text, latitude : Float, longitude : Float, username : ?Text, notes : ?Text, issueType : Text, mlaName : ?Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text, pmName : ?Text, cmName : ?Text, customAddress : ?Text, state : Text, mlaDesignation : Text, isVolunteer : Bool, pmData : ?Representative, cmData : ?Representative, mpData : ?Representative, address : Text, coordinates : Text, localCivicBody : ?LocalCivicBody) : async Text {
-        let id = Int.toText(Time.now());
+        let id = Time.now().toText();
         let report : Report = {
             id;
             photoPath;
@@ -253,23 +264,23 @@ persistent actor {
             coordinates;
             localCivicBody;
         };
-        reports := reportMap.put(reports, id, report);
+        reports.add(id, report);
 
         if (isVolunteer) {
-            var volunteerList = List.nil<Volunteer>();
-            for ((vid, volunteer) in volunteerMap.entries(volunteers)) {
+            var found : ?Volunteer = null;
+            for ((vid, volunteer) in volunteers.entries()) {
                 if (volunteer.principal == caller) {
-                    volunteerList := List.push(volunteer, volunteerList);
+                    found := ?volunteer;
                 };
             };
-            switch (List.last(volunteerList)) {
+            switch (found) {
                 case (null) {};
                 case (?volunteer) {
                     let updatedVolunteer : Volunteer = {
                         volunteer with
                         impactScore = volunteer.impactScore + 10
                     };
-                    volunteers := volunteerMap.put(volunteers, volunteer.id, updatedVolunteer);
+                    volunteers.add(volunteer.id, updatedVolunteer);
                 };
             };
         };
@@ -278,19 +289,19 @@ persistent actor {
     };
 
     public query func getReport(id : Text) : async ?Report {
-        reportMap.get(reports, id);
+        reports.get(id);
     };
 
     public query func getAllReports() : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func updateReportStatus(id : Text, newStatus : Text, proofPhotoPath : Text, reporterName : Text, completionNotes : ?Text, isVolunteer : Bool) : async Bool {
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) { false };
             case (?report) {
                 let updatedReport : Report = {
@@ -301,23 +312,23 @@ persistent actor {
                     completionNotes;
                     resolvedByVolunteer = isVolunteer;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
 
                 if (isVolunteer and newStatus == "Resolved") {
-                    var volunteerList = List.nil<Volunteer>();
-                    for ((vid, volunteer) in volunteerMap.entries(volunteers)) {
+                    var found : ?Volunteer = null;
+                    for ((vid, volunteer) in volunteers.entries()) {
                         if (volunteer.principal == caller) {
-                            volunteerList := List.push(volunteer, volunteerList);
+                            found := ?volunteer;
                         };
                     };
-                    switch (List.last(volunteerList)) {
+                    switch (found) {
                         case (null) {};
                         case (?volunteer) {
                             let updatedVolunteer : Volunteer = {
                                 volunteer with
                                 impactScore = volunteer.impactScore + 10
                             };
-                            volunteers := volunteerMap.put(volunteers, volunteer.id, updatedVolunteer);
+                            volunteers.add(volunteer.id, updatedVolunteer);
                         };
                     };
                 };
@@ -328,12 +339,11 @@ persistent actor {
     };
 
     public query func getRecentReports(count : Nat) : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        let sortedList = List.toArray(reportList);
-        let sorted = List.toArray(reportList);
+        let sorted = reportList.toArray();
         let len = sorted.size();
         if (len == 0) {
             return [];
@@ -343,88 +353,72 @@ persistent actor {
     };
 
     public query func getReportsByState(state : Text) : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
             if (report.state == state) {
-                reportList := List.push(report, reportList);
+                reportList.add(report);
             };
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func deleteReport(id : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can delete reports");
+            Runtime.trap("Unauthorized: Only admins can delete reports");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 if (report.submittedByVolunteer) {
-                    var volunteerList = List.nil<Volunteer>();
-                    for ((vid, volunteer) in volunteerMap.entries(volunteers)) {
+                    var found : ?Volunteer = null;
+                    for ((vid, volunteer) in volunteers.entries()) {
                         if (volunteer.principal == caller) {
-                            volunteerList := List.push(volunteer, volunteerList);
+                            found := ?volunteer;
                         };
                     };
-                    switch (List.last(volunteerList)) {
+                    switch (found) {
                         case (null) {};
                         case (?volunteer) {
                             let updatedVolunteer : Volunteer = {
                                 volunteer with
                                 impactScore = Int.max(0, volunteer.impactScore - 10)
                             };
-                            volunteers := volunteerMap.put(volunteers, volunteer.id, updatedVolunteer);
+                            volunteers.add(volunteer.id, updatedVolunteer);
                         };
                     };
                 };
-                reports := reportMap.remove(reports, id).0;
+                reports.remove(id);
             };
         };
-    };
-
-    public shared ({ caller }) func initializeAccessControl() : async () {
-        AccessControl.initialize(accessControlState, caller);
-    };
-
-    public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-        AccessControl.getUserRole(accessControlState, caller);
-    };
-
-    public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-        AccessControl.assignRole(accessControlState, caller, user, role);
-    };
-
-    public query ({ caller }) func isCallerAdmin() : async Bool {
-        AccessControl.isAdmin(accessControlState, caller);
     };
 
     public type UserProfile = {
         name : Text;
     };
 
-    var userProfiles = principalMap.empty<UserProfile>();
+    var userProfiles = Map.empty<Principal, UserProfile>();
 
     public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can view profiles");
+            Runtime.trap("Unauthorized: Only authenticated users can view profiles");
         };
-        principalMap.get(userProfiles, caller);
+        userProfiles.get(caller);
     };
 
     public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
         if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-            Debug.trap("Unauthorized: Can only view your own profile");
+            Runtime.trap("Unauthorized: Can only view your own profile");
         };
-        principalMap.get(userProfiles, user);
+        userProfiles.get(user);
     };
 
     public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-            Debug.trap("Unauthorized: Only authenticated users can save profiles");
+            Runtime.trap("Unauthorized: Only authenticated users can save profiles");
         };
-        userProfiles := principalMap.put(userProfiles, caller, profile);
+        userProfiles.add(caller, profile);
     };
 
     public query func getCurrentLogo() : async Text {
@@ -433,10 +427,9 @@ persistent actor {
 
     public shared ({ caller }) func uploadLogo(logoData : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can upload logos");
+            Runtime.trap("Unauthorized: Only admins can upload logos");
         };
-        let newHistory : [LogoHistory] = Array.append(
-            logoState.history,
+        let newHistory : [LogoHistory] = logoState.history.concat(
             [{ logoData; timestamp = Time.now(); admin = caller }],
         );
         logoState := {
@@ -447,65 +440,65 @@ persistent actor {
 
     public query ({ caller }) func getLogoHistory() : async [LogoHistory] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view logo history");
+            Runtime.trap("Unauthorized: Only admins can view logo history");
         };
         logoState.history;
     };
 
     public query ({ caller }) func getAdmins() : async [Principal] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view admin list");
+            Runtime.trap("Unauthorized: Only admins can view admin list");
         };
-        var adminList = List.nil<Principal>();
-        for ((principal, role) in principalMap.entries(accessControlState.userRoles)) {
+        let adminList = List.empty<Principal>();
+        for ((principal, role) in accessControlState.userRoles.entries()) {
             switch (role) {
                 case (#admin) {
-                    adminList := List.push(principal, adminList);
+                    adminList.add(principal);
                 };
                 case (_) {};
             };
         };
-        List.toArray(adminList);
+        adminList.toArray();
     };
 
     public shared ({ caller }) func addAdmin(newAdmin : Principal) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add new admins");
+            Runtime.trap("Unauthorized: Only admins can add new admins");
         };
         AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
     };
 
     public shared ({ caller }) func removeAdmin(adminToRemove : Principal) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can remove admins");
+            Runtime.trap("Unauthorized: Only admins can remove admins");
         };
         if (caller == adminToRemove) {
-            Debug.trap("Cannot remove yourself as admin");
+            Runtime.trap("Cannot remove yourself as admin");
         };
         AccessControl.assignRole(accessControlState, caller, adminToRemove, #user);
     };
 
     public shared ({ caller }) func updateReport(id : Text, updatedReport : Report) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update reports");
+            Runtime.trap("Unauthorized: Only admins can update reports");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?existingReport) {
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public shared ({ caller }) func updateLocalCivicBody(id : Text, bodyType : Text, bodyName : Text, representativeName : Text, photoPath : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update local civic body details");
+            Runtime.trap("Unauthorized: Only admins can update local civic body details");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedLocalCivicBody : LocalCivicBody = {
@@ -518,7 +511,7 @@ persistent actor {
                     report with
                     localCivicBody = ?updatedLocalCivicBody;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
@@ -529,25 +522,24 @@ persistent actor {
 
     public shared ({ caller }) func createFeature(sectionId : Text, featureData : RoadmapFeature) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can create features");
+            Runtime.trap("Unauthorized: Only admins can create features");
         };
-        let id = Int.toText(Time.now());
+        let id = Time.now().toText();
         let feature : RoadmapFeature = {
             featureData with
             id;
             sectionId;
             timestamp = Time.now();
         };
-        roadmapFeatures := Array.append(roadmapFeatures, [feature]);
+        roadmapFeatures := roadmapFeatures.concat([feature]);
     };
 
     public shared ({ caller }) func updateFeature(featureId : Text, featureData : RoadmapFeature) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update features");
+            Runtime.trap("Unauthorized: Only admins can update features");
         };
         var found = false;
-        let updatedFeatures = Array.map<RoadmapFeature, RoadmapFeature>(
-            roadmapFeatures,
+        let updatedFeatures = roadmapFeatures.map(
             func(feature) {
                 if (feature.id == featureId) {
                     found := true;
@@ -562,32 +554,30 @@ persistent actor {
             },
         );
         if (not found) {
-            Debug.trap("Feature not found");
+            Runtime.trap("Feature not found");
         };
         roadmapFeatures := updatedFeatures;
     };
 
     public shared ({ caller }) func deleteFeature(featureId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can delete features");
+            Runtime.trap("Unauthorized: Only admins can delete features");
         };
-        let filteredFeatures = Array.filter<RoadmapFeature>(
-            roadmapFeatures,
+        let filteredFeatures = roadmapFeatures.filter(
             func(feature) { feature.id != featureId },
         );
         if (filteredFeatures.size() == roadmapFeatures.size()) {
-            Debug.trap("Feature not found");
+            Runtime.trap("Feature not found");
         };
         roadmapFeatures := filteredFeatures;
     };
 
     public shared ({ caller }) func moveFeature(featureId : Text, newSectionId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can move features");
+            Runtime.trap("Unauthorized: Only admins can move features");
         };
         var found = false;
-        let updatedFeatures = Array.map<RoadmapFeature, RoadmapFeature>(
-            roadmapFeatures,
+        let updatedFeatures = roadmapFeatures.map(
             func(feature) {
                 if (feature.id == featureId) {
                     found := true;
@@ -602,7 +592,7 @@ persistent actor {
             },
         );
         if (not found) {
-            Debug.trap("Feature not found");
+            Runtime.trap("Feature not found");
         };
         roadmapFeatures := updatedFeatures;
     };
@@ -617,20 +607,20 @@ persistent actor {
 
     public shared ({ caller }) func setApproval(user : Principal, status : UserApproval.ApprovalStatus) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can perform this action");
+            Runtime.trap("Unauthorized: Only admins can perform this action");
         };
         UserApproval.setApproval(approvalState, user, status);
     };
 
     public query ({ caller }) func listApprovals() : async [UserApproval.UserApprovalInfo] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can perform this action");
+            Runtime.trap("Unauthorized: Only admins can perform this action");
         };
         UserApproval.listApprovals(approvalState);
     };
 
     public shared ({ caller }) func applyVolunteer(name : Text, photoPath : Text, contactInfo : Text, address : Text, showFullMobile : Bool) : async Text {
-        let id = Int.toText(Time.now());
+        let id = Time.now().toText();
         let volunteer : Volunteer = {
             id;
             name;
@@ -645,17 +635,17 @@ persistent actor {
             impactScore = 0;
             showFullMobile;
         };
-        volunteers := volunteerMap.put(volunteers, id, volunteer);
+        volunteers.add(id, volunteer);
         id;
     };
 
     public shared ({ caller }) func approveVolunteer(volunteerId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can approve volunteers");
+            Runtime.trap("Unauthorized: Only admins can approve volunteers");
         };
-        switch (volunteerMap.get(volunteers, volunteerId)) {
+        switch (volunteers.get(volunteerId)) {
             case (null) {
-                Debug.trap("Volunteer not found");
+                Runtime.trap("Volunteer not found");
             };
             case (?volunteer) {
                 let updatedVolunteer : Volunteer = {
@@ -664,18 +654,18 @@ persistent actor {
                     rejectionNote = null;
                     approvalTimestamp = ?Time.now();
                 };
-                volunteers := volunteerMap.put(volunteers, volunteerId, updatedVolunteer);
+                volunteers.add(volunteerId, updatedVolunteer);
             };
         };
     };
 
     public shared ({ caller }) func rejectVolunteer(volunteerId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can reject volunteers");
+            Runtime.trap("Unauthorized: Only admins can reject volunteers");
         };
-        switch (volunteerMap.get(volunteers, volunteerId)) {
+        switch (volunteers.get(volunteerId)) {
             case (null) {
-                Debug.trap("Volunteer not found");
+                Runtime.trap("Volunteer not found");
             };
             case (?volunteer) {
                 let updatedVolunteer : Volunteer = {
@@ -684,43 +674,43 @@ persistent actor {
                     rejectionNote = ?rejectionNote;
                     approvalTimestamp = null;
                 };
-                volunteers := volunteerMap.put(volunteers, volunteerId, updatedVolunteer);
+                volunteers.add(volunteerId, updatedVolunteer);
             };
         };
     };
 
     public shared ({ caller }) func updateVolunteerPrivacy(volunteerId : Text, showFullMobile : Bool) : async () {
-        switch (volunteerMap.get(volunteers, volunteerId)) {
+        switch (volunteers.get(volunteerId)) {
             case (null) {
-                Debug.trap("Volunteer not found");
+                Runtime.trap("Volunteer not found");
             };
             case (?volunteer) {
                 if (volunteer.principal != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-                    Debug.trap("Unauthorized: Only the volunteer or an admin can update privacy settings");
+                    Runtime.trap("Unauthorized: Only the volunteer or an admin can update privacy settings");
                 };
                 let updatedVolunteer : Volunteer = {
                     volunteer with
                     showFullMobile;
                 };
-                volunteers := volunteerMap.put(volunteers, volunteerId, updatedVolunteer);
+                volunteers.add(volunteerId, updatedVolunteer);
             };
         };
     };
 
     public shared ({ caller }) func submitVolunteerProfileEdit(volunteerId : Text, updates : VolunteerProfileUpdate) : async Text {
-        switch (volunteerMap.get(volunteers, volunteerId)) {
+        switch (volunteers.get(volunteerId)) {
             case (null) {
-                Debug.trap("Volunteer not found");
+                Runtime.trap("Volunteer not found");
             };
             case (?volunteer) {
                 if (volunteer.principal != caller) {
-                    Debug.trap("Unauthorized: Only the volunteer can edit their own profile");
+                    Runtime.trap("Unauthorized: Only the volunteer can edit their own profile");
                 };
                 if (not volunteer.approved) {
-                    Debug.trap("Unauthorized: Only approved volunteers can edit their profile");
+                    Runtime.trap("Unauthorized: Only approved volunteers can edit their profile");
                 };
-                
-                let editId = Int.toText(Time.now());
+
+                let editId = Time.now().toText();
                 let pendingEdit : PendingProfileEdit = {
                     id = editId;
                     volunteerId;
@@ -730,61 +720,61 @@ persistent actor {
                     status = "Pending";
                     rejectionNote = null;
                 };
-                pendingProfileEdits := pendingEditMap.put(pendingProfileEdits, editId, pendingEdit);
+                pendingProfileEdits.add(editId, pendingEdit);
                 editId;
             };
         };
     };
 
     public query ({ caller }) func getMyPendingProfileEdit() : async ?PendingProfileEdit {
-        var pendingList = List.nil<PendingProfileEdit>();
-        for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
+        var found : ?PendingProfileEdit = null;
+        for ((editId, edit) in pendingProfileEdits.entries()) {
             if (edit.volunteerPrincipal == caller and edit.status == "Pending") {
-                pendingList := List.push(edit, pendingList);
+                found := ?edit;
             };
         };
-        List.last(pendingList);
+        found;
     };
 
     public query ({ caller }) func getMyProfileEditHistory() : async [PendingProfileEdit] {
-        var editList = List.nil<PendingProfileEdit>();
-        for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
+        let editList = List.empty<PendingProfileEdit>();
+        for ((editId, edit) in pendingProfileEdits.entries()) {
             if (edit.volunteerPrincipal == caller) {
-                editList := List.push(edit, editList);
+                editList.add(edit);
             };
         };
-        List.toArray(editList);
+        editList.toArray();
     };
 
     public query ({ caller }) func getAllPendingProfileEdits() : async [PendingProfileEdit] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view all pending profile edits");
+            Runtime.trap("Unauthorized: Only admins can view all pending profile edits");
         };
-        var editList = List.nil<PendingProfileEdit>();
-        for ((editId, edit) in pendingEditMap.entries(pendingProfileEdits)) {
+        let editList = List.empty<PendingProfileEdit>();
+        for ((editId, edit) in pendingProfileEdits.entries()) {
             if (edit.status == "Pending") {
-                editList := List.push(edit, editList);
+                editList.add(edit);
             };
         };
-        List.toArray(editList);
+        editList.toArray();
     };
 
     public shared ({ caller }) func approveVolunteerProfileEdit(editId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can approve profile edits");
+            Runtime.trap("Unauthorized: Only admins can approve profile edits");
         };
-        switch (pendingEditMap.get(pendingProfileEdits, editId)) {
+        switch (pendingProfileEdits.get(editId)) {
             case (null) {
-                Debug.trap("Pending edit not found");
+                Runtime.trap("Pending edit not found");
             };
             case (?edit) {
                 if (edit.status != "Pending") {
-                    Debug.trap("Edit has already been processed");
+                    Runtime.trap("Edit has already been processed");
                 };
-                
-                switch (volunteerMap.get(volunteers, edit.volunteerId)) {
+
+                switch (volunteers.get(edit.volunteerId)) {
                     case (null) {
-                        Debug.trap("Volunteer not found");
+                        Runtime.trap("Volunteer not found");
                     };
                     case (?volunteer) {
                         let updatedVolunteer : Volunteer = {
@@ -795,13 +785,13 @@ persistent actor {
                             address = edit.updates.address;
                             showFullMobile = edit.updates.showFullMobile;
                         };
-                        volunteers := volunteerMap.put(volunteers, edit.volunteerId, updatedVolunteer);
-                        
+                        volunteers.add(edit.volunteerId, updatedVolunteer);
+
                         let updatedEdit : PendingProfileEdit = {
                             edit with
                             status = "Approved";
                         };
-                        pendingProfileEdits := pendingEditMap.put(pendingProfileEdits, editId, updatedEdit);
+                        pendingProfileEdits.add(editId, updatedEdit);
                     };
                 };
             };
@@ -810,65 +800,65 @@ persistent actor {
 
     public shared ({ caller }) func rejectVolunteerProfileEdit(editId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can reject profile edits");
+            Runtime.trap("Unauthorized: Only admins can reject profile edits");
         };
-        switch (pendingEditMap.get(pendingProfileEdits, editId)) {
+        switch (pendingProfileEdits.get(editId)) {
             case (null) {
-                Debug.trap("Pending edit not found");
+                Runtime.trap("Pending edit not found");
             };
             case (?edit) {
                 if (edit.status != "Pending") {
-                    Debug.trap("Edit has already been processed");
+                    Runtime.trap("Edit has already been processed");
                 };
-                
+
                 let updatedEdit : PendingProfileEdit = {
                     edit with
                     status = "Rejected";
                     rejectionNote = ?rejectionNote;
                 };
-                pendingProfileEdits := pendingEditMap.put(pendingProfileEdits, editId, updatedEdit);
+                pendingProfileEdits.add(editId, updatedEdit);
             };
         };
     };
 
     public query func getVolunteerDirectory() : async [Volunteer] {
-        var volunteerList = List.nil<Volunteer>();
-        for ((id, volunteer) in volunteerMap.entries(volunteers)) {
+        let volunteerList = List.empty<Volunteer>();
+        for ((id, volunteer) in volunteers.entries()) {
             if (volunteer.approved) {
-                volunteerList := List.push(volunteer, volunteerList);
+                volunteerList.add(volunteer);
             };
         };
-        List.toArray(volunteerList);
+        volunteerList.toArray();
     };
 
     public query ({ caller }) func getMyVolunteerProfile() : async ?Volunteer {
-        var volunteerList = List.nil<Volunteer>();
-        for ((id, volunteer) in volunteerMap.entries(volunteers)) {
+        var found : ?Volunteer = null;
+        for ((id, volunteer) in volunteers.entries()) {
             if (volunteer.principal == caller) {
-                volunteerList := List.push(volunteer, volunteerList);
+                found := ?volunteer;
             };
         };
-        List.last(volunteerList);
+        found;
     };
 
     public query ({ caller }) func getAllVolunteers() : async [Volunteer] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view all volunteers");
+            Runtime.trap("Unauthorized: Only admins can view all volunteers");
         };
-        var volunteerList = List.nil<Volunteer>();
-        for ((id, volunteer) in volunteerMap.entries(volunteers)) {
-            volunteerList := List.push(volunteer, volunteerList);
+        let volunteerList = List.empty<Volunteer>();
+        for ((id, volunteer) in volunteers.entries()) {
+            volunteerList.add(volunteer);
         };
-        List.toArray(volunteerList);
+        volunteerList.toArray();
     };
 
     public query func getVolunteerById(volunteerId : Text) : async ?Volunteer {
-        volunteerMap.get(volunteers, volunteerId);
+        volunteers.get(volunteerId);
     };
 
     public shared ({ caller }) func addState(stateName : Text, cm : ?Representative, isUnionTerritory : Bool) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add states");
+            Runtime.trap("Unauthorized: Only admins can add states");
         };
         let newState : State = {
             name = stateName;
@@ -879,19 +869,19 @@ persistent actor {
         if (isUnionTerritory) {
             directory := {
                 directory with
-                unionTerritories = Array.append(directory.unionTerritories, [newState]);
+                unionTerritories = directory.unionTerritories.concat([newState]);
             };
         } else {
             directory := {
                 directory with
-                states = Array.append(directory.states, [newState]);
+                states = directory.states.concat([newState]);
             };
         };
     };
 
     public shared ({ caller }) func addUnionTerritory(utName : Text, administrator : ?Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add union territories");
+            Runtime.trap("Unauthorized: Only admins can add union territories");
         };
         let newUT : State = {
             name = utName;
@@ -901,25 +891,24 @@ persistent actor {
         };
         directory := {
             directory with
-            unionTerritories = Array.append(directory.unionTerritories, [newUT]);
+            unionTerritories = directory.unionTerritories.concat([newUT]);
         };
     };
 
     public shared ({ caller }) func addConstituency(stateName : Text, constituencyName : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add constituencies");
+            Runtime.trap("Unauthorized: Only admins can add constituencies");
         };
 
         var found = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     found := true;
                     {
                         state with
-                        constituencies = Array.append(state.constituencies, [{
+                        constituencies = state.constituencies.concat([{
                             name = constituencyName;
                             mp = null;
                             mlas = [];
@@ -932,14 +921,13 @@ persistent actor {
         );
 
         if (not found) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         found := true;
                         {
                             ut with
-                            constituencies = Array.append(ut.constituencies, [{
+                            constituencies = ut.constituencies.concat([{
                                 name = constituencyName;
                                 mp = null;
                                 mlas = [];
@@ -951,7 +939,7 @@ persistent actor {
                 },
             );
             if (not found) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
@@ -961,22 +949,20 @@ persistent actor {
 
     public shared ({ caller }) func addMpToConstituency(stateName : Text, constituencyName : Text, mp : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add MPs");
+            Runtime.trap("Unauthorized: Only admins can add MPs");
         };
 
         var stateFound = false;
         var constituencyFound = false;
         var isUT = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -998,20 +984,18 @@ persistent actor {
 
         if (stateFound) {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         } else {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         isUT := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1031,10 +1015,10 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         };
@@ -1042,28 +1026,26 @@ persistent actor {
 
     public shared ({ caller }) func addMlaToConstituency(stateName : Text, constituencyName : Text, mla : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add MLAs");
+            Runtime.trap("Unauthorized: Only admins can add MLAs");
         };
 
         var stateFound = false;
         var constituencyFound = false;
         var isUT = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
                                     {
                                         constituency with
-                                        mlas = Array.append(constituency.mlas, [mla]);
+                                        mlas = constituency.mlas.concat([mla]);
                                     };
                                 } else {
                                     constituency;
@@ -1079,26 +1061,24 @@ persistent actor {
 
         if (stateFound) {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         } else {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         isUT := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
                                         {
                                             constituency with
-                                            mlas = Array.append(constituency.mlas, [mla]);
+                                            mlas = constituency.mlas.concat([mla]);
                                         };
                                     } else {
                                         constituency;
@@ -1112,10 +1092,10 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         };
@@ -1123,7 +1103,7 @@ persistent actor {
 
     public shared ({ caller }) func addAdministrativeUnit(name : Text, unitType : Text, parentState : ?Text, parentConstituency : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can add administrative units");
+            Runtime.trap("Unauthorized: Only admins can add administrative units");
         };
         let newUnit : AdministrativeUnit = {
             name;
@@ -1133,13 +1113,13 @@ persistent actor {
         };
         directory := {
             directory with
-            administrativeUnits = Array.append(directory.administrativeUnits, [newUnit]);
+            administrativeUnits = directory.administrativeUnits.concat([newUnit]);
         };
     };
 
     public shared ({ caller }) func setPrimeMinister(pm : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can set the Prime Minister");
+            Runtime.trap("Unauthorized: Only admins can set the Prime Minister");
         };
         directory := { directory with primeMinister = ?pm };
     };
@@ -1149,42 +1129,42 @@ persistent actor {
     };
 
     public query func getState(stateName : Text) : async ?State {
-        var stateList = List.nil<State>();
+        var found : ?State = null;
         for (state in directory.states.vals()) {
             if (state.name == stateName) {
-                stateList := List.push(state, stateList);
+                found := ?state;
             };
         };
-        List.last(stateList);
+        found;
     };
 
     public query func getUnionTerritory(utName : Text) : async ?State {
-        var utList = List.nil<State>();
+        var found : ?State = null;
         for (ut in directory.unionTerritories.vals()) {
             if (ut.name == utName) {
-                utList := List.push(ut, utList);
+                found := ?ut;
             };
         };
-        List.last(utList);
+        found;
     };
 
     public query func getConstituency(stateName : Text, constituencyName : Text) : async ?Constituency {
-        var stateList = List.nil<State>();
+        var stateFound : ?State = null;
         for (state in directory.states.vals()) {
             if (state.name == stateName) {
-                stateList := List.push(state, stateList);
+                stateFound := ?state;
             };
         };
-        switch (List.last(stateList)) {
+        switch (stateFound) {
             case (null) { null };
             case (?state) {
-                var constituencyList = List.nil<Constituency>();
+                var found : ?Constituency = null;
                 for (constituency in state.constituencies.vals()) {
                     if (constituency.name == constituencyName) {
-                        constituencyList := List.push(constituency, constituencyList);
+                        found := ?constituency;
                     };
                 };
-                List.last(constituencyList);
+                found;
             };
         };
     };
@@ -1195,21 +1175,19 @@ persistent actor {
 
     public shared ({ caller }) func updateRepresentative(stateName : Text, constituencyName : Text, repType : Text, representative : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update representatives");
+            Runtime.trap("Unauthorized: Only admins can update representatives");
         };
 
         var stateFound = false;
         var constituencyFound = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -1223,7 +1201,7 @@ persistent actor {
                                         case ("mla") {
                                             {
                                                 constituency with
-                                                mlas = Array.append(constituency.mlas, [representative]);
+                                                mlas = constituency.mlas.concat([representative]);
                                             };
                                         };
                                         case (_) {
@@ -1243,15 +1221,13 @@ persistent actor {
         );
 
         if (not stateFound) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1265,7 +1241,7 @@ persistent actor {
                                             case ("mla") {
                                                 {
                                                     constituency with
-                                                    mlas = Array.append(constituency.mlas, [representative]);
+                                                    mlas = constituency.mlas.concat([representative]);
                                                 };
                                             };
                                             case (_) {
@@ -1284,15 +1260,15 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         };
@@ -1300,28 +1276,26 @@ persistent actor {
 
     public shared ({ caller }) func updateDirectory(newDirectory : Directory) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update the directory");
+            Runtime.trap("Unauthorized: Only admins can update the directory");
         };
         directory := newDirectory;
     };
 
     public shared ({ caller }) func deleteConstituency(stateName : Text, constituencyName : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can delete constituencies");
+            Runtime.trap("Unauthorized: Only admins can delete constituencies");
         };
 
         var stateFound = false;
         var constituencyFound = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.filter<Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.filter(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -1339,15 +1313,13 @@ persistent actor {
         );
 
         if (not stateFound) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         {
                             ut with
-                            constituencies = Array.filter<Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.filter(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1364,15 +1336,15 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         };
@@ -1380,21 +1352,19 @@ persistent actor {
 
     public shared ({ caller }) func deleteRepresentative(stateName : Text, constituencyName : Text, repType : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can delete representatives");
+            Runtime.trap("Unauthorized: Only admins can delete representatives");
         };
 
         var stateFound = false;
         var constituencyFound = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -1428,15 +1398,13 @@ persistent actor {
         );
 
         if (not stateFound) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1469,15 +1437,15 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         };
@@ -1485,51 +1453,48 @@ persistent actor {
 
     public shared ({ caller }) func updateState(stateName : Text, updatedState : State) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update states");
+            Runtime.trap("Unauthorized: Only admins can update states");
         };
-        
+
         var foundInStates = false;
         var foundInUTs = false;
-        
+
         for (state in directory.states.vals()) {
             if (state.name == stateName) {
                 foundInStates := true;
             };
         };
-        
+
         for (ut in directory.unionTerritories.vals()) {
             if (ut.name == stateName) {
                 foundInUTs := true;
             };
         };
-        
+
         if (not foundInStates and not foundInUTs) {
-            Debug.trap("State not found");
+            Runtime.trap("State not found");
         };
-        
+
         if (foundInStates and updatedState.isUnionTerritory) {
-            let filteredStates = Array.filter<State>(
-                directory.states,
+            let filteredStates = directory.states.filter(
                 func(state) { state.name != stateName },
             );
             directory := {
                 directory with
                 states = filteredStates;
-                unionTerritories = Array.append(directory.unionTerritories, [updatedState]);
+                unionTerritories = directory.unionTerritories.concat([updatedState]);
             };
         } else if (foundInUTs and not updatedState.isUnionTerritory) {
-            let filteredUTs = Array.filter<State>(
-                directory.unionTerritories,
+            let filteredUTs = directory.unionTerritories.filter(
                 func(ut) { ut.name != stateName },
             );
             directory := {
                 directory with
-                states = Array.append(directory.states, [updatedState]);
+                states = directory.states.concat([updatedState]);
                 unionTerritories = filteredUTs;
             };
         } else if (foundInStates) {
-            let updatedStates = Array.map<State, State>(
-                directory.states,
+            let updatedStates = directory.states.map(
                 func(state) {
                     if (state.name == stateName) {
                         updatedState;
@@ -1540,8 +1505,7 @@ persistent actor {
             );
             directory := { directory with states = updatedStates };
         } else {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         updatedState;
@@ -1556,51 +1520,48 @@ persistent actor {
 
     public shared ({ caller }) func updateUnionTerritory(utName : Text, updatedUT : State) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update union territories");
+            Runtime.trap("Unauthorized: Only admins can update union territories");
         };
-        
+
         var foundInStates = false;
         var foundInUTs = false;
-        
+
         for (state in directory.states.vals()) {
             if (state.name == utName) {
                 foundInStates := true;
             };
         };
-        
+
         for (ut in directory.unionTerritories.vals()) {
             if (ut.name == utName) {
                 foundInUTs := true;
             };
         };
-        
+
         if (not foundInStates and not foundInUTs) {
-            Debug.trap("Union territory not found");
+            Runtime.trap("Union territory not found");
         };
-        
+
         if (foundInUTs and not updatedUT.isUnionTerritory) {
-            let filteredUTs = Array.filter<State>(
-                directory.unionTerritories,
+            let filteredUTs = directory.unionTerritories.filter(
                 func(ut) { ut.name != utName },
             );
             directory := {
                 directory with
-                states = Array.append(directory.states, [updatedUT]);
+                states = directory.states.concat([updatedUT]);
                 unionTerritories = filteredUTs;
             };
         } else if (foundInStates and updatedUT.isUnionTerritory) {
-            let filteredStates = Array.filter<State>(
-                directory.states,
+            let filteredStates = directory.states.filter(
                 func(state) { state.name != utName },
             );
             directory := {
                 directory with
                 states = filteredStates;
-                unionTerritories = Array.append(directory.unionTerritories, [updatedUT]);
+                unionTerritories = directory.unionTerritories.concat([updatedUT]);
             };
         } else if (foundInUTs) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == utName) {
                         updatedUT;
@@ -1611,8 +1572,7 @@ persistent actor {
             );
             directory := { directory with unionTerritories = updatedUTs };
         } else {
-            let updatedStates = Array.map<State, State>(
-                directory.states,
+            let updatedStates = directory.states.map(
                 func(state) {
                     if (state.name == utName) {
                         updatedUT;
@@ -1627,21 +1587,19 @@ persistent actor {
 
     public shared ({ caller }) func updateConstituency(stateName : Text, constituencyName : Text, updatedConstituency : Constituency) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update constituencies");
+            Runtime.trap("Unauthorized: Only admins can update constituencies");
         };
 
         var stateFound = false;
         var constituencyFound = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -1659,15 +1617,13 @@ persistent actor {
         );
 
         if (not stateFound) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1684,15 +1640,15 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             directory := { directory with states = updatedStates };
         };
@@ -1700,22 +1656,20 @@ persistent actor {
 
     public shared ({ caller }) func updateRepresentativeDetails(stateName : Text, constituencyName : Text, repType : Text, repName : Text, updatedRep : Representative) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update representatives");
+            Runtime.trap("Unauthorized: Only admins can update representatives");
         };
 
         var stateFound = false;
         var constituencyFound = false;
         var repFound = false;
 
-        let updatedStates = Array.map<State, State>(
-            directory.states,
+        let updatedStates = directory.states.map(
             func(state) {
                 if (state.name == stateName) {
                     stateFound := true;
                     {
                         state with
-                        constituencies = Array.map<Constituency, Constituency>(
-                            state.constituencies,
+                        constituencies = state.constituencies.map(
                             func(constituency) {
                                 if (constituency.name == constituencyName) {
                                     constituencyFound := true;
@@ -1729,8 +1683,7 @@ persistent actor {
                                         case ("mla") {
                                             {
                                                 constituency with
-                                                mlas = Array.map<Representative, Representative>(
-                                                    constituency.mlas,
+                                                mlas = constituency.mlas.map(
                                                     func(mla) {
                                                         if (mla.name == repName) {
                                                             repFound := true;
@@ -1759,15 +1712,13 @@ persistent actor {
         );
 
         if (not stateFound) {
-            let updatedUTs = Array.map<State, State>(
-                directory.unionTerritories,
+            let updatedUTs = directory.unionTerritories.map(
                 func(ut) {
                     if (ut.name == stateName) {
                         stateFound := true;
                         {
                             ut with
-                            constituencies = Array.map<Constituency, Constituency>(
-                                ut.constituencies,
+                            constituencies = ut.constituencies.map(
                                 func(constituency) {
                                     if (constituency.name == constituencyName) {
                                         constituencyFound := true;
@@ -1781,8 +1732,7 @@ persistent actor {
                                             case ("mla") {
                                                 {
                                                     constituency with
-                                                    mlas = Array.map<Representative, Representative>(
-                                                        constituency.mlas,
+                                                    mlas = constituency.mlas.map(
                                                         func(mla) {
                                                             if (mla.name == repName) {
                                                                 repFound := true;
@@ -1810,21 +1760,21 @@ persistent actor {
                 },
             );
             if (not stateFound) {
-                Debug.trap("State or Union Territory not found");
+                Runtime.trap("State or Union Territory not found");
             };
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             if (repType == "mla" and not repFound) {
-                Debug.trap("MLA not found");
+                Runtime.trap("MLA not found");
             };
             directory := { directory with unionTerritories = updatedUTs };
         } else {
             if (not constituencyFound) {
-                Debug.trap("Constituency not found");
+                Runtime.trap("Constituency not found");
             };
             if (repType == "mla" and not repFound) {
-                Debug.trap("MLA not found");
+                Runtime.trap("MLA not found");
             };
             directory := { directory with states = updatedStates };
         };
@@ -1832,11 +1782,10 @@ persistent actor {
 
     public shared ({ caller }) func updateAdministrativeUnit(name : Text, updatedUnit : AdministrativeUnit) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update administrative units");
+            Runtime.trap("Unauthorized: Only admins can update administrative units");
         };
         var found = false;
-        let updatedUnits = Array.map<AdministrativeUnit, AdministrativeUnit>(
-            directory.administrativeUnits,
+        let updatedUnits = directory.administrativeUnits.map(
             func(unit) {
                 if (unit.name == name) {
                     found := true;
@@ -1847,92 +1796,92 @@ persistent actor {
             },
         );
         if (not found) {
-            Debug.trap("Administrative unit not found");
+            Runtime.trap("Administrative unit not found");
         };
         directory := { directory with administrativeUnits = updatedUnits };
     };
 
     public shared ({ caller }) func exportDirectory() : async Directory {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can export the directory");
+            Runtime.trap("Unauthorized: Only admins can export the directory");
         };
         directory;
     };
 
     public shared ({ caller }) func importDirectory(newDirectory : Directory) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can import the directory");
+            Runtime.trap("Unauthorized: Only admins can import the directory");
         };
         directory := newDirectory;
     };
 
     public query func getReportsWithLocations() : async [(Report, { latitude : Float; longitude : Float })] {
-        var reportList = List.nil<(Report, { latitude : Float; longitude : Float })>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.location), reportList);
+        let reportList = List.empty<(Report, { latitude : Float; longitude : Float })>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.location));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithPhotos() : async [(Report, Text)] {
-        var reportList = List.nil<(Report, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.photoPath), reportList);
+        let reportList = List.empty<(Report, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.photoPath));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithMinisterPhotos() : async [(Report, ?Text, ?Text, ?Text)] {
-        var reportList = List.nil<(Report, ?Text, ?Text, ?Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.mlaPhotoPath, report.pmPhotoPath, report.cmPhotoPath), reportList);
+        let reportList = List.empty<(Report, ?Text, ?Text, ?Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.mlaPhotoPath, report.pmPhotoPath, report.cmPhotoPath));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func updateReportLocation(id : Text, latitude : Float, longitude : Float) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update report locations");
+            Runtime.trap("Unauthorized: Only admins can update report locations");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
                     report with
                     location = { latitude; longitude };
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public shared ({ caller }) func updateReportPhoto(id : Text, photoPath : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update report photos");
+            Runtime.trap("Unauthorized: Only admins can update report photos");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
                     report with
                     photoPath;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public shared ({ caller }) func updateReportMinisterPhotos(id : Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update minister photos");
+            Runtime.trap("Unauthorized: Only admins can update minister photos");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
@@ -1941,110 +1890,110 @@ persistent actor {
                     pmPhotoPath;
                     cmPhotoPath;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public shared ({ caller }) func updateReportAddress(id : Text, address : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update report addresses");
+            Runtime.trap("Unauthorized: Only admins can update report addresses");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
                     report with
                     address;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public shared ({ caller }) func updateReportCoordinates(id : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update report coordinates");
+            Runtime.trap("Unauthorized: Only admins can update report coordinates");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
                     report with
                     coordinates;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public query func getReportsWithLocationsAndAddresses() : async [(Report, { latitude : Float; longitude : Float }, Text, Text)] {
-        var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.location, report.address, report.coordinates), reportList);
+        let reportList = List.empty<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.location, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithAddresses() : async [(Report, Text)] {
-        var reportList = List.nil<(Report, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.address), reportList);
+        let reportList = List.empty<(Report, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.address));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithLocationsAndAddressesOptimized() : async [(Report, { latitude : Float; longitude : Float }, Text, Text)] {
-        var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.location, report.address, report.coordinates), reportList);
+        let reportList = List.empty<(Report, { latitude : Float; longitude : Float }, Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.location, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithPhotosOptimized() : async [(Report, Text)] {
-        var reportList = List.nil<(Report, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.photoPath), reportList);
+        let reportList = List.empty<(Report, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.photoPath));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithMinisterPhotosOptimized() : async [(Report, ?Text, ?Text, ?Text)] {
-        var reportList = List.nil<(Report, ?Text, ?Text, ?Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.mlaPhotoPath, report.pmPhotoPath, report.cmPhotoPath), reportList);
+        let reportList = List.empty<(Report, ?Text, ?Text, ?Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.mlaPhotoPath, report.pmPhotoPath, report.cmPhotoPath));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithCustomAddresses() : async [(Report, ?Text, Text)] {
-        var reportList = List.nil<(Report, ?Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.customAddress, report.address), reportList);
+        let reportList = List.empty<(Report, ?Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.customAddress, report.address));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithFullLocationData() : async [(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)] {
-        var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.location, report.customAddress, report.address, report.coordinates), reportList);
+        let reportList = List.empty<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.location, report.customAddress, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func updateReportFullLocation(id : Text, latitude : Float, longitude : Float, customAddress : ?Text, address : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update full location data");
+            Runtime.trap("Unauthorized: Only admins can update full location data");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
@@ -2054,34 +2003,34 @@ persistent actor {
                     address;
                     coordinates;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public query func getReportsWithCompleteLocationData() : async [(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)] {
-        var reportList = List.nil<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.location, report.customAddress, report.address, report.coordinates), reportList);
+        let reportList = List.empty<(Report, { latitude : Float; longitude : Float }, ?Text, Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.location, report.customAddress, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public query func getReportsWithAddressAndCoordinates() : async [(Report, Text, Text)] {
-        var reportList = List.nil<(Report, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push((report, report.address, report.coordinates), reportList);
+        let reportList = List.empty<(Report, Text, Text)>();
+        for ((id, report) in reports.entries()) {
+            reportList.add((report, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func updateReportAddressAndCoordinates(id : Text, address : Text, coordinates : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update address and coordinates");
+            Runtime.trap("Unauthorized: Only admins can update address and coordinates");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
@@ -2089,30 +2038,30 @@ persistent actor {
                     address;
                     coordinates;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public query func getReportsForAdminTable() : async [(Report, Text, Text, Text)] {
-        var reportList = List.nil<(Report, Text, Text, Text)>();
-        for ((id, report) in reportMap.entries(reports)) {
+        let reportList = List.empty<(Report, Text, Text, Text)>();
+        for ((id, report) in reports.entries()) {
             let finalAddress = switch (report.customAddress) {
                 case (?custom) { custom };
                 case (null) { report.address };
             };
-            reportList := List.push((report, finalAddress, report.address, report.coordinates), reportList);
+            reportList.add((report, finalAddress, report.address, report.coordinates));
         };
-        List.toArray(reportList);
+        reportList.toArray();
     };
 
     public shared ({ caller }) func updateReportAdminTable(id : Text, address : Text, coordinates : Text, customAddress : ?Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update admin table data");
+            Runtime.trap("Unauthorized: Only admins can update admin table data");
         };
-        switch (reportMap.get(reports, id)) {
+        switch (reports.get(id)) {
             case (null) {
-                Debug.trap("Report not found");
+                Runtime.trap("Report not found");
             };
             case (?report) {
                 let updatedReport : Report = {
@@ -2121,17 +2070,17 @@ persistent actor {
                     coordinates;
                     customAddress;
                 };
-                reports := reportMap.put(reports, id, updatedReport);
+                reports.add(id, updatedReport);
             };
         };
     };
 
     public query func getPaginatedReports(page : Nat, pageSize : Nat) : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        let sorted = List.toArray(reportList);
+        let sorted = reportList.toArray();
         let len = sorted.size();
         if (len == 0) {
             return [];
@@ -2145,7 +2094,7 @@ persistent actor {
     };
 
     public query func getTotalReportCount() : async Nat {
-        reportMap.size(reports);
+        reports.size();
     };
 
     public query func getDirectoryWithPhotos() : async Directory {
@@ -2153,33 +2102,33 @@ persistent actor {
     };
 
     public query func getAllRepresentatives() : async [Representative] {
-        var repList = List.nil<Representative>();
+        let repList = List.empty<Representative>();
         for (state in directory.states.vals()) {
             switch (state.cm) {
-                case (?cm) { repList := List.push(cm, repList) };
+                case (?cm) { repList.add(cm) };
                 case (null) {};
             };
             for (constituency in state.constituencies.vals()) {
                 switch (constituency.mp) {
-                    case (?mp) { repList := List.push(mp, repList) };
+                    case (?mp) { repList.add(mp) };
                     case (null) {};
                 };
                 for (mla in constituency.mlas.vals()) {
-                    repList := List.push(mla, repList);
+                    repList.add(mla);
                 };
             };
         };
         for (ut in directory.unionTerritories.vals()) {
             switch (ut.cm) {
-                case (?admin) { repList := List.push(admin, repList) };
+                case (?admin) { repList.add(admin) };
                 case (null) {};
             };
         };
         switch (directory.primeMinister) {
-            case (?pm) { repList := List.push(pm, repList) };
+            case (?pm) { repList.add(pm) };
             case (null) {};
         };
-        List.toArray(repList);
+        repList.toArray();
     };
 
     public query func getAdminDirectory() : async Directory {
@@ -2187,7 +2136,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func registerNgoNpo(organizationName : Text, logoPath : Text, contactPerson : Text, email : Text, phone : Text, address : Text, website : Text, description : Text, missionStatement : Text, showContactInfo : Bool) : async Text {
-        let id = Int.toText(Time.now());
+        let id = Time.now().toText();
         let ngoNpo : NgoNpo = {
             id;
             organizationName;
@@ -2207,17 +2156,17 @@ persistent actor {
             impactScore = 0;
             showContactInfo;
         };
-        ngoNpos := ngoNpoMap.put(ngoNpos, id, ngoNpo);
+        ngoNpos.add(id, ngoNpo);
         id;
     };
 
     public shared ({ caller }) func approveNgoNpo(ngoNpoId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can approve NGOs/NPOs");
+            Runtime.trap("Unauthorized: Only admins can approve NGOs/NPOs");
         };
-        switch (ngoNpoMap.get(ngoNpos, ngoNpoId)) {
+        switch (ngoNpos.get(ngoNpoId)) {
             case (null) {
-                Debug.trap("NGO/NPO not found");
+                Runtime.trap("NGO/NPO not found");
             };
             case (?ngoNpo) {
                 let updatedNgoNpo : NgoNpo = {
@@ -2226,18 +2175,18 @@ persistent actor {
                     rejectionNote = null;
                     approvalTimestamp = ?Time.now();
                 };
-                ngoNpos := ngoNpoMap.put(ngoNpos, ngoNpoId, updatedNgoNpo);
+                ngoNpos.add(ngoNpoId, updatedNgoNpo);
             };
         };
     };
 
     public shared ({ caller }) func rejectNgoNpo(ngoNpoId : Text, rejectionNote : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can reject NGOs/NPOs");
+            Runtime.trap("Unauthorized: Only admins can reject NGOs/NPOs");
         };
-        switch (ngoNpoMap.get(ngoNpos, ngoNpoId)) {
+        switch (ngoNpos.get(ngoNpoId)) {
             case (null) {
-                Debug.trap("NGO/NPO not found");
+                Runtime.trap("NGO/NPO not found");
             };
             case (?ngoNpo) {
                 let updatedNgoNpo : NgoNpo = {
@@ -2246,66 +2195,66 @@ persistent actor {
                     rejectionNote = ?rejectionNote;
                     approvalTimestamp = null;
                 };
-                ngoNpos := ngoNpoMap.put(ngoNpos, ngoNpoId, updatedNgoNpo);
+                ngoNpos.add(ngoNpoId, updatedNgoNpo);
             };
         };
     };
 
     public shared ({ caller }) func updateNgoNpoPrivacy(ngoNpoId : Text, showContactInfo : Bool) : async () {
-        switch (ngoNpoMap.get(ngoNpos, ngoNpoId)) {
+        switch (ngoNpos.get(ngoNpoId)) {
             case (null) {
-                Debug.trap("NGO/NPO not found");
+                Runtime.trap("NGO/NPO not found");
             };
             case (?ngoNpo) {
                 if (ngoNpo.principal != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-                    Debug.trap("Unauthorized: Only the NGO/NPO or an admin can update privacy settings");
+                    Runtime.trap("Unauthorized: Only the NGO/NPO or an admin can update privacy settings");
                 };
                 let updatedNgoNpo : NgoNpo = {
                     ngoNpo with
                     showContactInfo;
                 };
-                ngoNpos := ngoNpoMap.put(ngoNpos, ngoNpoId, updatedNgoNpo);
+                ngoNpos.add(ngoNpoId, updatedNgoNpo);
             };
         };
     };
 
     public query func getNgoNpoDirectory() : async [NgoNpo] {
-        var ngoNpoList = List.nil<NgoNpo>();
-        for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
+        let ngoNpoList = List.empty<NgoNpo>();
+        for ((id, ngoNpo) in ngoNpos.entries()) {
             if (ngoNpo.approved) {
-                ngoNpoList := List.push(ngoNpo, ngoNpoList);
+                ngoNpoList.add(ngoNpo);
             };
         };
-        List.toArray(ngoNpoList);
+        ngoNpoList.toArray();
     };
 
     public query ({ caller }) func getMyNgoNpoProfile() : async ?NgoNpo {
-        var ngoNpoList = List.nil<NgoNpo>();
-        for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
+        var found : ?NgoNpo = null;
+        for ((id, ngoNpo) in ngoNpos.entries()) {
             if (ngoNpo.principal == caller) {
-                ngoNpoList := List.push(ngoNpo, ngoNpoList);
+                found := ?ngoNpo;
             };
         };
-        List.last(ngoNpoList);
+        found;
     };
 
     public query ({ caller }) func getAllNgoNpos() : async [NgoNpo] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view all NGOs/NPOs");
+            Runtime.trap("Unauthorized: Only admins can view all NGOs/NPOs");
         };
-        var ngoNpoList = List.nil<NgoNpo>();
-        for ((id, ngoNpo) in ngoNpoMap.entries(ngoNpos)) {
-            ngoNpoList := List.push(ngoNpo, ngoNpoList);
+        let ngoNpoList = List.empty<NgoNpo>();
+        for ((id, ngoNpo) in ngoNpos.entries()) {
+            ngoNpoList.add(ngoNpo);
         };
-        List.toArray(ngoNpoList);
+        ngoNpoList.toArray();
     };
 
     public query func getNgoNpoById(ngoNpoId : Text) : async ?NgoNpo {
-        ngoNpoMap.get(ngoNpos, ngoNpoId);
+        ngoNpos.get(ngoNpoId);
     };
 
     public shared func submitFeedback(type_ : Text, message : Text, contactInfo : Text) : async Text {
-        let id = Int.toText(Time.now());
+        let id = Time.now().toText();
         let feedback : Feedback = {
             id;
             type_;
@@ -2316,46 +2265,46 @@ persistent actor {
             response = null;
             admin = null;
         };
-        feedbacks := feedbackMap.put(feedbacks, id, feedback);
+        feedbacks.add(id, feedback);
         id;
     };
 
     public query ({ caller }) func getAllFeedback() : async [Feedback] {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can view feedback");
+            Runtime.trap("Unauthorized: Only admins can view feedback");
         };
-        var feedbackList = List.nil<Feedback>();
-        for ((id, feedback) in feedbackMap.entries(feedbacks)) {
-            feedbackList := List.push(feedback, feedbackList);
+        let feedbackList = List.empty<Feedback>();
+        for ((id, feedback) in feedbacks.entries()) {
+            feedbackList.add(feedback);
         };
-        List.toArray(feedbackList);
+        feedbackList.toArray();
     };
 
     public shared ({ caller }) func updateFeedbackStatus(feedbackId : Text, status : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can update feedback status");
+            Runtime.trap("Unauthorized: Only admins can update feedback status");
         };
-        switch (feedbackMap.get(feedbacks, feedbackId)) {
+        switch (feedbacks.get(feedbackId)) {
             case (null) {
-                Debug.trap("Feedback not found");
+                Runtime.trap("Feedback not found");
             };
             case (?feedback) {
                 let updatedFeedback : Feedback = {
                     feedback with
                     status;
                 };
-                feedbacks := feedbackMap.put(feedbacks, feedbackId, updatedFeedback);
+                feedbacks.add(feedbackId, updatedFeedback);
             };
         };
     };
 
     public shared ({ caller }) func respondToFeedback(feedbackId : Text, response : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can respond to feedback");
+            Runtime.trap("Unauthorized: Only admins can respond to feedback");
         };
-        switch (feedbackMap.get(feedbacks, feedbackId)) {
+        switch (feedbacks.get(feedbackId)) {
             case (null) {
-                Debug.trap("Feedback not found");
+                Runtime.trap("Feedback not found");
             };
             case (?feedback) {
                 let updatedFeedback : Feedback = {
@@ -2363,55 +2312,55 @@ persistent actor {
                     response = ?response;
                     admin = ?caller;
                 };
-                feedbacks := feedbackMap.put(feedbacks, feedbackId, updatedFeedback);
+                feedbacks.add(feedbackId, updatedFeedback);
             };
         };
     };
 
     public query func getFeedbackById(feedbackId : Text) : async ?Feedback {
-        feedbackMap.get(feedbacks, feedbackId);
+        feedbacks.get(feedbackId);
     };
 
     public query func getFeedbackByType(type_ : Text) : async [Feedback] {
-        var feedbackList = List.nil<Feedback>();
-        for ((id, feedback) in feedbackMap.entries(feedbacks)) {
+        let feedbackList = List.empty<Feedback>();
+        for ((id, feedback) in feedbacks.entries()) {
             if (feedback.type_ == type_) {
-                feedbackList := List.push(feedback, feedbackList);
+                feedbackList.add(feedback);
             };
         };
-        List.toArray(feedbackList);
+        feedbackList.toArray();
     };
 
     public query func getFeedbackByStatus(status : Text) : async [Feedback] {
-        var feedbackList = List.nil<Feedback>();
-        for ((id, feedback) in feedbackMap.entries(feedbacks)) {
+        let feedbackList = List.empty<Feedback>();
+        for ((id, feedback) in feedbacks.entries()) {
             if (feedback.status == status) {
-                feedbackList := List.push(feedback, feedbackList);
+                feedbackList.add(feedback);
             };
         };
-        List.toArray(feedbackList);
+        feedbackList.toArray();
     };
 
     public query func getFeedbackByContactInfo(contactInfo : Text) : async [Feedback] {
-        var feedbackList = List.nil<Feedback>();
-        for ((id, feedback) in feedbackMap.entries(feedbacks)) {
+        let feedbackList = List.empty<Feedback>();
+        for ((id, feedback) in feedbacks.entries()) {
             if (feedback.contactInfo == contactInfo) {
-                feedbackList := List.push(feedback, feedbackList);
+                feedbackList.add(feedback);
             };
         };
-        List.toArray(feedbackList);
+        feedbackList.toArray();
     };
 
     public shared ({ caller }) func deleteFeedback(feedbackId : Text) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-            Debug.trap("Unauthorized: Only admins can delete feedback");
+            Runtime.trap("Unauthorized: Only admins can delete feedback");
         };
-        switch (feedbackMap.get(feedbacks, feedbackId)) {
+        switch (feedbacks.get(feedbackId)) {
             case (null) {
-                Debug.trap("Feedback not found");
+                Runtime.trap("Feedback not found");
             };
             case (?feedback) {
-                feedbacks := feedbackMap.remove(feedbacks, feedbackId).0;
+                feedbacks.remove(feedbackId);
             };
         };
     };
@@ -2426,13 +2375,13 @@ persistent actor {
     };
 
     public query func getConstituenciesByState(stateName : Text) : async [Constituency] {
-        var stateList = List.nil<State>();
+        var stateFound : ?State = null;
         for (state in directory.states.vals()) {
             if (state.name == stateName) {
-                stateList := List.push(state, stateList);
+                stateFound := ?state;
             };
         };
-        switch (List.last(stateList)) {
+        switch (stateFound) {
             case (null) { [] };
             case (?state) { state.constituencies };
         };
@@ -2454,7 +2403,7 @@ persistent actor {
             for (constituency in state.constituencies.vals()) {
                 switch (constituency.mp) {
                     case (?mp) {
-                        if (Text.contains(mp.remarks, #text areaOrBlock)) {
+                        if (mp.remarks.contains(#text areaOrBlock)) {
                             return ?mp;
                         };
                     };
@@ -2466,11 +2415,11 @@ persistent actor {
     };
 
     public query func getPaginatedReportsOptimized(page : Nat, pageSize : Nat) : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        let sorted = List.toArray(reportList);
+        let sorted = reportList.toArray();
         let len = sorted.size();
         if (len == 0) {
             return [];
@@ -2484,11 +2433,11 @@ persistent actor {
     };
 
     public query func getInitialReports() : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        let sorted = List.toArray(reportList);
+        let sorted = reportList.toArray();
         let len = sorted.size();
         if (len == 0) {
             return [];
@@ -2498,11 +2447,11 @@ persistent actor {
     };
 
     public query func getNextReports(offset : Nat, count : Nat) : async [Report] {
-        var reportList = List.nil<Report>();
-        for ((id, report) in reportMap.entries(reports)) {
-            reportList := List.push(report, reportList);
+        let reportList = List.empty<Report>();
+        for ((id, report) in reports.entries()) {
+            reportList.add(report);
         };
-        let sorted = List.toArray(reportList);
+        let sorted = reportList.toArray();
         let len = sorted.size();
         if (len == 0 or offset >= len) {
             return [];
@@ -2512,14 +2461,13 @@ persistent actor {
     };
 
     public shared ({ caller }) func trackUniqueVisitor() : async () {
-        if (not principalMap.contains(uniqueVisitors, caller)) {
-            uniqueVisitors := principalMap.put(uniqueVisitors, caller, true);
+        if (not uniqueVisitors.containsKey(caller)) {
+            uniqueVisitors.add(caller, true);
         };
     };
 
     public query func getTotalUniqueVisitors() : async Nat {
-        principalMap.size(uniqueVisitors);
+        uniqueVisitors.size();
     };
 
-    include BlobStorage(registry);
 };

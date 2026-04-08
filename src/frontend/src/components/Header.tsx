@@ -1,12 +1,17 @@
-import React from 'react';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { LanguageDropdown } from './LanguageDropdown';
-import { MenuDropdown } from './MenuDropdown';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useGetCurrentLogo, useIsAdmin, useGetMyVolunteerProfile, useGetMyNgoNpoProfile } from '../hooks/useQueries';
-import { useLocationRefresh } from '../contexts/LocationRefreshContext';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { Shield, Users, Building2, User } from 'lucide-react';
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { Building2, Shield, User, Users } from "lucide-react";
+import React from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useLocationRefresh } from "../contexts/LocationRefreshContext";
+import {
+  useGetCurrentLogo,
+  useGetMyNgoNpoProfile,
+  useGetMyVolunteerProfile,
+  useIsAdmin,
+} from "../hooks/useQueries";
+import { LanguageDropdown } from "./LanguageDropdown";
+import { MenuDropdown } from "./MenuDropdown";
 
 export function Header() {
   const { t } = useLanguage();
@@ -14,29 +19,29 @@ export function Header() {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const { triggerLocationRefresh } = useLocationRefresh();
-  const { identity } = useInternetIdentity();
-  
+  const { identity: _identity } = useInternetIdentity();
+
   // Get user roles
   const { data: isAdmin } = useIsAdmin();
   const { data: volunteerProfile } = useGetMyVolunteerProfile();
   const { data: ngoNpoProfile } = useGetMyNgoNpoProfile();
-  
+
   // Determine active mode
   const isApprovedVolunteer = volunteerProfile?.approved || false;
   const isApprovedNgoNpo = ngoNpoProfile?.approved || false;
-  
+
   // Use the new Logo_Civicreport-3.png as the default placeholder
   const placeholderLogo = (
-    <img 
+    <img
       src="/assets/Logo_Civicreport-3.png"
-      alt="CivicReport Logo" 
+      alt="CivicReport Logo"
       className="h-10 w-10 object-contain"
     />
   );
 
   const handleLogoClick = () => {
-    const isAlreadyHome = routerState.location.pathname === '/';
-    navigate({ to: '/' });
+    const isAlreadyHome = routerState.location.pathname === "/";
+    navigate({ to: "/" });
     // Trigger location refresh when navigating to homepage
     if (isAlreadyHome) {
       // If already on homepage, trigger refresh immediately
@@ -50,8 +55,8 @@ export function Header() {
   };
 
   const handleTitleClick = () => {
-    const isAlreadyHome = routerState.location.pathname === '/';
-    navigate({ to: '/' });
+    const isAlreadyHome = routerState.location.pathname === "/";
+    navigate({ to: "/" });
     // Trigger location refresh when navigating to homepage
     if (isAlreadyHome) {
       // If already on homepage, trigger refresh immediately
@@ -110,13 +115,13 @@ export function Header() {
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             {/* Logo with Mode Indicator positioned below with slight overlap */}
             <div className="relative flex-shrink-0">
-              <div 
+              <div
                 className="flex items-center justify-center w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={handleLogoClick}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     handleLogoClick();
                   }
@@ -125,19 +130,19 @@ export function Header() {
               >
                 {isLoadingLogo ? (
                   placeholderLogo
-                ) : currentLogo && (currentLogo as string).trim() !== '' ? (
-                  <img 
+                ) : currentLogo && (currentLogo as string).trim() !== "" ? (
+                  <img
                     src={currentLogo as string}
-                    alt="App Logo" 
+                    alt="App Logo"
                     className="h-10 w-10 object-contain"
                     onError={(e) => {
                       // If logo fails to load, show placeholder
                       const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const placeholder = document.createElement('img');
-                      placeholder.src = '/assets/Logo_Civicreport-3.png';
-                      placeholder.alt = 'CivicReport Logo';
-                      placeholder.className = 'h-10 w-10 object-contain';
+                      target.style.display = "none";
+                      const placeholder = document.createElement("img");
+                      placeholder.src = "/assets/Logo_Civicreport-3.png";
+                      placeholder.alt = "CivicReport Logo";
+                      placeholder.className = "h-10 w-10 object-contain";
                       target.parentElement!.appendChild(placeholder);
                     }}
                   />
@@ -145,21 +150,21 @@ export function Header() {
                   placeholderLogo
                 )}
               </div>
-              
+
               {/* Mode indicator with liquid glass effect positioned below logo with slight overlap */}
               <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 z-10">
                 {renderModeIndicator()}
               </div>
             </div>
-            
+
             {/* Title with vibrant blue color and Public Beta label positioned above */}
-            <div 
+            <div
               className="text-left cursor-pointer hover:opacity-80 transition-opacity min-w-0 relative flex-1"
               onClick={handleTitleClick}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   handleTitleClick();
                 }
@@ -172,12 +177,16 @@ export function Header() {
                   Public Beta
                 </span>
               </div>
-              
+
               {/* Main title */}
-              <h1 className="text-lg sm:text-xl font-bold text-blue-600 truncate leading-tight">{t('header.title')}</h1>
-              
+              <h1 className="text-lg sm:text-xl font-bold text-blue-600 truncate leading-tight">
+                {t("header.title")}
+              </h1>
+
               {/* Subtitle */}
-              <p className="text-[10px] sm:text-[11px] text-gray-600 leading-tight truncate">{t('header.subtitle')}</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-600 leading-tight truncate">
+                {t("header.subtitle")}
+              </p>
             </div>
           </div>
 

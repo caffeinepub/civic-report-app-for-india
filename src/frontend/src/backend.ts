@@ -89,12 +89,6 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface LocalCivicBody {
-    photoPath?: string;
-    representativeName: string;
-    bodyName: string;
-    bodyType: string;
-}
 export interface FileReference {
     hash: string;
     path: string;
@@ -114,18 +108,8 @@ export interface Representative {
     twitterHandle: string;
     remarks: string;
 }
-export interface _CaffeineStorageRefillInformation {
+export interface _ImmutableObjectStorageRefillInformation {
     proposed_top_up_amount?: bigint;
-}
-export interface Feedback {
-    id: string;
-    status: string;
-    contactInfo: string;
-    admin?: Principal;
-    type: string;
-    message: string;
-    response?: string;
-    timestamp: bigint;
 }
 export interface RoadmapFeature {
     id: string;
@@ -136,15 +120,19 @@ export interface RoadmapFeature {
     sectionId: string;
     timestamp: bigint;
 }
-export interface AdministrativeUnit {
-    unitType: string;
-    parentState?: string;
-    name: string;
-    parentConstituency?: string;
-}
-export interface _CaffeineStorageCreateCertificateResult {
+export interface _ImmutableObjectStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
+}
+export interface Feedback {
+    id: string;
+    status: string;
+    contactInfo: string;
+    admin?: Principal;
+    type: string;
+    message: string;
+    response?: string;
+    timestamp: bigint;
 }
 export interface Report {
     id: string;
@@ -198,6 +186,16 @@ export interface NgoNpo {
     registrationDate: bigint;
     showContactInfo: boolean;
 }
+export interface AdministrativeUnit {
+    unitType: string;
+    parentState?: string;
+    name: string;
+    parentConstituency?: string;
+}
+export interface _ImmutableObjectStorageRefillResult {
+    success?: boolean;
+    topped_up_amount?: bigint;
+}
 export interface UserApprovalInfo {
     status: ApprovalStatus;
     principal: Principal;
@@ -221,19 +219,6 @@ export interface PendingProfileEdit {
     rejectionNote?: string;
     volunteerPrincipal: Principal;
 }
-export interface State {
-    cm?: Representative;
-    constituencies: Array<Constituency>;
-    name: string;
-    isUnionTerritory: boolean;
-}
-export interface VolunteerProfileUpdate {
-    photoPath: string;
-    contactInfo: string;
-    name: string;
-    address: string;
-    showFullMobile: boolean;
-}
 export interface Volunteer {
     id: string;
     photoPath: string;
@@ -248,12 +233,27 @@ export interface Volunteer {
     showFullMobile: boolean;
     applicationDate: bigint;
 }
+export interface VolunteerProfileUpdate {
+    photoPath: string;
+    contactInfo: string;
+    name: string;
+    address: string;
+    showFullMobile: boolean;
+}
+export interface State {
+    cm?: Representative;
+    constituencies: Array<Constituency>;
+    name: string;
+    isUnionTerritory: boolean;
+}
 export interface UserProfile {
     name: string;
 }
-export interface _CaffeineStorageRefillResult {
-    success?: boolean;
-    topped_up_amount?: bigint;
+export interface LocalCivicBody {
+    photoPath?: string;
+    representativeName: string;
+    bodyName: string;
+    bodyType: string;
 }
 export enum ApprovalStatus {
     pending = "pending",
@@ -266,11 +266,13 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    _caffeineStorageBlobsToDelete(): Promise<Array<string>>;
-    _caffeineStorageConfirmBlobDeletion(blobs: Array<string>): Promise<void>;
-    _caffeineStorageCreateCertificate(blob_hash: string): Promise<_CaffeineStorageCreateCertificateResult>;
-    _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
-    _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
+    _immutableObjectStorageBlobsAreLive(hashes: Array<Uint8Array>): Promise<Array<boolean>>;
+    _immutableObjectStorageBlobsToDelete(): Promise<Array<Uint8Array>>;
+    _immutableObjectStorageConfirmBlobDeletion(blobs: Array<Uint8Array>): Promise<void>;
+    _immutableObjectStorageCreateCertificate(blobHash: string): Promise<_ImmutableObjectStorageCreateCertificateResult>;
+    _immutableObjectStorageRefillCashier(refillInformation: _ImmutableObjectStorageRefillInformation | null): Promise<_ImmutableObjectStorageRefillResult>;
+    _immutableObjectStorageUpdateGatewayPrincipals(): Promise<void>;
+    _initializeAccessControl(): Promise<void>;
     addAdmin(newAdmin: Principal): Promise<void>;
     addAdministrativeUnit(name: string, unitType: string, parentState: string | null, parentConstituency: string | null): Promise<void>;
     addConstituency(stateName: string, constituencyName: string): Promise<void>;
@@ -366,7 +368,6 @@ export interface backendInterface {
     getVolunteerById(volunteerId: string): Promise<Volunteer | null>;
     getVolunteerDirectory(): Promise<Array<Volunteer>>;
     importDirectory(newDirectory: Directory): Promise<void>;
-    initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isCallerApproved(): Promise<boolean>;
     listApprovals(): Promise<Array<UserApprovalInfo>>;
@@ -411,76 +412,104 @@ export interface backendInterface {
     updateVolunteerPrivacy(volunteerId: string, showFullMobile: boolean): Promise<void>;
     uploadLogo(logoData: string): Promise<void>;
 }
-import type { AdministrativeUnit as _AdministrativeUnit, ApprovalStatus as _ApprovalStatus, Constituency as _Constituency, Directory as _Directory, Feedback as _Feedback, LocalCivicBody as _LocalCivicBody, NgoNpo as _NgoNpo, PendingProfileEdit as _PendingProfileEdit, Report as _Report, Representative as _Representative, State as _State, UserApprovalInfo as _UserApprovalInfo, UserProfile as _UserProfile, UserRole as _UserRole, Volunteer as _Volunteer, VolunteerProfileUpdate as _VolunteerProfileUpdate, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { AdministrativeUnit as _AdministrativeUnit, ApprovalStatus as _ApprovalStatus, Constituency as _Constituency, Directory as _Directory, Feedback as _Feedback, LocalCivicBody as _LocalCivicBody, NgoNpo as _NgoNpo, PendingProfileEdit as _PendingProfileEdit, Report as _Report, Representative as _Representative, State as _State, UserApprovalInfo as _UserApprovalInfo, UserProfile as _UserProfile, UserRole as _UserRole, Volunteer as _Volunteer, VolunteerProfileUpdate as _VolunteerProfileUpdate, _ImmutableObjectStorageRefillInformation as __ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult as __ImmutableObjectStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async _caffeineStorageBlobsToDelete(): Promise<Array<string>> {
+    async _immutableObjectStorageBlobsAreLive(arg0: Array<Uint8Array>): Promise<Array<boolean>> {
         if (this.processError) {
             try {
-                const result = await this.actor._caffeineStorageBlobsToDelete();
+                const result = await this.actor._immutableObjectStorageBlobsAreLive(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor._caffeineStorageBlobsToDelete();
+            const result = await this.actor._immutableObjectStorageBlobsAreLive(arg0);
             return result;
         }
     }
-    async _caffeineStorageConfirmBlobDeletion(arg0: Array<string>): Promise<void> {
+    async _immutableObjectStorageBlobsToDelete(): Promise<Array<Uint8Array>> {
         if (this.processError) {
             try {
-                const result = await this.actor._caffeineStorageConfirmBlobDeletion(arg0);
+                const result = await this.actor._immutableObjectStorageBlobsToDelete();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor._caffeineStorageConfirmBlobDeletion(arg0);
+            const result = await this.actor._immutableObjectStorageBlobsToDelete();
             return result;
         }
     }
-    async _caffeineStorageCreateCertificate(arg0: string): Promise<_CaffeineStorageCreateCertificateResult> {
+    async _immutableObjectStorageConfirmBlobDeletion(arg0: Array<Uint8Array>): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor._caffeineStorageCreateCertificate(arg0);
+                const result = await this.actor._immutableObjectStorageConfirmBlobDeletion(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor._caffeineStorageCreateCertificate(arg0);
+            const result = await this.actor._immutableObjectStorageConfirmBlobDeletion(arg0);
             return result;
         }
     }
-    async _caffeineStorageRefillCashier(arg0: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult> {
+    async _immutableObjectStorageCreateCertificate(arg0: string): Promise<_ImmutableObjectStorageCreateCertificateResult> {
         if (this.processError) {
             try {
-                const result = await this.actor._caffeineStorageRefillCashier(to_candid_opt_n1(this._uploadFile, this._downloadFile, arg0));
-                return from_candid__CaffeineStorageRefillResult_n4(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor._caffeineStorageRefillCashier(to_candid_opt_n1(this._uploadFile, this._downloadFile, arg0));
-            return from_candid__CaffeineStorageRefillResult_n4(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async _caffeineStorageUpdateGatewayPrincipals(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor._caffeineStorageUpdateGatewayPrincipals();
+                const result = await this.actor._immutableObjectStorageCreateCertificate(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor._caffeineStorageUpdateGatewayPrincipals();
+            const result = await this.actor._immutableObjectStorageCreateCertificate(arg0);
+            return result;
+        }
+    }
+    async _immutableObjectStorageRefillCashier(arg0: _ImmutableObjectStorageRefillInformation | null): Promise<_ImmutableObjectStorageRefillResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor._immutableObjectStorageRefillCashier(to_candid_opt_n1(this._uploadFile, this._downloadFile, arg0));
+                return from_candid__ImmutableObjectStorageRefillResult_n4(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor._immutableObjectStorageRefillCashier(to_candid_opt_n1(this._uploadFile, this._downloadFile, arg0));
+            return from_candid__ImmutableObjectStorageRefillResult_n4(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async _immutableObjectStorageUpdateGatewayPrincipals(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor._immutableObjectStorageUpdateGatewayPrincipals();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor._immutableObjectStorageUpdateGatewayPrincipals();
+            return result;
+        }
+    }
+    async _initializeAccessControl(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor._initializeAccessControl();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor._initializeAccessControl();
             return result;
         }
     }
@@ -1619,20 +1648,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async initializeAccessControl(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.initializeAccessControl();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.initializeAccessControl();
-            return result;
-        }
-    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -2278,7 +2293,7 @@ function from_candid_UserRole_n51(_uploadFile: (file: ExternalBlob) => Promise<U
 function from_candid_Volunteer_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Volunteer): Volunteer {
     return from_candid_record_n49(_uploadFile, _downloadFile, value);
 }
-function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
+function from_candid__ImmutableObjectStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __ImmutableObjectStorageRefillResult): _ImmutableObjectStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
 function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Representative]): Representative | null {
@@ -2910,11 +2925,11 @@ function to_candid_State_n79(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function to_candid_UserRole_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation): __CaffeineStorageRefillInformation {
+function to_candid__ImmutableObjectStorageRefillInformation_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ImmutableObjectStorageRefillInformation): __ImmutableObjectStorageRefillInformation {
     return to_candid_record_n3(_uploadFile, _downloadFile, value);
 }
-function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
-    return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
+function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ImmutableObjectStorageRefillInformation | null): [] | [__ImmutableObjectStorageRefillInformation] {
+    return value === null ? candid_none() : candid_some(to_candid__ImmutableObjectStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
 function to_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Representative | null): [] | [_Representative] {
     return value === null ? candid_none() : candid_some(to_candid_Representative_n9(_uploadFile, _downloadFile, value));

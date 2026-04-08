@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
-import { Settings, Upload, Image, CheckCircle, AlertTriangle, Eye, Trash2, X } from 'lucide-react';
-import { useGetCurrentLogo, useUploadLogo, useGetLogoHistory } from '../hooks/useQueries';
+import {
+  AlertTriangle,
+  CheckCircle,
+  Eye,
+  Image,
+  Settings,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import {
+  useGetCurrentLogo,
+  useGetLogoHistory,
+  useUploadLogo,
+} from "../hooks/useQueries";
 
 export function AdminContentManagement() {
   const { data: currentLogo, isLoading: isLoadingLogo } = useGetCurrentLogo();
-  const { data: logoHistory, isLoading: isLoadingHistory } = useGetLogoHistory();
+  const { data: logoHistory, isLoading: isLoadingHistory } =
+    useGetLogoHistory();
   const { mutate: uploadLogo, isPending: isUploading } = useUploadLogo();
-  
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -17,20 +32,20 @@ export function AdminContentManagement() {
     if (!file) return;
 
     // Validate file type
-    if (file.type !== 'image/svg+xml') {
-      setErrors({ file: 'Please select a valid SVG file' });
+    if (file.type !== "image/svg+xml") {
+      setErrors({ file: "Please select a valid SVG file" });
       return;
     }
 
     // Validate file size (max 1MB)
     if (file.size > 1024 * 1024) {
-      setErrors({ file: 'SVG file size must be less than 1MB' });
+      setErrors({ file: "SVG file size must be less than 1MB" });
       return;
     }
 
     setSelectedFile(file);
     setErrors({});
-    
+
     // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
@@ -42,45 +57,52 @@ export function AdminContentManagement() {
     try {
       // Read file as text for SVG content
       const fileContent = await selectedFile.text();
-      
+
       // Basic SVG validation
-      if (!fileContent.includes('<svg') || !fileContent.includes('</svg>')) {
-        setErrors({ file: 'Invalid SVG file format' });
+      if (!fileContent.includes("<svg") || !fileContent.includes("</svg>")) {
+        setErrors({ file: "Invalid SVG file format" });
         return;
       }
 
-      if (confirm('Are you sure you want to replace the current logo? This will update the logo across the entire application.')) {
+      if (
+        confirm(
+          "Are you sure you want to replace the current logo? This will update the logo across the entire application.",
+        )
+      ) {
         uploadLogo(fileContent, {
           onSuccess: () => {
             setSelectedFile(null);
             setPreviewUrl(null);
             setShowPreview(false);
-            alert('Logo uploaded successfully! The new logo is now active across the application.');
+            alert(
+              "Logo uploaded successfully! The new logo is now active across the application.",
+            );
           },
           onError: (error) => {
-            console.error('Error uploading logo:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            if (errorMessage.includes('Unauthorized')) {
-              alert('You do not have permission to upload logos.');
+            console.error("Error uploading logo:", error);
+            const errorMessage =
+              error instanceof Error ? error.message : "Unknown error occurred";
+            if (errorMessage.includes("Unauthorized")) {
+              alert("You do not have permission to upload logos.");
             } else {
-              alert('Failed to upload logo. Please try again.');
+              alert("Failed to upload logo. Please try again.");
             }
-          }
+          },
         });
       }
     } catch (error) {
-      console.error('Error reading file:', error);
-      setErrors({ file: 'Failed to read SVG file' });
+      console.error("Error reading file:", error);
+      setErrors({ file: "Failed to read SVG file" });
     }
   };
 
   const formatDate = (timestamp: bigint) => {
-    return new Date(Number(timestamp) / 1000000).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(Number(timestamp) / 1000000).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -101,9 +123,10 @@ export function AdminContentManagement() {
               {isLoadingLogo ? (
                 <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full animate-pulse" />
               ) : currentLogo ? (
-                <div 
-                  className="w-24 h-24 mx-auto"
-                  dangerouslySetInnerHTML={{ __html: currentLogo }}
+                <img
+                  src={`data:image/svg+xml;base64,${btoa(currentLogo)}`}
+                  alt="Current Logo"
+                  className="w-24 h-24 mx-auto object-contain"
                 />
               ) : (
                 <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
@@ -111,15 +134,17 @@ export function AdminContentManagement() {
                 </div>
               )}
               <p className="text-sm text-gray-600 mt-2">
-                {currentLogo ? 'Active Logo' : 'No Logo Uploaded'}
+                {currentLogo ? "Active Logo" : "No Logo Uploaded"}
               </p>
             </div>
           </div>
 
           {/* Upload New Logo */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Upload New Logo</h3>
-            
+            <h3 className="font-semibold text-gray-900 mb-3">
+              Upload New Logo
+            </h3>
+
             {previewUrl ? (
               <div className="space-y-3">
                 <div className="border-2 border-green-200 rounded-lg p-4 text-center bg-green-50">
@@ -128,19 +153,25 @@ export function AdminContentManagement() {
                     alt="Logo Preview"
                     className="w-24 h-24 mx-auto object-contain"
                   />
-                  <p className="text-sm text-green-700 mt-2 font-medium">New Logo Preview</p>
+                  <p className="text-sm text-green-700 mt-2 font-medium">
+                    New Logo Preview
+                  </p>
                 </div>
-                
+
                 <div className="flex space-x-2">
                   <button
+                    type="button"
                     onClick={handleUpload}
                     disabled={isUploading}
                     className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    <span>{isUploading ? 'Uploading...' : 'Confirm Upload'}</span>
+                    <span>
+                      {isUploading ? "Uploading..." : "Confirm Upload"}
+                    </span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedFile(null);
                       setPreviewUrl(null);
@@ -156,7 +187,9 @@ export function AdminContentManagement() {
             ) : (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 mb-2">Upload SVG logo file</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Upload SVG logo file
+                </p>
                 <input
                   type="file"
                   accept=".svg,image/svg+xml"
@@ -176,7 +209,7 @@ export function AdminContentManagement() {
                 </p>
               </div>
             )}
-            
+
             {errors.file && (
               <p className="text-red-500 text-sm mt-2">{errors.file}</p>
             )}
@@ -191,10 +224,15 @@ export function AdminContentManagement() {
               <p className="font-semibold mb-1">Logo Guidelines:</p>
               <ul className="space-y-1">
                 <li>• Use SVG format for best quality and scalability</li>
-                <li>• Recommended dimensions: 100x100 pixels or square aspect ratio</li>
+                <li>
+                  • Recommended dimensions: 100x100 pixels or square aspect
+                  ratio
+                </li>
                 <li>• Keep file size under 1MB for optimal loading</li>
                 <li>• Logo will appear in the header and on certificates</li>
-                <li>• Ensure logo works well on both light and dark backgrounds</li>
+                <li>
+                  • Ensure logo works well on both light and dark backgrounds
+                </li>
               </ul>
             </div>
           </div>
@@ -216,17 +254,23 @@ export function AdminContentManagement() {
         ) : !logoHistory || logoHistory.length === 0 ? (
           <div className="text-center py-8">
             <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Logo History</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Logo History
+            </h3>
             <p className="text-gray-600">No logos have been uploaded yet.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {logoHistory.map((entry, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div
+                key={`${entry.timestamp}-${index}`}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+              >
                 <div className="flex items-center space-x-4">
-                  <div 
-                    className="w-12 h-12 border border-gray-200 rounded flex items-center justify-center"
-                    dangerouslySetInnerHTML={{ __html: entry.logoData }}
+                  <img
+                    src={`data:image/svg+xml;base64,${btoa(entry.logoData)}`}
+                    alt={`Logo ${logoHistory.length - index}`}
+                    className="w-12 h-12 border border-gray-200 rounded object-contain"
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -240,7 +284,7 @@ export function AdminContentManagement() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   {index === 0 && (
                     <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
@@ -248,9 +292,12 @@ export function AdminContentManagement() {
                     </span>
                   )}
                   <button
+                    type="button"
                     onClick={() => {
                       setShowPreview(true);
-                      setPreviewUrl(`data:image/svg+xml;base64,${btoa(entry.logoData)}`);
+                      setPreviewUrl(
+                        `data:image/svg+xml;base64,${btoa(entry.logoData)}`,
+                      );
                     }}
                     className="text-blue-600 hover:text-blue-700 transition-colors"
                     title="Preview Logo"
@@ -269,8 +316,11 @@ export function AdminContentManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Logo Preview</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Logo Preview
+              </h3>
               <button
+                type="button"
                 onClick={() => {
                   setShowPreview(false);
                   if (!selectedFile) setPreviewUrl(null);
@@ -280,7 +330,7 @@ export function AdminContentManagement() {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="text-center">
               <div className="w-32 h-32 mx-auto border border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
                 <img

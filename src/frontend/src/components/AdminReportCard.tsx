@@ -1,10 +1,29 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, MessageSquare, UserCheck, Edit, Camera, Upload, CheckCircle, AlertCircle, X, Trash2, Save, ImageIcon, Hash, Download, Mail, Eye } from 'lucide-react';
-import { Report } from '../backend';
-import { useFileUrl, useFileUpload } from '../blob-storage/FileStorage';
-import { CertificateGenerator } from './CertificateGenerator';
-import { useDeleteReport } from '../hooks/useQueries';
-import { useLanguage } from '../contexts/LanguageContext';
+import {
+  AlertCircle,
+  Calendar,
+  Camera,
+  CheckCircle,
+  Download,
+  Edit,
+  Eye,
+  Hash,
+  ImageIcon,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Save,
+  Trash2,
+  Upload,
+  User,
+  UserCheck,
+  X,
+} from "lucide-react";
+import React, { useState } from "react";
+import type { Report } from "../backend";
+import { useFileUpload, useFileUrl } from "../blob-storage/FileStorage";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useDeleteReport } from "../hooks/useQueries";
+import { CertificateGenerator } from "./CertificateGenerator";
 
 interface AdminReportCardProps {
   report: Report;
@@ -27,16 +46,16 @@ interface LocationData {
 }
 
 export function AdminReportCard({ report }: AdminReportCardProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const { data: imageUrl } = useFileUrl(report.photoPath);
-  const { data: proofImageUrl } = useFileUrl(report.proofPhotoPath || '');
-  const { data: mlaImageUrl } = useFileUrl(report.mlaPhotoPath || '');
-  
+  const { data: proofImageUrl } = useFileUrl(report.proofPhotoPath || "");
+  const { data: mlaImageUrl } = useFileUrl(report.mlaPhotoPath || "");
+
   // Get PM/CM/MP photos EXCLUSIVELY from report's pmData, cmData, and mpData Representative objects
-  const { data: pmPhotoUrl } = useFileUrl(report.pmData?.photoPath || '');
-  const { data: cmPhotoUrl } = useFileUrl(report.cmData?.photoPath || '');
-  const { data: mpPhotoUrl } = useFileUrl(report.mpData?.photoPath || '');
-  
+  const { data: pmPhotoUrl } = useFileUrl(report.pmData?.photoPath || "");
+  const { data: cmPhotoUrl } = useFileUrl(report.cmData?.photoPath || "");
+  const { data: _mpPhotoUrl } = useFileUrl(report.mpData?.photoPath || "");
+
   const { uploadFile, isUploading } = useFileUpload();
   const { mutate: deleteReport, isPending: isDeleting } = useDeleteReport();
 
@@ -49,16 +68,16 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
 
   // Edit form state
   const [editForm, setEditForm] = useState({
-    username: report.username || '',
-    notes: report.notes || '',
+    username: report.username || "",
+    notes: report.notes || "",
     issueType: report.issueType,
     status: report.status,
-    mlaName: report.mlaName || '',
-    customAddress: report.customAddress || '',
-    pmName: report.pmName || '',
-    cmName: report.cmName || '',
-    reporterName: report.reporterName || '',
-    completionNotes: report.completionNotes || ''
+    mlaName: report.mlaName || "",
+    customAddress: report.customAddress || "",
+    pmName: report.pmName || "",
+    cmName: report.cmName || "",
+    reporterName: report.reporterName || "",
+    completionNotes: report.completionNotes || "",
   });
 
   // Photo replacement state
@@ -69,63 +88,69 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
   const [newCmPhoto, setNewCmPhoto] = useState<File | null>(null);
 
   const formatDate = (timestamp: bigint) => {
-    return new Date(Number(timestamp) / 1000000).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(Number(timestamp) / 1000000).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getIssueTypeEmoji = (issueType: string) => {
     const lowerType = issueType.toLowerCase();
-    if (lowerType.includes('pothole')) return '🕳️';
-    if (lowerType.includes('garbage') || lowerType.includes('waste')) return '🗑️';
-    if (lowerType.includes('streetlight') || lowerType.includes('light')) return '💡';
-    if (lowerType.includes('waterlogging') || lowerType.includes('water')) return '🌊';
-    if (lowerType.includes('flood')) return '🌊';
-    if (lowerType.includes('dumping')) return '🚯';
-    if (lowerType.includes('parking')) return '🚗';
-    return '❓';
+    if (lowerType.includes("pothole")) return "🕳️";
+    if (lowerType.includes("garbage") || lowerType.includes("waste"))
+      return "🗑️";
+    if (lowerType.includes("streetlight") || lowerType.includes("light"))
+      return "💡";
+    if (lowerType.includes("waterlogging") || lowerType.includes("water"))
+      return "🌊";
+    if (lowerType.includes("flood")) return "🌊";
+    if (lowerType.includes("dumping")) return "🚯";
+    if (lowerType.includes("parking")) return "🚗";
+    return "❓";
   };
 
   const getIssueTypeColor = (issueType: string) => {
     const lowerType = issueType.toLowerCase();
-    if (lowerType.includes('pothole')) return 'bg-orange-100 text-orange-700';
-    if (lowerType.includes('garbage') || lowerType.includes('waste')) return 'bg-green-100 text-green-700';
-    if (lowerType.includes('streetlight') || lowerType.includes('light')) return 'bg-yellow-100 text-yellow-700';
-    if (lowerType.includes('waterlogging') || lowerType.includes('water')) return 'bg-blue-100 text-blue-700';
-    if (lowerType.includes('flood')) return 'bg-blue-100 text-blue-700';
-    if (lowerType.includes('dumping')) return 'bg-red-100 text-red-700';
-    if (lowerType.includes('parking')) return 'bg-purple-100 text-purple-700';
-    return 'bg-gray-100 text-gray-700';
+    if (lowerType.includes("pothole")) return "bg-orange-100 text-orange-700";
+    if (lowerType.includes("garbage") || lowerType.includes("waste"))
+      return "bg-green-100 text-green-700";
+    if (lowerType.includes("streetlight") || lowerType.includes("light"))
+      return "bg-yellow-100 text-yellow-700";
+    if (lowerType.includes("waterlogging") || lowerType.includes("water"))
+      return "bg-blue-100 text-blue-700";
+    if (lowerType.includes("flood")) return "bg-blue-100 text-blue-700";
+    if (lowerType.includes("dumping")) return "bg-red-100 text-red-700";
+    if (lowerType.includes("parking")) return "bg-purple-100 text-purple-700";
+    return "bg-gray-100 text-gray-700";
   };
 
   const getStatusColor = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'submitted':
-      case 'open':
-        return 'bg-blue-100 text-blue-700';
-      case 'resolved':
-        return 'bg-green-100 text-green-700';
-      case 'closed':
-        return 'bg-gray-100 text-gray-700';
+      case "submitted":
+      case "open":
+        return "bg-blue-100 text-blue-700";
+      case "resolved":
+        return "bg-green-100 text-green-700";
+      case "closed":
+        return "bg-gray-100 text-gray-700";
       default:
-        return 'bg-gray-100 text-gray-700';
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   const getStatusIcon = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'submitted':
-      case 'open':
+      case "submitted":
+      case "open":
         return <AlertCircle className="h-4 w-4" />;
-      case 'resolved':
+      case "resolved":
         return <CheckCircle className="h-4 w-4" />;
-      case 'closed':
+      case "closed":
         return <X className="h-4 w-4" />;
       default:
         return <Edit className="h-4 w-4" />;
@@ -135,31 +160,34 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
   const getStatusDisplayText = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'submitted':
-        return 'Open';
-      case 'open':
-        return 'Open';
-      case 'resolved':
-        return 'Resolved';
+      case "submitted":
+        return "Open";
+      case "open":
+        return "Open";
+      case "resolved":
+        return "Resolved";
       default:
         return status;
     }
   };
 
-  const fetchLocationData = async (latitude: number, longitude: number): Promise<LocationData> => {
+  const fetchLocationData = async (
+    latitude: number,
+    longitude: number,
+  ): Promise<LocationData> => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
       );
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch location data');
+        throw new Error("Failed to fetch location data");
       }
-      
+
       const data = await response.json();
       return data.address || {};
     } catch (error) {
-      console.error('Error fetching location data:', error);
+      console.error("Error fetching location data:", error);
       return {};
     }
   };
@@ -167,7 +195,10 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
   React.useEffect(() => {
     const loadLocationData = async () => {
       setIsLoadingLocation(true);
-      const data = await fetchLocationData(report.location.latitude, report.location.longitude);
+      const data = await fetchLocationData(
+        report.location.latitude,
+        report.location.longitude,
+      );
       setLocationData(data);
       setIsLoadingLocation(false);
     };
@@ -177,7 +208,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
 
   const formatLocationDisplay = () => {
     if (isLoadingLocation) {
-      return 'Loading...';
+      return "Loading...";
     }
 
     if (report.customAddress) {
@@ -185,13 +216,13 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
     }
 
     const addressParts: string[] = [];
-    
+
     if (locationData.house_number && locationData.road) {
       addressParts.push(`${locationData.house_number} ${locationData.road}`);
     } else if (locationData.road) {
       addressParts.push(locationData.road);
     }
-    
+
     if (locationData.neighbourhood) {
       addressParts.push(locationData.neighbourhood);
     } else if (locationData.suburb) {
@@ -199,7 +230,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
     } else if (locationData.village) {
       addressParts.push(locationData.village);
     }
-    
+
     if (locationData.city) {
       addressParts.push(locationData.city);
     } else if (locationData.town) {
@@ -207,39 +238,45 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
     } else if (locationData.city_district) {
       addressParts.push(locationData.city_district);
     }
-    
+
     if (locationData.county && !addressParts.includes(locationData.county)) {
       addressParts.push(locationData.county);
-    } else if (locationData.state_district && !addressParts.includes(locationData.state_district)) {
+    } else if (
+      locationData.state_district &&
+      !addressParts.includes(locationData.state_district)
+    ) {
       addressParts.push(locationData.state_district);
     }
-    
+
     if (locationData.state) {
       addressParts.push(locationData.state);
     }
 
     if (addressParts.length > 0) {
-      return addressParts.join(', ');
+      return addressParts.join(", ");
     }
 
     return `${report.location.latitude.toFixed(4)}, ${report.location.longitude.toFixed(4)}`;
   };
 
-  const handlePhotoSelect = (file: File, type: 'main' | 'mla' | 'proof' | 'pm' | 'cm') => {
+  const handlePhotoSelect = (
+    file: File,
+    type: "main" | "mla" | "proof" | "pm" | "cm",
+  ) => {
     switch (type) {
-      case 'main':
+      case "main":
         setNewMainPhoto(file);
         break;
-      case 'mla':
+      case "mla":
         setNewMlaPhoto(file);
         break;
-      case 'proof':
+      case "proof":
         setNewProofPhoto(file);
         break;
-      case 'pm':
+      case "pm":
         setNewPmPhoto(file);
         break;
-      case 'cm':
+      case "cm":
         setNewCmPhoto(file);
         break;
     }
@@ -247,11 +284,11 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
 
   const handleSave = async () => {
     try {
-      let updatedPhotoPath = report.photoPath;
-      let updatedMlaPhotoPath = report.mlaPhotoPath;
-      let updatedProofPhotoPath = report.proofPhotoPath;
-      let updatedPmPhotoPath = report.pmPhotoPath;
-      let updatedCmPhotoPath = report.cmPhotoPath;
+      let _updatedPhotoPath = report.photoPath;
+      let _updatedMlaPhotoPath = report.mlaPhotoPath;
+      let _updatedProofPhotoPath = report.proofPhotoPath;
+      let _updatedPmPhotoPath = report.pmPhotoPath;
+      let _updatedCmPhotoPath = report.cmPhotoPath;
 
       // Upload new photos if selected
       if (newMainPhoto) {
@@ -259,7 +296,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         const fileName = `admin-update-main-${timestamp}-${newMainPhoto.name}`;
         const filePath = `reports/${fileName}`;
         await uploadFile(filePath, newMainPhoto);
-        updatedPhotoPath = filePath;
+        _updatedPhotoPath = filePath;
       }
 
       if (newMlaPhoto) {
@@ -267,7 +304,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         const fileName = `admin-update-mla-${timestamp}-${newMlaPhoto.name}`;
         const filePath = `reports/mla/${fileName}`;
         await uploadFile(filePath, newMlaPhoto);
-        updatedMlaPhotoPath = filePath;
+        _updatedMlaPhotoPath = filePath;
       }
 
       if (newProofPhoto) {
@@ -275,7 +312,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         const fileName = `admin-update-proof-${timestamp}-${newProofPhoto.name}`;
         const filePath = `reports/proof/${fileName}`;
         await uploadFile(filePath, newProofPhoto);
-        updatedProofPhotoPath = filePath;
+        _updatedProofPhotoPath = filePath;
       }
 
       if (newPmPhoto) {
@@ -283,7 +320,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         const fileName = `admin-update-pm-${timestamp}-${newPmPhoto.name}`;
         const filePath = `leaders/pm/${fileName}`;
         await uploadFile(filePath, newPmPhoto);
-        updatedPmPhotoPath = filePath;
+        _updatedPmPhotoPath = filePath;
       }
 
       if (newCmPhoto) {
@@ -291,23 +328,24 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         const fileName = `admin-update-cm-${timestamp}-${newCmPhoto.name}`;
         const filePath = `leaders/cm/${fileName}`;
         await uploadFile(filePath, newCmPhoto);
-        updatedCmPhotoPath = filePath;
+        _updatedCmPhotoPath = filePath;
       }
 
       // Note: Since backend doesn't have a comprehensive update method yet,
       // we'll show a message that editing is not fully implemented
-      alert('Photo uploads completed, but comprehensive report editing is not yet fully implemented in the backend.');
-      
+      alert(
+        "Photo uploads completed, but comprehensive report editing is not yet fully implemented in the backend.",
+      );
+
       setIsEditing(false);
       setNewMainPhoto(null);
       setNewMlaPhoto(null);
       setNewProofPhoto(null);
       setNewPmPhoto(null);
       setNewCmPhoto(null);
-      
     } catch (error) {
-      console.error('Error updating report:', error);
-      alert('Failed to update report. Please try again.');
+      console.error("Error updating report:", error);
+      alert("Failed to update report. Please try again.");
     }
   };
 
@@ -316,37 +354,42 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
       onSuccess: () => {
         setShowDeleteConfirm(false);
         // Show success message
-        alert('Report deleted successfully!');
+        alert("Report deleted successfully!");
       },
       onError: (error) => {
-        console.error('Error deleting report:', error);
+        console.error("Error deleting report:", error);
         // Show user-friendly error message
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        if (errorMessage.includes('Unauthorized')) {
-          alert('You do not have permission to delete this report. Please ensure you are logged in as an admin.');
-        } else if (errorMessage.includes('Report not found')) {
-          alert('This report no longer exists or has already been deleted.');
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        if (errorMessage.includes("Unauthorized")) {
+          alert(
+            "You do not have permission to delete this report. Please ensure you are logged in as an admin.",
+          );
+        } else if (errorMessage.includes("Report not found")) {
+          alert("This report no longer exists or has already been deleted.");
         } else {
-          alert('Failed to delete report. Please try again or contact support if the problem persists.');
+          alert(
+            "Failed to delete report. Please try again or contact support if the problem persists.",
+          );
         }
         setShowDeleteConfirm(false);
-      }
+      },
     });
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditForm({
-      username: report.username || '',
-      notes: report.notes || '',
+      username: report.username || "",
+      notes: report.notes || "",
       issueType: report.issueType,
       status: report.status,
-      mlaName: report.mlaName || '',
-      customAddress: report.customAddress || '',
-      pmName: report.pmName || '',
-      cmName: report.cmName || '',
-      reporterName: report.reporterName || '',
-      completionNotes: report.completionNotes || ''
+      mlaName: report.mlaName || "",
+      customAddress: report.customAddress || "",
+      pmName: report.pmName || "",
+      cmName: report.cmName || "",
+      reporterName: report.reporterName || "",
+      completionNotes: report.completionNotes || "",
     });
     setNewMainPhoto(null);
     setNewMlaPhoto(null);
@@ -356,20 +399,20 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
   };
 
   const handleDownloadComplaint = () => {
-    alert('This feature is coming soon');
+    alert("This feature is coming soon");
   };
 
   const handleEmailAuthorities = () => {
-    alert('This feature is coming soon');
+    alert("This feature is coming soon");
   };
 
   // Get minister names and photos EXCLUSIVELY from admin directory (report's Representative objects)
   const getPmDisplayName = () => {
-    return report.pmData?.name || 'Prime Minister';
+    return report.pmData?.name || "Prime Minister";
   };
 
   const getCmDisplayName = () => {
-    return report.cmData?.name || 'Chief Minister';
+    return report.cmData?.name || "Chief Minister";
   };
 
   const getPmPhotoUrl = () => {
@@ -391,7 +434,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
         <div className="p-4 space-y-4">
           {/* Responsible Leaders Section at the Top */}
           <div className="border-b border-gray-100 pb-3">
-            <h4 className="text-sm font-medium text-gray-600 mb-3">Responsible Leaders</h4>
+            <h4 className="text-sm font-medium text-gray-600 mb-3">
+              Responsible Leaders
+            </h4>
             <div className="flex items-center justify-center space-x-4">
               {/* Prime Minister */}
               <div className="flex flex-col items-center space-y-1">
@@ -407,7 +452,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium text-gray-900 leading-tight">{getPmDisplayName()}</p>
+                  <p className="text-xs font-medium text-gray-900 leading-tight">
+                    {getPmDisplayName()}
+                  </p>
                   <p className="text-xs text-gray-500">PM</p>
                 </div>
               </div>
@@ -426,7 +473,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium text-gray-900 leading-tight">{getCmDisplayName()}</p>
+                  <p className="text-xs font-medium text-gray-900 leading-tight">
+                    {getCmDisplayName()}
+                  </p>
                   <p className="text-xs text-gray-500">CM</p>
                 </div>
               </div>
@@ -446,7 +495,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     )}
                   </div>
                   <div className="text-center">
-                    <p className="text-xs font-medium text-gray-900 leading-tight">{report.mlaName}</p>
+                    <p className="text-xs font-medium text-gray-900 leading-tight">
+                      {report.mlaName}
+                    </p>
                     <p className="text-xs text-gray-500">MLA</p>
                   </div>
                 </div>
@@ -455,7 +506,10 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
           </div>
 
           {/* Report Image - Clickable to view full size */}
-          <div className="relative group cursor-pointer" onClick={() => setShowFullPhotoModal(true)}>
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => setShowFullPhotoModal(true)}
+          >
             {imageUrl ? (
               <>
                 <img
@@ -470,18 +524,19 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     <span>View Full Photo</span>
                   </div>
                 </div>
-                
+
                 {isEditing && (
                   <div className="absolute top-2 right-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent triggering the full photo modal
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
                         input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) handlePhotoSelect(file, 'main');
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (file) handlePhotoSelect(file, "main");
                         };
                         input.click();
                       }}
@@ -492,7 +547,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     </button>
                   </div>
                 )}
-                
+
                 {newMainPhoto && (
                   <div className="absolute bottom-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs">
                     New photo selected
@@ -501,7 +556,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               </>
             ) : (
               <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 text-base">Loading image...</span>
+                <span className="text-gray-500 text-base">
+                  Loading image...
+                </span>
               </div>
             )}
           </div>
@@ -519,26 +576,34 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 <input
                   type="text"
                   value={editForm.issueType}
-                  onChange={(e) => setEditForm({ ...editForm, issueType: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, issueType: e.target.value })
+                  }
                   className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm mr-2"
                 />
               ) : (
-                <span className={`px-3 py-1 rounded-full text-base font-medium ${getIssueTypeColor(report.issueType)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-base font-medium ${getIssueTypeColor(report.issueType)}`}
+                >
                   {getIssueTypeEmoji(report.issueType)} {report.issueType}
                 </span>
               )}
-              
+
               {isEditing ? (
                 <select
                   value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, status: e.target.value })
+                  }
                   className="px-2 py-1 border border-gray-300 rounded text-sm"
                 >
                   <option value="Open">Open</option>
                   <option value="Resolved">Resolved</option>
                 </select>
               ) : (
-                <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${getStatusColor(report.status)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${getStatusColor(report.status)}`}
+                >
                   {getStatusIcon(report.status)}
                   <span>{getStatusDisplayText(report.status)}</span>
                 </span>
@@ -552,12 +617,14 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 <input
                   type="text"
                   value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, username: e.target.value })
+                  }
                   placeholder="Username"
                   className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                 />
               ) : (
-                <span>Reported by: {report.username || 'Anonymous'}</span>
+                <span>Reported by: {report.username || "Anonymous"}</span>
               )}
             </div>
 
@@ -567,15 +634,15 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               {isEditing ? (
                 <textarea
                   value={editForm.customAddress}
-                  onChange={(e) => setEditForm({ ...editForm, customAddress: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, customAddress: e.target.value })
+                  }
                   placeholder="Custom address (leave empty to use auto-detected)"
                   className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm resize-none"
                   rows={2}
                 />
               ) : (
-                <span className="break-words">
-                  {formatLocationDisplay()}
-                </span>
+                <span className="break-words">{formatLocationDisplay()}</span>
               )}
             </div>
 
@@ -587,13 +654,20 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
             {/* PM and CM Photos Section - Only shown in edit mode */}
             {isEditing && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
-                <h4 className="text-sm font-semibold text-blue-800">Leader Photos (Admin Control)</h4>
-                <p className="text-xs text-blue-600">Note: Leader information should be managed through the Admin Directory for consistency across all reports.</p>
-                
+                <h4 className="text-sm font-semibold text-blue-800">
+                  Leader Photos (Admin Control)
+                </h4>
+                <p className="text-xs text-blue-600">
+                  Note: Leader information should be managed through the Admin
+                  Directory for consistency across all reports.
+                </p>
+
                 {/* PM Photo */}
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-700">Prime Minister Photo:</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Prime Minister Photo:
+                    </span>
                     {getPmPhotoUrl() && (
                       <img
                         src={getPmPhotoUrl()!}
@@ -606,18 +680,21 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     <input
                       type="text"
                       value={editForm.pmName}
-                      onChange={(e) => setEditForm({ ...editForm, pmName: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, pmName: e.target.value })
+                      }
                       placeholder="PM Name"
                       className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                     <button
                       onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
                         input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) handlePhotoSelect(file, 'pm');
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (file) handlePhotoSelect(file, "pm");
                         };
                         input.click();
                       }}
@@ -626,7 +703,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                       Replace PM Photo
                     </button>
                     {newPmPhoto && (
-                      <span className="text-xs text-green-600">New photo selected</span>
+                      <span className="text-xs text-green-600">
+                        New photo selected
+                      </span>
                     )}
                   </div>
                 </div>
@@ -634,7 +713,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 {/* CM Photo */}
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-700">Chief Minister Photo:</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Chief Minister Photo:
+                    </span>
                     {getCmPhotoUrl() && (
                       <img
                         src={getCmPhotoUrl()!}
@@ -647,18 +728,21 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     <input
                       type="text"
                       value={editForm.cmName}
-                      onChange={(e) => setEditForm({ ...editForm, cmName: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, cmName: e.target.value })
+                      }
                       placeholder="CM Name"
                       className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                     <button
                       onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
                         input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) handlePhotoSelect(file, 'cm');
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (file) handlePhotoSelect(file, "cm");
                         };
                         input.click();
                       }}
@@ -667,7 +751,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                       Replace CM Photo
                     </button>
                     {newCmPhoto && (
-                      <span className="text-xs text-green-600">New photo selected</span>
+                      <span className="text-xs text-green-600">
+                        New photo selected
+                      </span>
                     )}
                   </div>
                 </div>
@@ -682,19 +768,22 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                   <input
                     type="text"
                     value={editForm.mlaName}
-                    onChange={(e) => setEditForm({ ...editForm, mlaName: e.target.value })}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, mlaName: e.target.value })
+                    }
                     placeholder="MLA Name"
                     className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                   />
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
                         input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) handlePhotoSelect(file, 'mla');
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (file) handlePhotoSelect(file, "mla");
                         };
                         input.click();
                       }}
@@ -703,12 +792,14 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                       Replace MLA Photo
                     </button>
                     {newMlaPhoto && (
-                      <span className="text-xs text-green-600">New photo selected</span>
+                      <span className="text-xs text-green-600">
+                        New photo selected
+                      </span>
                     )}
                   </div>
                 </div>
               ) : (
-                <span>MLA: {report.mlaName || 'Not specified'}</span>
+                <span>MLA: {report.mlaName || "Not specified"}</span>
               )}
             </div>
 
@@ -718,33 +809,49 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               {isEditing ? (
                 <textarea
                   value={editForm.notes}
-                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, notes: e.target.value })
+                  }
                   placeholder="Notes/Comments"
                   className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm resize-none"
                   rows={3}
                 />
               ) : (
-                <span className="break-words">{report.notes || 'No notes'}</span>
+                <span className="break-words">
+                  {report.notes || "No notes"}
+                </span>
               )}
             </div>
 
             {/* Resolution Details for Resolved Reports */}
-            {report.status.toLowerCase() === 'resolved' && (
+            {report.status.toLowerCase() === "resolved" && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                <h4 className="text-sm font-semibold text-green-800">Resolution Details</h4>
-                
+                <h4 className="text-sm font-semibold text-green-800">
+                  Resolution Details
+                </h4>
+
                 {isEditing ? (
                   <div className="space-y-2">
                     <input
                       type="text"
                       value={editForm.reporterName}
-                      onChange={(e) => setEditForm({ ...editForm, reporterName: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          reporterName: e.target.value,
+                        })
+                      }
                       placeholder="Reporter Name"
                       className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                     <textarea
                       value={editForm.completionNotes}
-                      onChange={(e) => setEditForm({ ...editForm, completionNotes: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          completionNotes: e.target.value,
+                        })
+                      }
                       placeholder="Completion Notes"
                       className="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
                       rows={2}
@@ -752,12 +859,13 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
                           input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) handlePhotoSelect(file, 'proof');
+                            const file = (e.target as HTMLInputElement)
+                              .files?.[0];
+                            if (file) handlePhotoSelect(file, "proof");
                           };
                           input.click();
                         }}
@@ -766,7 +874,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                         Replace Proof Photo
                       </button>
                       {newProofPhoto && (
-                        <span className="text-xs text-green-600">New proof photo selected</span>
+                        <span className="text-xs text-green-600">
+                          New proof photo selected
+                        </span>
                       )}
                     </div>
                   </div>
@@ -785,7 +895,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     {/* Resolution Photo Thumbnail */}
                     {proofImageUrl && (
                       <div className="mt-3">
-                        <p className="text-sm font-medium text-green-800 mb-2">Resolution Photo:</p>
+                        <p className="text-sm font-medium text-green-800 mb-2">
+                          Resolution Photo:
+                        </p>
                         <button
                           onClick={() => setShowProofModal(true)}
                           className="block hover:opacity-80 transition-opacity"
@@ -796,7 +908,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                             className="w-20 h-20 object-cover rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-400 transition-colors"
                           />
                         </button>
-                        <p className="text-xs text-green-600 mt-1">Click to view full size</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          Click to view full size
+                        </p>
                       </div>
                     )}
                   </>
@@ -815,7 +929,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                   className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
                 >
                   <Save className="h-4 w-4" />
-                  <span>{isUploading ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{isUploading ? "Saving..." : "Save Changes"}</span>
                 </button>
                 <button
                   onClick={handleCancel}
@@ -840,16 +954,16 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     className="flex-1 bg-blue-600 text-white py-2.5 px-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center space-x-1.5 shadow-sm min-h-[42px]"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span>{isDeleting ? 'Deleting...' : 'Delete Report'}</span>
+                    <span>{isDeleting ? "Deleting..." : "Delete Report"}</span>
                   </button>
                 </div>
-                
+
                 {/* Certificate Actions - Uniform styling with uniform icon sizes */}
                 <div className="space-y-2">
                   <div className="flex space-x-2">
                     <CertificateGenerator report={report} imageUrl={imageUrl} />
                   </div>
-                  
+
                   {/* Additional Actions with uniform icon sizes */}
                   <div className="flex space-x-2">
                     <button
@@ -897,10 +1011,16 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                     <p className="text-sm opacity-90">Report ID: {report.id}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm opacity-90">{formatDate(report.timestamp)}</p>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      report.status.toLowerCase() === 'resolved' ? 'bg-green-500' : 'bg-blue-500'
-                    }`}>
+                    <p className="text-sm opacity-90">
+                      {formatDate(report.timestamp)}
+                    </p>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                        report.status.toLowerCase() === "resolved"
+                          ? "bg-green-500"
+                          : "bg-blue-500"
+                      }`}
+                    >
                       {getStatusDisplayText(report.status)}
                     </span>
                   </div>
@@ -919,14 +1039,17 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               <div className="bg-red-100 p-2 rounded-full">
                 <Trash2 className="h-6 w-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Report</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Delete Report
+              </h3>
             </div>
-            
+
             <div className="mb-6">
               <p className="text-gray-600 mb-4">
-                Are you sure you want to permanently delete this report? This action cannot be undone.
+                Are you sure you want to permanently delete this report? This
+                action cannot be undone.
               </p>
-              
+
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <div className="flex items-start space-x-2">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 shrink-0" />
@@ -940,7 +1063,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex space-x-3">
               <button
                 onClick={handleDelete}
@@ -948,7 +1071,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
               >
                 <Trash2 className="h-4 w-4" />
-                <span>{isDeleting ? 'Deleting...' : 'Delete Report'}</span>
+                <span>{isDeleting ? "Deleting..." : "Delete Report"}</span>
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
@@ -980,7 +1103,9 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
             <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 rounded-b-lg">
               <p className="text-center font-medium">Resolution Photo</p>
               {report.reporterName && (
-                <p className="text-center text-sm opacity-90">Resolved by: {report.reporterName}</p>
+                <p className="text-center text-sm opacity-90">
+                  Resolved by: {report.reporterName}
+                </p>
               )}
             </div>
           </div>
@@ -989,4 +1114,3 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
     </>
   );
 }
-
