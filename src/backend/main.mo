@@ -303,6 +303,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportStatus(id : Text, newStatus : Text, proofPhotoPath : Text, reporterName : Text, completionNotes : ?Text, isVolunteer : Bool) : async Bool {
+        AccessControl.initialize(accessControlState, caller);
         switch (reports.get(id)) {
             case (null) { false };
             case (?report) {
@@ -365,6 +366,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func deleteReport(id : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can delete reports");
         };
@@ -436,6 +438,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func uploadLogo(logoData : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can upload logos");
         };
@@ -472,6 +475,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addAdmin(newAdmin : Principal) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add new admins");
         };
@@ -479,6 +483,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func removeAdmin(adminToRemove : Principal) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can remove admins");
         };
@@ -489,6 +494,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReport(id : Text, updatedReport : Report) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update reports");
         };
@@ -503,6 +509,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateLocalCivicBody(id : Text, bodyType : Text, bodyName : Text, representativeName : Text, photoPath : ?Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update local civic body details");
         };
@@ -531,6 +538,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func createFeature(sectionId : Text, featureData : RoadmapFeature) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can create features");
         };
@@ -545,6 +553,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateFeature(featureId : Text, featureData : RoadmapFeature) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update features");
         };
@@ -570,6 +579,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func deleteFeature(featureId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can delete features");
         };
@@ -583,6 +593,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func moveFeature(featureId : Text, newSectionId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can move features");
         };
@@ -612,10 +623,12 @@ persistent actor {
     };
 
     public shared ({ caller }) func requestApproval() : async () {
+        AccessControl.initialize(accessControlState, caller);
         UserApproval.requestApproval(approvalState, caller);
     };
 
     public shared ({ caller }) func setApproval(user : Principal, status : UserApproval.ApprovalStatus) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can perform this action");
         };
@@ -651,6 +664,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func approveVolunteer(volunteerId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can approve volunteers");
         };
@@ -671,6 +685,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func rejectVolunteer(volunteerId : Text, rejectionNote : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can reject volunteers");
         };
@@ -691,6 +706,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateVolunteerPrivacy(volunteerId : Text, showFullMobile : Bool) : async () {
+        AccessControl.initialize(accessControlState, caller);
         switch (volunteers.get(volunteerId)) {
             case (null) {
                 Runtime.trap("Volunteer not found");
@@ -709,6 +725,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func submitVolunteerProfileEdit(volunteerId : Text, updates : VolunteerProfileUpdate) : async Text {
+        AccessControl.initialize(accessControlState, caller);
         switch (volunteers.get(volunteerId)) {
             case (null) {
                 Runtime.trap("Volunteer not found");
@@ -771,6 +788,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func approveVolunteerProfileEdit(editId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can approve profile edits");
         };
@@ -810,6 +828,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func rejectVolunteerProfileEdit(editId : Text, rejectionNote : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can reject profile edits");
         };
@@ -868,6 +887,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addState(stateName : Text, cm : ?Representative, isUnionTerritory : Bool) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add states");
         };
@@ -891,6 +911,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addUnionTerritory(utName : Text, administrator : ?Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add union territories");
         };
@@ -907,6 +928,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addConstituency(stateName : Text, constituencyName : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add constituencies");
         };
@@ -959,6 +981,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addMpToConstituency(stateName : Text, constituencyName : Text, mp : Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add MPs");
         };
@@ -1036,6 +1059,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addMlaToConstituency(stateName : Text, constituencyName : Text, mla : Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add MLAs");
         };
@@ -1113,6 +1137,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func addAdministrativeUnit(name : Text, unitType : Text, parentState : ?Text, parentConstituency : ?Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can add administrative units");
         };
@@ -1129,6 +1154,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func setPrimeMinister(pm : Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can set the Prime Minister");
         };
@@ -1185,6 +1211,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateRepresentative(stateName : Text, constituencyName : Text, repType : Text, representative : Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update representatives");
         };
@@ -1286,6 +1313,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateDirectory(newDirectory : Directory) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update the directory");
         };
@@ -1293,6 +1321,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func deleteConstituency(stateName : Text, constituencyName : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can delete constituencies");
         };
@@ -1362,6 +1391,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func deleteRepresentative(stateName : Text, constituencyName : Text, repType : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can delete representatives");
         };
@@ -1463,6 +1493,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateState(stateName : Text, updatedState : State) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update states");
         };
@@ -1530,6 +1561,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateUnionTerritory(utName : Text, updatedUT : State) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update union territories");
         };
@@ -1597,6 +1629,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateConstituency(stateName : Text, constituencyName : Text, updatedConstituency : Constituency) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update constituencies");
         };
@@ -1666,6 +1699,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateRepresentativeDetails(stateName : Text, constituencyName : Text, repType : Text, repName : Text, updatedRep : Representative) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update representatives");
         };
@@ -1792,6 +1826,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateAdministrativeUnit(name : Text, updatedUnit : AdministrativeUnit) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update administrative units");
         };
@@ -1813,6 +1848,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func exportDirectory() : async Directory {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can export the directory");
         };
@@ -1820,6 +1856,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func importDirectory(newDirectory : Directory) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can import the directory");
         };
@@ -1851,6 +1888,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportLocation(id : Text, latitude : Float, longitude : Float) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update report locations");
         };
@@ -1869,6 +1907,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportPhoto(id : Text, photoPath : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update report photos");
         };
@@ -1887,6 +1926,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportMinisterPhotos(id : Text, mlaPhotoPath : ?Text, pmPhotoPath : ?Text, cmPhotoPath : ?Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update minister photos");
         };
@@ -1907,6 +1947,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportAddress(id : Text, address : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update report addresses");
         };
@@ -1925,6 +1966,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportCoordinates(id : Text, coordinates : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update report coordinates");
         };
@@ -1999,6 +2041,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportFullLocation(id : Text, latitude : Float, longitude : Float, customAddress : ?Text, address : Text, coordinates : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update full location data");
         };
@@ -2036,6 +2079,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportAddressAndCoordinates(id : Text, address : Text, coordinates : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update address and coordinates");
         };
@@ -2067,6 +2111,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateReportAdminTable(id : Text, address : Text, coordinates : Text, customAddress : ?Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update admin table data");
         };
@@ -2173,6 +2218,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func approveNgoNpo(ngoNpoId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can approve NGOs/NPOs");
         };
@@ -2193,6 +2239,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func rejectNgoNpo(ngoNpoId : Text, rejectionNote : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can reject NGOs/NPOs");
         };
@@ -2213,6 +2260,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateNgoNpoPrivacy(ngoNpoId : Text, showContactInfo : Bool) : async () {
+        AccessControl.initialize(accessControlState, caller);
         switch (ngoNpos.get(ngoNpoId)) {
             case (null) {
                 Runtime.trap("NGO/NPO not found");
@@ -2293,6 +2341,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func updateFeedbackStatus(feedbackId : Text, status : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can update feedback status");
         };
@@ -2311,6 +2360,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func respondToFeedback(feedbackId : Text, response : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can respond to feedback");
         };
@@ -2364,6 +2414,7 @@ persistent actor {
     };
 
     public shared ({ caller }) func deleteFeedback(feedbackId : Text) : async () {
+        AccessControl.initialize(accessControlState, caller);
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
             Runtime.trap("Unauthorized: Only admins can delete feedback");
         };
