@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import type React from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Constituency, Representative, State } from "../backend";
 import { useFileUpload, useFileUrl } from "../blob-storage/FileStorage";
@@ -46,6 +46,57 @@ import {
 
 type FormType = "state" | "lok-sabha" | "vidhan-sabha" | "prime-minister";
 type ViewMode = "lok-sabha" | "vidhan-sabha" | "both";
+
+function PhotoPreviewModal({
+  photoPath,
+  onClose,
+}: {
+  photoPath: string;
+  onClose: () => void;
+}) {
+  const { data: photoUrl } = useFileUrl(photoPath);
+  const filename = photoPath.split("/").pop() || photoPath;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      tabIndex={-1}
+    >
+      <div
+        className="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-4"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 transition-colors"
+          aria-label="Close preview"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="flex flex-col items-center gap-3 pt-4">
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={filename}
+              className="max-w-full max-h-[60vh] object-contain rounded-lg border border-gray-200"
+            />
+          ) : (
+            <div className="w-48 h-48 bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
+              <span className="text-xs text-gray-400">Loading...</span>
+            </div>
+          )}
+          <p className="text-xs text-gray-600 break-all text-center">
+            {filename}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AdminDirectory() {
   const {
@@ -82,6 +133,7 @@ export function AdminDirectory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStateFilter, setSelectedStateFilter] = useState<string>("all");
   const [photoModalUrl, setPhotoModalUrl] = useState<string | null>(null);
+  const [previewPhotoPath, setPreviewPhotoPath] = useState<string | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -846,19 +898,19 @@ export function AdminDirectory() {
     return filtered;
   };
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <Building2 className="h-12 w-12 text-blue-500 mx-auto mb-4 animate-pulse" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Loading Directory...
-        </h3>
-        <p className="text-gray-600">
-          Please wait while we fetch the administrative data.
-        </p>
-      </div>
-    );
-  }
+  // Loading spinner shown as overlay banner when data is being fetched
+  // (kept exactly as before, now alongside skeleton rows in the table body below)
+  const loadingBanner = isLoading ? (
+    <div className="bg-white rounded-lg shadow-md p-8 text-center">
+      <Building2 className="h-12 w-12 text-blue-500 mx-auto mb-4 animate-pulse" />
+      <h3 className="text-lg font-medium text-gray-900 mb-2">
+        Loading Directory...
+      </h3>
+      <p className="text-gray-600">
+        Please wait while we fetch the administrative data.
+      </p>
+    </div>
+  ) : null;
 
   const isPending =
     isAddingState ||
@@ -873,6 +925,7 @@ export function AdminDirectory() {
 
   return (
     <div className="space-y-6">
+      {loadingBanner}
       <input
         ref={fileInputRef}
         type="file"
@@ -905,6 +958,13 @@ export function AdminDirectory() {
             />
           </div>
         </div>
+      )}
+
+      {previewPhotoPath && (
+        <PhotoPreviewModal
+          photoPath={previewPhotoPath}
+          onClose={() => setPreviewPhotoPath(null)}
+        />
       )}
 
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -1391,50 +1451,92 @@ export function AdminDirectory() {
                   </tr>
                 </thead>
                 <tbody>
-                  <PrimeMinisterTableRow
-                    primeMinister={directory?.primeMinister}
-                    onPhotoClick={setPhotoModalUrl}
-                  />
-
-                  {filteredStates()
-                    .filter((state) => !state.isUnionTerritory)
-                    .map((state, stateIndex) => (
-                      <StateTableRows
-                        key={state.name}
-                        state={state}
-                        stateNumber={stateIndex + 1}
-                        levelLabel="State"
-                        isExpanded={expandedStates.has(state.name)}
-                        onToggle={() => toggleState(state.name)}
-                        expandedConstituencies={expandedConstituencies}
-                        onToggleConstituency={toggleConstituency}
-                        viewMode={viewMode}
-                        onDeleteConstituency={deleteConstituency}
-                        onDeleteRepresentative={deleteRep}
-                        onPhotoClick={setPhotoModalUrl}
-                        refetchDirectory={refetchDirectory}
+                  {isLoading ? (
+                    Array.from({ length: 7 }).map((_, i) => (
+                      <tr
+                        key={`skeleton-${i}`}
+                        className="border-b border-gray-200"
+                      >
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-10 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-28 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-8 w-8 bg-gray-200 animate-pulse rounded-full" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                        </td>
+                        <td className="p-2 sm:p-3">
+                          <div className="h-4 w-8 bg-gray-200 animate-pulse rounded mx-auto" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <>
+                      <PrimeMinisterTableRow
+                        primeMinister={directory?.primeMinister}
+                        onPhotoClick={setPreviewPhotoPath}
                       />
-                    ))}
 
-                  {filteredStates()
-                    .filter((state) => state.isUnionTerritory)
-                    .map((state, utIndex) => (
-                      <StateTableRows
-                        key={state.name}
-                        state={state}
-                        stateNumber={utIndex + 1}
-                        levelLabel="UT"
-                        isExpanded={expandedStates.has(state.name)}
-                        onToggle={() => toggleState(state.name)}
-                        expandedConstituencies={expandedConstituencies}
-                        onToggleConstituency={toggleConstituency}
-                        viewMode={viewMode}
-                        onDeleteConstituency={deleteConstituency}
-                        onDeleteRepresentative={deleteRep}
-                        onPhotoClick={setPhotoModalUrl}
-                        refetchDirectory={refetchDirectory}
-                      />
-                    ))}
+                      {filteredStates()
+                        .filter((state) => !state.isUnionTerritory)
+                        .map((state, stateIndex) => (
+                          <StateTableRows
+                            key={state.name}
+                            state={state}
+                            stateNumber={stateIndex + 1}
+                            levelLabel="State"
+                            isExpanded={expandedStates.has(state.name)}
+                            onToggle={() => toggleState(state.name)}
+                            expandedConstituencies={expandedConstituencies}
+                            onToggleConstituency={toggleConstituency}
+                            viewMode={viewMode}
+                            onDeleteConstituency={deleteConstituency}
+                            onDeleteRepresentative={deleteRep}
+                            onPhotoClick={setPreviewPhotoPath}
+                            refetchDirectory={refetchDirectory}
+                          />
+                        ))}
+
+                      {filteredStates()
+                        .filter((state) => state.isUnionTerritory)
+                        .map((state, utIndex) => (
+                          <StateTableRows
+                            key={state.name}
+                            state={state}
+                            stateNumber={utIndex + 1}
+                            levelLabel="UT"
+                            isExpanded={expandedStates.has(state.name)}
+                            onToggle={() => toggleState(state.name)}
+                            expandedConstituencies={expandedConstituencies}
+                            onToggleConstituency={toggleConstituency}
+                            viewMode={viewMode}
+                            onDeleteConstituency={deleteConstituency}
+                            onDeleteRepresentative={deleteRep}
+                            onPhotoClick={setPreviewPhotoPath}
+                            refetchDirectory={refetchDirectory}
+                          />
+                        ))}
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1457,15 +1559,44 @@ export function AdminDirectory() {
   );
 }
 
+// Inline IntersectionObserver hook — detects when a row is near the viewport
+function useIntersectionObserver(): [
+  React.RefObject<HTMLTableRowElement | null>,
+  boolean,
+] {
+  const ref = useRef<HTMLTableRowElement>(null);
+  const [isIntersecting, setIsIntersecting] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (isIntersecting) return; // already triggered, stop observing
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsIntersecting(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isIntersecting]);
+
+  return [ref, isIntersecting];
+}
+
 // Prime Minister Table Row Component (keeping existing implementation - no changes needed)
 function PrimeMinisterTableRow({
   primeMinister,
   onPhotoClick,
 }: {
   primeMinister?: Representative;
-  onPhotoClick: (url: string) => void;
+  onPhotoClick: (path: string) => void;
 }) {
-  const { data: pmPhotoUrl } = useFileUrl(primeMinister?.photoPath || "");
+  const [rowRef] = useIntersectionObserver();
   const [isEditing, setIsEditing] = useState(false);
   const { mutate: setPM } = useSetPrimeMinister();
   const { uploadFile } = useFileUpload();
@@ -1532,7 +1663,10 @@ function PrimeMinisterTableRow({
   };
 
   return (
-    <tr className="border-b border-gray-200 bg-purple-50 hover:bg-purple-100">
+    <tr
+      ref={rowRef}
+      className="border-b border-gray-200 bg-purple-50 hover:bg-purple-100"
+    >
       <td className="p-2 sm:p-3">
         <div className="flex items-center space-x-2">
           <Crown className="h-4 w-4 text-purple-600" />
@@ -1567,15 +1701,43 @@ function PrimeMinisterTableRow({
             className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
           />
         ) : (
-          pmPhotoUrl && (
-            <img
-              src={pmPhotoUrl}
-              alt={primeMinister?.name}
-              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => onPhotoClick(pmPhotoUrl)}
-              onKeyDown={(e) => e.key === "Enter" && onPhotoClick(pmPhotoUrl)}
-            />
-          )
+          <span
+            className="text-xs text-gray-700"
+            style={{
+              maxWidth: "120px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              display: "inline-block",
+              cursor: primeMinister?.photoPath ? "pointer" : "default",
+              color: primeMinister?.photoPath ? "#2563eb" : undefined,
+              textDecoration: primeMinister?.photoPath
+                ? "underline"
+                : undefined,
+            }}
+            onClick={() =>
+              primeMinister?.photoPath && onPhotoClick(primeMinister.photoPath)
+            }
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              primeMinister?.photoPath &&
+              onPhotoClick(primeMinister.photoPath)
+            }
+            title={
+              primeMinister?.photoPath
+                ? primeMinister.photoPath.split("/").pop()
+                : undefined
+            }
+            role={primeMinister?.photoPath ? "button" : undefined}
+            tabIndex={primeMinister?.photoPath ? 0 : undefined}
+          >
+            {primeMinister?.photoPath
+              ? (() => {
+                  const name = primeMinister.photoPath.split("/").pop() || "";
+                  return name.length > 20 ? name.slice(0, 20) + "…" : name;
+                })()
+              : "—"}
+          </span>
         )}
       </td>
       <td className="p-2 sm:p-3">
@@ -1719,10 +1881,10 @@ function StateTableRows({
   viewMode: ViewMode;
   onDeleteConstituency: any;
   onDeleteRepresentative: any;
-  onPhotoClick: (url: string) => void;
+  onPhotoClick: (path: string) => void;
   refetchDirectory: () => void;
 }) {
-  const { data: cmPhotoUrl } = useFileUrl(state.cm?.photoPath || "");
+  const [rowRef] = useIntersectionObserver();
   const [isEditing, setIsEditing] = useState(false);
   const { mutate: updateState } = useUpdateState();
   const { mutate: updateUT } = useUpdateUnionTerritory();
@@ -1873,7 +2035,10 @@ function StateTableRows({
 
   return (
     <>
-      <tr className="border-b border-gray-200 bg-blue-50 hover:bg-blue-100">
+      <tr
+        ref={rowRef}
+        className="border-b border-gray-200 bg-blue-50 hover:bg-blue-100"
+      >
         <td className="p-2 sm:p-3">
           {isEditing ? (
             <select
@@ -1946,15 +2111,41 @@ function StateTableRows({
               className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
             />
           ) : (
-            cmPhotoUrl && (
-              <img
-                src={cmPhotoUrl}
-                alt={state.cm?.name}
-                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onPhotoClick(cmPhotoUrl)}
-                onKeyDown={(e) => e.key === "Enter" && onPhotoClick(cmPhotoUrl)}
-              />
-            )
+            <span
+              className="text-xs text-gray-700"
+              style={{
+                maxWidth: "120px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                display: "inline-block",
+                cursor: state.cm?.photoPath ? "pointer" : "default",
+                color: state.cm?.photoPath ? "#2563eb" : undefined,
+                textDecoration: state.cm?.photoPath ? "underline" : undefined,
+              }}
+              onClick={() =>
+                state.cm?.photoPath && onPhotoClick(state.cm.photoPath)
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                state.cm?.photoPath &&
+                onPhotoClick(state.cm.photoPath)
+              }
+              title={
+                state.cm?.photoPath
+                  ? state.cm.photoPath.split("/").pop()
+                  : undefined
+              }
+              role={state.cm?.photoPath ? "button" : undefined}
+              tabIndex={state.cm?.photoPath ? 0 : undefined}
+            >
+              {state.cm?.photoPath
+                ? (() => {
+                    const name = state.cm.photoPath.split("/").pop() || "";
+                    return name.length > 20 ? name.slice(0, 20) + "…" : name;
+                  })()
+                : "—"}
+            </span>
           )}
         </td>
         <td className="p-2 sm:p-3">
@@ -2131,7 +2322,7 @@ function ConstituencyTableRow({
   viewMode: ViewMode;
   onDeleteConstituency: any;
   onDeleteRepresentative: any;
-  onPhotoClick: (url: string) => void;
+  onPhotoClick: (path: string) => void;
 }) {
   const representatives =
     type === "Lok Sabha"
@@ -2180,9 +2371,9 @@ function RepresentativeTableRow({
   repNumber: number;
   type: "Lok Sabha" | "Vidhan Sabha";
   onDeleteRepresentative: any;
-  onPhotoClick: (url: string) => void;
+  onPhotoClick: (path: string) => void;
 }) {
-  const { data: photoUrl } = useFileUrl(representative.photoPath);
+  const [rowRef] = useIntersectionObserver();
   const [isEditing, setIsEditing] = useState(false);
   const { mutate: updateRepDetails } = useUpdateRepresentativeDetails();
   const { mutate: updateConstituency } = useUpdateConstituency();
@@ -2343,7 +2534,7 @@ function RepresentativeTableRow({
 
   return (
     <>
-      <tr className={`border-b border-gray-200 ${bgColor}`}>
+      <tr ref={rowRef} className={`border-b border-gray-200 ${bgColor}`}>
         <td className="p-2 sm:p-3">
           <div className="text-xs font-medium text-gray-700 pl-4 sm:pl-8">
             {String(constituencyNumber).padStart(2, "0")} {type}
@@ -2390,15 +2581,45 @@ function RepresentativeTableRow({
               className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
             />
           ) : (
-            photoUrl && (
-              <img
-                src={photoUrl}
-                alt={representative.name}
-                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onPhotoClick(photoUrl)}
-                onKeyDown={(e) => e.key === "Enter" && onPhotoClick(photoUrl)}
-              />
-            )
+            <span
+              className="text-xs text-gray-700"
+              style={{
+                maxWidth: "120px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                display: "inline-block",
+                cursor: representative.photoPath ? "pointer" : "default",
+                color: representative.photoPath ? "#2563eb" : undefined,
+                textDecoration: representative.photoPath
+                  ? "underline"
+                  : undefined,
+              }}
+              onClick={() =>
+                representative.photoPath &&
+                onPhotoClick(representative.photoPath)
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                representative.photoPath &&
+                onPhotoClick(representative.photoPath)
+              }
+              title={
+                representative.photoPath
+                  ? representative.photoPath.split("/").pop()
+                  : undefined
+              }
+              role={representative.photoPath ? "button" : undefined}
+              tabIndex={representative.photoPath ? 0 : undefined}
+            >
+              {representative.photoPath
+                ? (() => {
+                    const name =
+                      representative.photoPath.split("/").pop() || "";
+                    return name.length > 20 ? name.slice(0, 20) + "…" : name;
+                  })()
+                : "—"}
+            </span>
           )}
         </td>
         <td className="p-2 sm:p-3">
