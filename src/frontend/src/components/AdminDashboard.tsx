@@ -830,6 +830,7 @@ function ProfileEditRequestCard({
                 src={currentPhotoUrl}
                 alt="Current"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-300"
+                loading="lazy"
               />
             ) : (
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center">
@@ -844,6 +845,7 @@ function ProfileEditRequestCard({
                 src={newPhotoUrl}
                 alt="New"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-purple-500"
+                loading="lazy"
               />
             ) : (
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-200 flex items-center justify-center">
@@ -997,6 +999,7 @@ function ProfileEditDetailsModal({
                       src={currentPhotoUrl}
                       alt="Current"
                       className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center">
@@ -1067,6 +1070,7 @@ function ProfileEditDetailsModal({
                       src={newPhotoUrl}
                       alt="New"
                       className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-purple-500"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-purple-200 flex items-center justify-center">
@@ -1207,6 +1211,7 @@ function VolunteerApplicationCard({
               src={photoUrl}
               alt={`${volunteer.name} profile`}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200"
+              loading="lazy"
             />
           ) : (
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center">
@@ -1330,6 +1335,7 @@ function NgoNpoApplicationCard({
               src={logoUrl}
               alt={`${ngoNpo.organizationName} logo`}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border-2 border-gray-200"
+              loading="lazy"
             />
           ) : (
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-200 flex items-center justify-center">
@@ -1459,6 +1465,7 @@ function VolunteerDetailsModal({
                     src={photoUrl}
                     alt={`${volunteer.name} profile`}
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center">
@@ -1619,6 +1626,7 @@ function NgoNpoDetailsModal({
                     src={logoUrl}
                     alt={`${ngoNpo.organizationName} logo`}
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border-4 border-gray-200"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gray-200 flex items-center justify-center">

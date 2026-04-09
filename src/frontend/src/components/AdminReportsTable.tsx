@@ -25,7 +25,13 @@ import {
   Waves,
   X,
 } from "lucide-react";
-import React, { useState, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import type { LocalCivicBody, Report, Representative } from "../backend";
 import { useFileUpload, useFileUrl } from "../blob-storage/FileStorage";
 import {
@@ -1299,6 +1305,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                 src={displayUrl}
                 alt={altText}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <Eye className="h-3 w-3 text-white" />
@@ -1346,7 +1353,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
   };
 
   // OPTIMIZED: Component for minister info display with efficient image loading
-  const MinisterInfo = React.memo(
+  const MinisterInfoContent = React.memo(
     ({
       report,
       isEditing = false,
@@ -1431,6 +1438,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={getPmPhotoUrl()!}
                       alt="PM"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -1463,6 +1471,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={getCmPhotoUrl()!}
                       alt="CM"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -1496,6 +1505,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={getMpPhotoUrl()!}
                       alt="MP"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -1577,6 +1587,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={getMlaPhotoUrl()!}
                       alt="MLA"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -1628,6 +1639,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={getCivicBodyPhotoUrl()!}
                       alt="Civic Body"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <Building2 className="h-6 w-6 text-gray-400" />
@@ -1715,6 +1727,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                   src={getPmPhotoUrl()!}
                   alt="PM"
                   className="w-full h-full object-cover cursor-pointer"
+                  loading="lazy"
                   onClick={() =>
                     getPmPhotoUrl() &&
                     setShowFullPhotoModal({
@@ -1743,6 +1756,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                   src={getCmPhotoUrl()!}
                   alt="CM"
                   className="w-full h-full object-cover cursor-pointer"
+                  loading="lazy"
                   onClick={() =>
                     getCmPhotoUrl() &&
                     setShowFullPhotoModal({
@@ -1773,6 +1787,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                     src={getMpPhotoUrl()!}
                     alt="MP"
                     className="w-full h-full object-cover cursor-pointer"
+                    loading="lazy"
                     onClick={() =>
                       getMpPhotoUrl() &&
                       setShowFullPhotoModal({
@@ -1804,6 +1819,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                     src={getMlaPhotoUrl()!}
                     alt="MLA"
                     className="w-full h-full object-cover cursor-pointer"
+                    loading="lazy"
                     onClick={() =>
                       setShowFullPhotoModal({
                         reportId: report.id,
@@ -1834,6 +1850,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                     src={getCivicBodyPhotoUrl()!}
                     alt="Civic Body"
                     className="w-full h-full object-cover cursor-pointer"
+                    loading="lazy"
                     onClick={() =>
                       setShowFullPhotoModal({
                         reportId: report.id,
@@ -1868,8 +1885,46 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
     },
   );
 
+  // Visibility-gated wrapper for MinisterInfo — defers all useFileUrl calls
+  // until the row is near the viewport, preventing 700+ concurrent requests on mount
+  const MinisterInfo = ({
+    report,
+    isEditing = false,
+  }: { report: Report; isEditing?: boolean }) => {
+    const visRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+    useEffect(() => {
+      const el = visRef.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: "150px" },
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, []);
+    return (
+      <div ref={visRef} style={{ minHeight: isVisible ? undefined : "2rem" }}>
+        {isVisible ? (
+          <MinisterInfoContent report={report} isEditing={isEditing} />
+        ) : (
+          <div className="flex items-center space-x-1">
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Component for status display with collapsible resolution details
-  const StatusDisplay = ({
+  const StatusDisplayContent = ({
     report,
     isEditing = false,
   }: { report: Report; isEditing?: boolean }) => {
@@ -1944,6 +1999,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                           }
                           alt="Resolution Photo"
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                           <Eye className="h-3 w-3 text-white" />
@@ -2054,6 +2110,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                         src={proofImageUrl}
                         alt="Resolution Photo"
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <Eye className="h-3 w-3 text-white" />
@@ -2065,6 +2122,40 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
               </div>
             )}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  // Visibility-gated wrapper for StatusDisplay — defers proof photo URL resolution
+  // until the row is near the viewport
+  const StatusDisplay = ({
+    report,
+    isEditing = false,
+  }: { report: Report; isEditing?: boolean }) => {
+    const visRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+    useEffect(() => {
+      const el = visRef.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: "150px" },
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, []);
+    return (
+      <div ref={visRef} style={{ minHeight: isVisible ? undefined : "1.5rem" }}>
+        {isVisible ? (
+          <StatusDisplayContent report={report} isEditing={isEditing} />
+        ) : (
+          <div className="w-16 h-5 rounded bg-muted animate-pulse" />
         )}
       </div>
     );
@@ -2582,6 +2673,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                       src={resolutionFormData.proofPhotoPreview}
                       alt="Proof Preview"
                       className="w-full h-32 object-cover rounded-lg border"
+                      loading="lazy"
                     />
                     <button
                       type="button"
@@ -2825,6 +2917,7 @@ export function AdminReportsTable({ reports }: AdminReportsTableProps) {
                 src={showFullPhotoModal.imageUrl}
                 alt="Full size photo"
                 className="w-full h-auto max-h-[80vh] object-contain"
+                loading="eager"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-4">
                 <div className="flex items-center justify-between">

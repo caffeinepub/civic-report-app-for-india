@@ -446,6 +446,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                       src={getPmPhotoUrl()!}
                       alt="Prime Minister"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -467,6 +468,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                       src={getCmPhotoUrl()!}
                       alt="Chief Minister"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <User className="h-6 w-6 text-gray-400" />
@@ -489,6 +491,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                         src={mlaImageUrl}
                         alt="MLA"
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <User className="h-6 w-6 text-gray-400" />
@@ -516,6 +519,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                   src={imageUrl}
                   alt="Report"
                   className="w-full h-48 object-cover rounded-lg"
+                  loading="lazy"
                 />
                 {/* Hover overlay to indicate clickability */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -673,6 +677,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                         src={getPmPhotoUrl()!}
                         alt="PM"
                         className="w-12 h-12 object-cover rounded border"
+                        loading="lazy"
                       />
                     )}
                   </div>
@@ -721,6 +726,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                         src={getCmPhotoUrl()!}
                         alt="CM"
                         className="w-12 h-12 object-cover rounded border"
+                        loading="lazy"
                       />
                     )}
                   </div>
@@ -906,6 +912,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                             src={proofImageUrl}
                             alt="Resolution proof"
                             className="w-20 h-20 object-cover rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-400 transition-colors"
+                            loading="lazy"
                           />
                         </button>
                         <p className="text-xs text-green-600 mt-1">
@@ -1003,6 +1010,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
                 src={imageUrl}
                 alt="Full size report photo"
                 className="w-full h-auto max-h-[80vh] object-contain"
+                loading="lazy"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-4">
                 <div className="flex items-center justify-between">
@@ -1099,6 +1107,7 @@ export function AdminReportCard({ report }: AdminReportCardProps) {
               src={proofImageUrl}
               alt="Resolution proof - full size"
               className="max-w-full max-h-full object-contain rounded-lg"
+              loading="lazy"
             />
             <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 rounded-b-lg">
               <p className="text-center font-medium">Resolution Photo</p>
